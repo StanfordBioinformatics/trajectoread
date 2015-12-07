@@ -29,6 +29,8 @@ Author : pbilling
 # Upload fastq files
 # Update dashboard entry
 
+## Inserting line to test whether I can grab commit data to label applets
+
 ## Classes
 FlowcellLane()
 	dashboard_record : dxid
