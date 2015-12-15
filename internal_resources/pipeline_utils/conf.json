@@ -1,0 +1,198 @@
+{
+	
+	"pythonPackagesDir": "/usr/local/lib/python2.7/dist-packages",
+
+	"compressors": {
+		"BZIP": 1,
+		"GZIP": 2
+	},
+
+	"tools": {
+		"collect_uniqueness_metrics": {
+			"dxSrcFolder": "/in-house/collect_uniqueness_metrics/src",
+			"dxBinFolder": "/in-house/collect_uniqueness_metrics"
+		},
+		"bwa_mismatches": {
+			"dxSrcFolder": "/in-house/bwa_mismatches/src",
+			"dxBinFolder": "/in-house/bwa_mismatches"
+		}
+	},
+
+	"formats": {
+		"fastq": "fastq"
+	},
+
+	"appletNames": {
+		"casava_bcl_to_fastq": "casava_bcl_to_fastq",
+		"compressed_mappings_importer": "compressed_mappings_importer",
+		"compute_sample_coverage": "compute_sample_coverage",
+		"map_sample": "map_sample",
+		"prepare_genome": "prepare_genome",
+		"process_lane": "process_lane",
+		"process_sample": "process_sample",
+		"qc_sample": "qc_sample",
+		"release_lane": "release_lane",
+		"tar_files": "tar_files"
+	},
+		
+
+	"fastqFileProps": {
+	 	"FCID"          : "FCID",
+    "LANE"          : "Lane",
+    "SAMPLE_ID"     : "SampleID",
+    "SAMPLE_REF"    : "SampleRef",
+    "INDEX"         : "Index",
+    "DESCRIPTION"   : "Description",
+    "CONTROL"       : "Control",
+    "RECIPE"        : "Recipe",
+    "OPERATOR"      : "Operator",
+    "SAMPLE_PROJECT": "SampleProject",
+
+		"FORMAT"        : "format",
+		"READ"          : "Read",
+		"CHUNK"         : "Chunk",
+		"NUM_READS"     : "NumReads"
+	},
+
+	"pipelineAttributeNames": { 
+		"pairedEnd": {
+			"name": "pairedEend",
+			"type": 1,
+			"values": {
+					"true": "True",
+					"false": "False"
+			}
+		},
+		"dashboardRecordId": {
+			"name": "dashboardRecordId",
+			"type": 1
+		},
+		"runMetadataTarFile": {
+			"name": "runMetadataTarFile",
+			"type": 1
+		},
+		"interopTarFile": {
+			"name": "interopTarFile",
+			"type": 1
+		},
+		"laneTarFile": {
+			"name": "laneTarFile",
+			"type": 1
+		},
+		"uploadDate": {
+				"name": "uploadDate",
+				"type": 2
+		},
+		"runName": {
+				"name": "run",
+				"type": 2
+		},
+		"lane": {
+				"name": "lane",
+				"type": 2
+		},
+		"runProject": {
+				"name": "runProject",
+				"type": 2
+		},
+		"laneProject": {
+				"name": "laneProject",
+				"type": 2
+		},
+		"email": {
+				"name": "email",
+				"type": 2
+		}, 
+		"user": {
+				"name": "user",
+				"type": 2
+		},
+		"mappingReference": {
+				"name": "mappingReference",
+				"type": 2
+		},  
+		"library": {
+				"name": "library",
+				"type": 2
+		},
+		"dnanexus_userid": {
+				"name": "dnanexus_userid",
+				"type": 1
+		},
+		"pipelineStage": {
+				"name"  : "status",
+				"type"  :  1,
+				"values": {
+						"demux": "running_casava",
+						"pipeline": "running_pipeline",
+						"reviewing": "reviewing",
+						"complete": "ready",
+						"released": "released"
+					
+				}
+		},
+		"limsToken": {
+				"name" : "lims_token",
+				"type" : 1
+		},
+		"limsUrl": {
+				"name" : "lims_url",
+				"type" : 1
+		},
+		"environment": {
+				"name" : "environment",
+				"type": 1
+		},
+		"mappingProgram":  {
+				"name": "mappingProgram",
+				"type": 1
+		},
+		"qcReportID": {
+				"name": "qcReportID",
+				"type": 1
+		},
+		"format": {
+			"name": "format",
+			"type": 1
+		}
+	},
+
+
+	"validEnvironments": ["production","staging"],
+	"resourceBundleName": "scgpm_resources.tar.gz",
+	"appletsSrc": "../applets",
+	"daysToSponsorProjects": 90,
+	"sample_sheet_folder": "/sample_sheets",
+	"run_project_tar_folder": "/tar_files",
+	"fastq_files_folder": "/fastq_files",
+	"dashboardRecordPropertyConstant": 1,
+	"dashboardRecordDetailConstant": 2,
+  "projects": {
+    "accountSettingsProject": {
+			"name"   : "SCGPM Pipeline",
+			"folders": {
+				"applets" : "/Applets",
+				"appletsArchive": "/.Applet_archive",
+				"commonResourceBundle": "/CommonResourceBundle"
+			}
+		},
+
+    "genomesProject"  : {
+			"name"   : "SCGPM Reference Genomes",
+			"folders": {}
+		},
+
+    "dashboardProject": {
+			"name"   : "SCGPM Dashboard Data",
+			"folders": {},
+			"contributeAccessToken": "kKEI8Hb3g6k3gUqjD6ZrP9hoiTIUkNV7",
+			"recordTypeName": "SCGPMRun"
+		}
+  },
+
+	"mappingPrograms" : {
+		"bwa": "bwa",
+		"bwa_aln": "bwa_aln",
+		"bwa_mem": "bwa_mem"
+	}
+}
