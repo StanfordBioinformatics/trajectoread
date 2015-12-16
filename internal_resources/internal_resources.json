@@ -1,0 +1,22 @@
+{
+	"dnanexus_path": {
+		"python_dist-packages": {
+			"path": "/usr/local/lib/python2.7/dist-packages/"
+		},
+		"usr_bin": {
+			"path": "/usr/bin" 
+		}
+	},
+	"python_package": {
+		"scgpm_lims": {
+			"local_path": "python_packages/scgpm_lims",
+			"dnanexus_location": "python_dist-packages"
+		}
+	},
+	"script": {
+		"create_sample_sheet.py": {
+			"local_path": "scripts/create_sample_sheet.py",
+			"dnanexus_location": "usr_bin"
+		}
+	}
+}

@@ -10,6 +10,7 @@ import os
 import sys
 import dxpy
 import json
+import stat
 import shutil
 import datetime
 import subprocess
@@ -40,7 +41,7 @@ class Applet:
 
 
 		timestamp = str(datetime.datetime.now()).split()[0]	# yyyy-mm-dd
-		current_commit = self._get_git_commit()
+		current_commit = self._get_git_commit().rstrip()
 		self.version_label = '%s_%s' % (timestamp, current_commit)
 		
 		self.bundled_depends = []
@@ -67,7 +68,7 @@ class Applet:
 			override_folder='/builds/%s' % self.version_label, override_name=self.name,
 			dry_run=dry_run)
 
-	def add_resource(self, local_resource_path):
+	def add_resource(self, local_path, dnanexus_path):
 		'''
 		Internal resources are locally stored and are added to an applet by
 		copying them into the applet/resource directory. Resources are added to
@@ -80,16 +81,17 @@ class Applet:
 		Returns:
 		'''
 		
-		applet_path = self.resources_path
+		applet_path = self.resources_path + dnanexus_path
+		ignored_patterns = shutil.ignore_patterns('*.git', '*.gitignore', 'tmp*')
 
-		#full_applet_path = resources_path + '/' + dnanexus_path
-		
 		# Copy all files and directories from local resource path into applet path
-		resource_files = os.listdir(local_resource_path)
-		for file_name in resouce_files:
-			full_local_path = os.path.join(local_resource_path, file_name)
-			if (os.path.isfile(full_local_path)):
-				shutil.copy(full_local_path, applet_path)
+		resource_files = os.listdir(local_path)
+		for file_name in resource_files:
+			full_local_path = os.path.join(local_path, file_name)
+			if (os.path.exists(full_local_path)):
+				self._copytree(full_local_path, applet_path, False, ignored_patterns)
+			else:
+				print 'Could not find internal applet resource file: ' + full_local_path 
 
 	def add_bundledDepends(self, external_resouce_dict):
 		'''
@@ -133,6 +135,34 @@ class Applet:
 		commit = subprocess.check_output(['git', 'describe', '--always'])
 		return commit 
 
+	def _copytree(self, src, dst, symlinks = False, ignore = None):
+		# Author: Cyrille Pontvieux
+		# Source: http://stackoverflow.com/questions/1868714
+		if not os.path.exists(dst):
+			os.makedirs(dst)
+			shutil.copystat(src, dst)
+		lst = os.listdir(src)
+		if ignore:
+			excl = ignore(src, lst)
+			lst = [x for x in lst if x not in excl]
+		for item in lst:
+			s = os.path.join(src, item)
+			d = os.path.join(dst, item)
+			if symlinks and os.path.islink(s):
+				if os.path.lexists(d):
+					os.remove(d)
+				os.symlink(os.readlink(s), d)
+				try:
+					st = os.lstat(s)
+					mode = stat.S_IMODE(st.st_mode)
+					os.lchmod(d, mode)
+				except:
+					pass # lchmod not available
+			elif os.path.isdir(s):
+				self._copytree(s, d, symlinks, ignore)
+			else:
+				shutil.copy2(s, d)
+
 class ExternalResourceConfig:
 
 	def __init__(self, project_dxid, local_dir, name='external_resources.json', os="Ubuntu-12.04"):
@@ -173,8 +203,7 @@ class ExternalResourceConfig:
 			with open(config_path, 'r') as CONFIG:
 				self.config_data = json.load(filepath)
 		else:
-			print 'Error: Unrecognized configuration file type: %s for configuration file: %s' % 
-				(self.filetype, self.filename)
+			print 'Error: Unrecognized configuration file type: %s for configuration file: %s' % (self.filetype, self.filename)
 			sys.exit()
 
 	def get_filename_dxid(self, name, version=None):
@@ -193,15 +222,37 @@ class ExternalResourceConfig:
 				resource_filename = self.config_data[name]['versions'][version]['filename']
 				resource_dxid = self.config_data[name]['versions'][version]['dxid']
 			except:
-				print 'Error: Could not get external resource information for %s version %s' % 
-					(name, version)
+				print 'Error: Could not get external resource information for %s version %s' % (name, version)
 		resouce_dict = {'filename':resource_filename, 'dxid':resource_dxid}
 		return(resource_dict)
 
-class InternalResourceConfig:
+class InternalResourceManager:
 
-	def __init__(self):
-		!WRITE PLACEHOLDER CODE
+	def __init__(self, config_file):
+		with open(config_file, 'r') as CONFIG:
+			self.config = json.load(CONFIG)
+
+	def get_local_path(self, type, name, internal_resources_path):
+		relative_path = self.config[type][name]["local_path"]
+		full_path = internal_resources_path + '/' + relative_path
+		if (os.path.exists(full_path)):
+			return full_path
+		else:
+			print 'Could not find internal resource path:' + full_path
+			sys.exit()
+
+	def get_dnanexus_path(self, type, name):
+		path_name = self.config[type][name]["dnanexus_location"]
+		path = self.config["dnanexus_path"][path_name]["path"]
+		full_path = path + '/' + name
+		return full_path
+
+	''' 
+	Instead of having InternalResourceManager get the paths, have it handle
+	all the aspects of adding resources to the applet
+		InternalResourceManager.add_rsc_to_applet(applet, type, name, internal_resources_path)
+	'''
+
 
 def main():
 	dry_run = True	# Test mode
@@ -211,12 +262,12 @@ def main():
 	trajectoread_home = os.path.split(build_workflows_dir)[0]
 	external_resources_dir = os.path.join(trajectoread_home, 'external_resources')
 	applets_source_dir = os.path.join(trajectoread_home, 'applets_source')
-	internal_resources_dir = os.path.join(trajectoread_home, 'interal_resources')
+	internal_resources_dir = os.path.join(trajectoread_home, 'internal_resources')
 	applet_templates_dir = os.path.join(trajectoread_home, 'applet_templates')
 
 	## Set DNAnexus variables
 	dnanexus_os = "Ubuntu-12.04"
-	workflow_project_dxid = ''
+	workflow_project_dxid = 'project-BkZ4jqj02j8X0FgQJbY1Y183'
 	workflow_object_dxid = ''
 	workflow_name = 'WF_HiSeq4000_bcl2fastq'
 	external_resources_dxid = 'project-BkYXb580p6fv2VF8bjPYp2Qv'
@@ -224,6 +275,17 @@ def main():
 		'uhts_lims_url' : 'https://uhts.stanford.edu', 
 		'uhts_lims' : '9af4cc6d83fbfd793fe4'
 		}
+
+	## bcl2fastq Applet resource information
+	internal_resources_json = internal_resources_dir + '/' + 'internal_resources.json'
+	bcl2fastq_internal_resources = {
+		'python_package': ['scgpm_lims'],
+		'script': ['create_sample_sheet.py']
+		}
+	
+	bcl2fastq_external_resources = [
+		{'name':'bcl2fastq2', 'version':'2.17.1.14'}
+		]
 
 	# Check to make sure user is logged into DNAnexus
 	try:
@@ -244,30 +306,22 @@ def main():
 		dxpy.api.project_set_properties(object_id=workflow_project_dxid, 
 			input_params={"properties" : project_properties})	
 
+	## Create bcl2fastq applet object
 	bcl2fastq_name = 'bcl2fastq'
 	bcl2fastq_code = os.path.join(applets_source_dir, 'bcl2fastq.py')
 	bcl2fastq_config_template = os.path.join(applet_templates_dir, 'bcl2fastq.template.json')
-
-	bcl2fastq_internal_resources = [
-		'scgpm_lims'
-		]
-	# module load gbsc/limshostenv/prod
-	# module load gbsc/scgpm_lims/current
-	# module load bcl2fastq2/2.17.1.14
-	
-	bcl2fastq_external_resources = [
-		{'name':'bcl2fastq2', 'version':'2.17.1.14'}
-		]
-
-	## Create bcl2fastq applet object
 	bcl2fastq = Applet(trajectoread_home, bcl2fastq_name, bcl2fastq_code, 
 		bcl2fastq_config_template)
 
 	## Add bcl2fastq internal resources to resources/
-	internal_resource_list = InternalResourceList()
-	for resource in bcl2fastq_internal_resources:
-		resource_path = internal_resource_list[resource]['path']
-		bcl2fastq.add_resource(local_resource_path=resource_path)
+	internal_resource_manager = InternalResourceManager(internal_resources_json)
+	for resource_type in bcl2fastq_internal_resources:
+		for resource_name in bcl2fastq_internal_resources[resource_type]:
+			local_resource_path = internal_resource_manager.get_local_path(
+				resource_type, resource_name, internal_resources_dir)
+			dnanexus_resource_path = internal_resource_manager.get_dnanexus_path(
+				resource_type, resource_name)
+			bcl2fastq.add_resource(local_resource_path, dnanexus_resource_path)
 
 	## Add bcl2fastq external resources to configuration file	
 	external_resources_config = ExternalResourceConfig(external_resources_dxid, 
