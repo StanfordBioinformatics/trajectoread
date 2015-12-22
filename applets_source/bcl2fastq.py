@@ -1,13 +1,13 @@
 #!usr/bin/python
 ''' 
 Description : This applet will convert bcl files output by illumina sequencing
-	platforms to unmapped fastq files. It will be the first applet called by 
-	most sequence processing workflows on DNAnexus.
+    platforms to unmapped fastq files. It will be the first applet called by 
+    most sequence processing workflows on DNAnexus.
 
-	Most of the metadata necessary to run this applet should already be specified
-	in the dashboard record by the 'autocopy' script and the 'initiate_workflow'
-	applet. However, this applet will still need to pull barcode information from
-	the LIMS.
+    Most of the metadata necessary to run this applet should already be specified
+    in the dashboard record by the 'autocopy' script and the 'initiate_workflow'
+    applet. However, this applet will still need to pull barcode information from
+    the LIMS.
 
 Args : DNAnexus ID of dashboard record for sequencing lane project
 Returns : 
@@ -31,63 +31,172 @@ Author : pbilling
 
 ## Inserting line to test whether I can grab commit data to label applets
 
-## Classes
-FlowcellLane()
-	dashboard_record : dxid
-	rta_version : int
-	barcodes : list
-	run_project_id : dxid
-	run_project : DXProject
-	sequencing_run_name : string
-	lane_index : int
-	barcodes : list
-
-	convert_bcl2fastq(rta_version)
-	publish(files)
-	update_dashboard_record(dashboard_record, properties)
-
-LIMSHandler()
-	lims_url : string
-	lims_token : string
-
-	get_barcodes(flowcell.sequencing_run_name, flowcell.lane_index)
-
-
-## Modules in use:
-# gbsc/limshostenv/prod
-# gbsc/scgpm_lims/current
-# bcl2fastq2/2.17.1.14
 '''
 
 import dxpy
+import subprocess
+import os
+import datetime
+import time
 
 # Fx test 1: Create Flowcell class that is able to populate metadata from 
 # dashboard record.
 
-class FlowcellLane()
-	
-	def __init__(self, dashboard_record_dxid, dashboard_project_dxid):
-		
-		self.dashboard_record_dxid = dashboard_record_id
-		self.dashboard_project_dxid = dashboard_project_dxid
-		self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_id,
-			project = self.dashboard_project_dxid)
-		# self.rta_version = dashboard_record.properties['rta_version']
-		self.run_project_dxid = record.get_details()['runProject']
-		self.run_project = dxpy.DXProject(dxid = self.run_project_dxid)
-		self.run_name = record.get_details()['run']
-		self.lane_index = record.get_details()['lane']
-		self.barcodes = []
+class FlowcellLane:
+    
+    def __init__(self, dashboard_record_dxid, dashboard_project_dxid='project-BY82j6Q0jJxgg986V16FQzjx'):
+        
+        self.dashboard_record_dxid = dashboard_record_dxid
+        self.dashboard_project_dxid = dashboard_project_dxid
+        self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid,project = self.dashboard_project_dxid)
+        self.properties = self.dashboard_record.get_properties()
 
-	def describe():
-		print "Sequencing run: %s" % self.run_name
-		print "Flowcell lane index: %s" % self.lane_index
+        # For not just get/put everything in properties
+        self.lane_project_dxid = self.properties['lane_project_dxid']
+        self.run_name = self.properties['run']
+        self.lane_index = int(self.properties['lane'])
+        self.lims_url = self.properties['lims_url']
+        self.lims_token = self.properties['lims_token']
+        self.bcl2fastq_version = int(self.properties['bcl2fastq_version'])
 
-@dxpy.entry_point('main')
-def main(record_id, project_id):
-	this_lane = FlowcellLane(dashboard_record_dxid = record_id,
-		dashboard_project_dxid = project_id)
-	this_lane.describe()
+        self.lane_project = dxpy.DXProject(dxid = self.lane_project_dxid)
+        
+        self.sample_sheet = None
+        self.output_dir = None
 
+    def describe(self):
+        print "Sequencing run: %s" % self.run_name
+        print "Flowcell lane index: %s" % self.lane_index
+
+    def download_data(self):
+        metadata_tar_file = '%s.metadata.tar' % (self.run_name)
+        data_tar_file = '%s.L%d.tar' % (self.run_name, self.lane_index)
+
+        # Find lane tar files on DNAnexus
+        metadata_dxobj = dxpy.find_one_data_object(name=metadata_tar_file, project=self.lane_project_dxid, folder='/', more_ok=False, zero_ok=False)
+        data_dxobj = dxpy.find_one_data_object(name=data_tar_file, project=self.lane_project_dxid, folder='/', more_ok=False, zero_ok=False)
+
+        metadata_dxid = metadata_dxobj.get_id()
+        data_dxid = data_dxobj.get_id()
+
+        dxpy.file_download(object_id=metadata_dxid, input_params={
+            'filename': metadata_tar_file,
+            'project': self.lane_project_dxid
+            })
+        dxpy.file_download(object_id=data_dxid, input_params={
+            'filename': data_tar_file,
+            'project': self.lane_project_dxid
+            })
+
+    def upload_data(self):
+
+        fastq_tar_file = 'lane%d.fastq.tar' % self.lane_index
+        command = 'tar -cf %s %s' % (fastq_tar_file, self.output_dir)
+        stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
+
+        dxpy.upload_local_file(filename=fastq_tar_file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
+
+    def create_sample_sheet(self):
+        '''
+        create_sample_sheet.py -r ${seq_run_name} \
+            -t ${UHTS_LIMS_TOKEN} \
+            -u ${UHTS_LIMS_URL} \
+            -b 2 \
+            -l ${SGE_TASK_ID}
+        '''
+
+        ## Create samplesheet
+        command = 'python create_sample_sheet.py -r %s -t %s -u %s -b %d -l %s' % (self.run_name, self.lims_token, self.lims_url, self.bcl2fastq_version, self.lane_index)
+        stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
+        self.sample_sheet = '%s_L%d_samplesheet.csv' % (self.run_name, self.lane_index)
+        stdout_elements = stdout.split()
+        self.sample_sheet = stdout_elements[1]
+        print 'This is the self.sample_sheet: %s' % self.sample_sheet
+        #sample_sheet_name = os.path.basename(self.sample_sheet)
+        dxpy.upload_local_file(filename=self.sample_sheet, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
+        #return self.sample_sheet
+        
+    def get_use_bases_mask(self):
+        '''
+        command = "python calculate_use_bases_mask.py {runinfoFile} {sampleSheet} {lane}"
+        gbsc_utils.createSubprocess(cmd=command)
+        '''
+        run_info_file = 'RunInfo.xml'
+        dxpy.download_dxfile(dxid='file-Bkv0yBQ0gq319q3bfx5B9Bzj', filename=run_info_file, project=self.lane_project_dxid)
+
+        command = 'python calculate_use_bases_mask.py %s %s %s' % (
+            run_info_file, self.sample_sheet, self.lane_index)
+        stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
+        self.use_bases_mask = stdout
+        print 'This is use_bases_mask value: %s' % use_bases_mask
+
+        use_bases_mask_file = 'use_bases_mask.txt'
+        with open(use_bases_mask_file, 'w') as OUT:
+            OUT.write(use_bases_mask)
+        dxpy.upload_local_file(filename=use_bases_mask_file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
+        return use_bases_mask
+
+    def run_bcl2fastq(self):
+        '''
+        bcl2fastq --output-dir ${new_run_dir}/${seq_run_name}/Unaligned_L${SGE_TASK_ID} \
+            --sample-sheet ${new_run_dir}/${seq_run_name}/${seq_run_name}_L${SGE_TASK_ID}_samplesheet.csv \
+            --ignore-missing-bcls \
+            --ignore-missing-filter \
+            --ignore-missing-positions \
+            --barcode-mismatches 1 \
+            --use-bases-mask ${SGE_TASK_ID}:Y*,n*,Y*
+        '''
+
+        self.output_dir = 'Unaligned_L%d' % self.lane_index
+        command = 'bcl2fastq --output-dir %s --sample-sheet %s --barcode-mismatches %d --use-bases-mask %d:%s' % (
+            self.lane_index, self.sample_sheet, 1, self.output_dir, self.use_bases_mask)
+        stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
+
+    def createSubprocess(self, cmd, pipeStdout=False, checkRetcode=True):
+        """
+        Function : Creates a subprocess via a call to subprocess.Popen with the argument 'shell=True', and pipes stdout and stderr. Stderr is always  piped, but stdout can be turned off.
+                 If the argument checkRetcode is True, which it is by defualt, then for any non-zero return code, an Exception is
+                             raised that will print out the the command, stdout, stderr, and the returncode when not caught. Otherwise, the Popen instance will be return, in which case the caller must
+                           call the instance's communicate() method (and not it's wait() method!!) in order to get the return code to see if the command was a success. communicate() will return
+                             a tuple containing (stdout, stderr). But at that point, you can then check the return code with Popen instance's 'returncode' attribute.
+        Args     : cmd   - str. The command line for the subprocess wrapped in the subprocess.Popen instance. If given, will be printed to stdout when there is an error in the subprocess.
+                             pipeStdout - bool. True means to pipe stdout of the subprocess.
+                             checkRetcode - bool. See documentation in the description above for specifics.
+        Returns  : A two-item tuple containing stdout and stderr, respectively.
+        """
+        stdout = None
+        if pipeStdout:
+            stdout = subprocess.PIPE
+            stderr = subprocess.PIPE
+        popen = subprocess.Popen(cmd,shell=True,stdout=stdout,stderr=subprocess.PIPE)
+        if checkRetcode:
+            stdout,stderr = popen.communicate()
+            if not stdout: #will be None if not piped
+                stdout = ""
+            stdout = stdout.strip()
+            stderr = stderr.strip()
+            retcode = popen.returncode
+            if retcode:
+                #below, I'd like to raise a subprocess.SubprocessError, but that doens't exist until Python 3.3.
+                raise Exception("subprocess command '{cmd}' failed with returncode '{returncode}'.\n\nstdout is: '{stdout}'.\n\nstderr is: '{stderr}'.".format(cmd=cmd,returncode=retcode,stdout=stdout,stderr=stderr))
+            return stdout,stderr
+        else:
+            return popen
+            #return stdout,stderr
+
+@dxpy.entry_point("main")
+def main(record_id):
+    lane = FlowcellLane(dashboard_record_dxid=record_id)
+    lane.describe()
+    print 'Downloading lane data'
+    lane.download_data()
+    print 'Creating sample sheet\n'
+    sample_sheet = lane.create_sample_sheet()
+    print 'Get use bases mask\n'
+    use_bases_mask = lane.get_use_bases_mask()
+    print 'Convert bcl to fastq files'
+    lane.run_bcl2fastq()
+    print 'Upload fastq files tarball back to DNAnexus'
+    lane.upload_data()
 
 dxpy.run()
