@@ -68,19 +68,20 @@ class Applet:
 		'''
 
 		applet_folder = '/builds/%s' % self.version_label
+		
 		# Create new build folder if does not already exist
 		dx_project = dxpy.DXProject(dxid=project_dxid)
-		dx_project.new_folder(folder='/builds/%s' % self.version_label, parents=True)
+		dx_project.new_folder(folder=applet_folder, parents=True)
 
 		# Upload applet to DNAnexus
 		dxpy.app_builder.upload_applet(src_dir=self.applet_path, uploaded_resources=None, 
-			project=project_dxid, overwrite=True, override_folder='/builds/%s' % self.version_label, 
+			project=project_dxid, overwrite=True, override_folder=applet_folder, 
 			override_name=self.name)
 
 		# Get dxid of newly built applet
-		dx_applet = dxpy.find_one_data_object(name=self.name, project=project_dxid, 
+		applet_dict = dxpy.find_one_data_object(name=self.name, project=project_dxid, 
 			folder=applet_folder, zero_ok=False, more_ok=False)
-		#return dx_applet.get_id()
+		return applet_dict['id']
 
 	def add_rsc(self, local_path, dnanexus_path):
 		'''
@@ -152,6 +153,10 @@ class Applet:
 			json.dump(config_attributes, OUT, sort_keys=True, indent=4)
 		internal_resources = dxpy.app_builder.upload_resources(src_dir=self.applet_path, 
 			project='project-BkZ4jqj02j8X0FgQJbY1Y183', folder='/')
+		config_attributes['runSpec']['bundledDepends'].append(internal_resources[0])
+		with open(out_path, 'w') as OUT:
+			json.dump(config_attributes, OUT, sort_keys=True, indent=4)
+
 
 	## Private functions
 	def _make_new_dir(self, directory):
@@ -249,6 +254,11 @@ class ExternalResourceManager:
 		applet.add_bundledDepends(filename, dxid)
 
 class InternalResourceManager:
+	''' 
+	Instead of having InternalResourceManager get the paths, have it handle
+	all the aspects of adding rscs to the applet
+		InternalrscManager.add_rsc_to_applet(applet, rsc_type, name, internal_rscs_path)
+	'''
 
 	def __init__(self, config_file):
 		with open(config_file, 'r') as CONFIG:
@@ -284,12 +294,6 @@ class InternalResourceManager:
 		path = self.config["dnanexus_path"][path_name]["path"]
 		full_path = path + '/' + name
 		return full_path
-
-	''' 
-	Instead of having InternalrscManager get the paths, have it handle
-	all the aspects of adding rscs to the applet
-		InternalrscManager.add_rsc_to_applet(applet, rsc_type, name, internal_rscs_path)
-	'''
 
 def main():
 	dry_run = True	# Test mode

@@ -68,25 +68,31 @@ class FlowcellLane:
         print "Sequencing run: %s" % self.run_name
         print "Flowcell lane index: %s" % self.lane_index
 
-    def download_data(self):
+    def unpack_data(self):
+        '''
+        Download and untar metadata and lane data files (/Data/Intensities/BaseCalls)
+        '''
+
         metadata_tar_file = '%s.metadata.tar' % (self.run_name)
         data_tar_file = '%s.L%d.tar' % (self.run_name, self.lane_index)
 
         # Find lane tar files on DNAnexus
-        metadata_dxobj = dxpy.find_one_data_object(name=metadata_tar_file, project=self.lane_project_dxid, folder='/', more_ok=False, zero_ok=False)
-        data_dxobj = dxpy.find_one_data_object(name=data_tar_file, project=self.lane_project_dxid, folder='/', more_ok=False, zero_ok=False)
+        metadata_dict = dxpy.find_one_data_object(name=metadata_tar_file, project=self.lane_project_dxid, folder='/', more_ok=False, zero_ok=False)
+        data_dict = dxpy.find_one_data_object(name=data_tar_file, project=self.lane_project_dxid, folder='/', more_ok=False, zero_ok=False)
 
-        metadata_dxid = metadata_dxobj.get_id()
-        data_dxid = data_dxobj.get_id()
+        metadata_dxid = metadata_dict['id']
+        data_dxid = data_dict['id']
 
-        dxpy.file_download(object_id=metadata_dxid, input_params={
-            'filename': metadata_tar_file,
-            'project': self.lane_project_dxid
-            })
-        dxpy.file_download(object_id=data_dxid, input_params={
-            'filename': data_tar_file,
-            'project': self.lane_project_dxid
-            })
+        # Download files from DNAnexus objectstore to virtual machine
+        dxpy.download_dxfile(dxid=metadata_dxid, filename=metadata_tar_file, project=self.lane_project_dxid)
+        dxpy.download_dxfile(dxid=data_dxid, filename=data_tar_file, project=self.lane_project_dxid)
+
+        # Untar files to recreate illumina data/directory structure
+        command = 'tar -xf %s' % metadata_tar_file
+        self.createSubprocess(cmd=command, pipeStdout=False)
+
+        command = 'tar -xf %s' % data_tar_file
+        self.createSubprocess(cmd=command, pipeStdout=False)
 
     def upload_data(self):
 
@@ -128,13 +134,13 @@ class FlowcellLane:
             run_info_file, self.sample_sheet, self.lane_index)
         stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
         self.use_bases_mask = stdout
-        print 'This is use_bases_mask value: %s' % use_bases_mask
+        print 'This is use_bases_mask value: %s' % self.use_bases_mask
 
         use_bases_mask_file = 'use_bases_mask.txt'
         with open(use_bases_mask_file, 'w') as OUT:
-            OUT.write(use_bases_mask)
+            OUT.write(self.use_bases_mask)
         dxpy.upload_local_file(filename=use_bases_mask_file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
-        return use_bases_mask
+        return self.use_bases_mask
 
     def run_bcl2fastq(self):
         '''
@@ -149,7 +155,7 @@ class FlowcellLane:
 
         self.output_dir = 'Unaligned_L%d' % self.lane_index
         command = 'bcl2fastq --output-dir %s --sample-sheet %s --barcode-mismatches %d --use-bases-mask %d:%s' % (
-            self.lane_index, self.sample_sheet, 1, self.output_dir, self.use_bases_mask)
+            self.output_dir, self.sample_sheet, 1, int(self.lane_index), self.use_bases_mask)
         stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
 
     def createSubprocess(self, cmd, pipeStdout=False, checkRetcode=True):
@@ -189,7 +195,7 @@ def main(record_id):
     lane = FlowcellLane(dashboard_record_dxid=record_id)
     lane.describe()
     print 'Downloading lane data'
-    lane.download_data()
+    lane.unpack_data()
     print 'Creating sample sheet\n'
     sample_sheet = lane.create_sample_sheet()
     print 'Get use bases mask\n'
