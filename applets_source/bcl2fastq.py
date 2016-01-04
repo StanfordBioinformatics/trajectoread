@@ -38,6 +38,7 @@ import subprocess
 import os
 import datetime
 import time
+import fnmatch
 
 # Fx test 1: Create Flowcell class that is able to populate metadata from 
 # dashboard record.
@@ -60,9 +61,15 @@ class FlowcellLane:
         self.bcl2fastq_version = int(self.properties['bcl2fastq_version'])
 
         self.lane_project = dxpy.DXProject(dxid = self.lane_project_dxid)
-        
+        self.home = os.getcwd()
+
         self.sample_sheet = None
         self.output_dir = None
+        self.flowcell_id = None
+
+        run_elements = self.run_name.split('_')
+        flowcell_info = run_elements[3]
+        self.flowcell_id = flowcell_info[1:6]
 
     def describe(self):
         print "Sequencing run: %s" % self.run_name
@@ -94,14 +101,30 @@ class FlowcellLane:
         command = 'tar -xf %s' % data_tar_file
         self.createSubprocess(cmd=command, pipeStdout=False)
 
-    def upload_data(self):
+    def upload_result_files(self):
 
-        fastq_tar_file = 'lane%d.fastq.tar' % self.lane_index
-        command = 'tar -cf %s %s' % (fastq_tar_file, self.output_dir)
-        stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
+        # Dont tar files before uploading
+        #fastq_tar_file = 'lane%d.fastq.tar' % self.lane_index
+        #command = 'tar -cf %s %s' % (fastq_tar_file, self.output_dir)
+        #self.createSubprocess(cmd=command, pipeStdout=False)
+        #dxpy.upload_local_file(filename=fastq_tar_file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
 
-        dxpy.upload_local_file(filename=fastq_tar_file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
+        lane_dir = self.home + '/Unaligned_L' + str(self.lane_index)
+        flowcell_dir = lane_dir + '/' + self.flowcell_id
+        
+        # Upload all the fastq files from the lane directory (Unaligned_L%d)
+        os.chdir(lane_dir)
+        for file in os.listdir('.'):
+            if fnmatch.fnmatch(file, '*.fastq.gz'):
+                dxpy.upload_local_file(filename=file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
 
+        # Upload all the fastq files from the flowcell directory (Unaligned_L%d/<flowcell_id>)
+        os.chdir(flowcell_dir)
+        for file in os.listdir('.'):
+            if fnmatch.fnmatch(file, '*.fastq.gz'):
+                dxpy.upload_local_file(filename=file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
+
+        # Don't need to upload all the files in the reports directory. We make our own.
     def create_sample_sheet(self):
         '''
         create_sample_sheet.py -r ${seq_run_name} \
@@ -203,6 +226,6 @@ def main(record_id):
     print 'Convert bcl to fastq files'
     lane.run_bcl2fastq()
     print 'Upload fastq files tarball back to DNAnexus'
-    lane.upload_data()
+    lane.upload_result_files()
 
 dxpy.run()
