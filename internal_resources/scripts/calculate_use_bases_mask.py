@@ -23,7 +23,7 @@ import xml.etree.ElementTree as ET
 
 # Usage:
 #
-#  calculate_use_bases_mask <RunInfo.xml> <SampleSheet.csv> <lane_index>
+# calculate_use_bases_mask <RunInfo.xml> <SampleSheet.csv> <lane_index> <bcl2fastq_version>
 #
 # Arguments:
 #
@@ -53,9 +53,10 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('run_info_file', metavar='<RunInfo.xml>', help='Path to RunInfo.xml file.')
-    parser.add_argument('sample_sheet_file', metavar='<SampleSheet.csv>', help='Path to sample sheet CSV file.')
-    parser.add_argument('lane_index', metavar='<lane_index>', help='Index of lane for which to look up barcodes.')
+    parser.add_argument('run_info_file', metavar='<RunInfo.xml>', type=str, help='Path to RunInfo.xml file.')
+    parser.add_argument('sample_sheet_file', metavar='<SampleSheet.csv>', type=str, help='Path to sample sheet CSV file.')
+    parser.add_argument('lane_index', metavar='<lane_index>', type=int, help='Index of lane for which to look up barcodes.')
+    parser.add_argument('bcl2fastq_version', metavar='<bcl2fastq_version>', type=int, help='Currenlty bcl2fastq 1 is used for MiSeq/HiSeq 2000 while 2 is used for HiSeq 4000')
 
     return parser.parse_args()
 
@@ -85,7 +86,31 @@ def parse_run_info(run_info_file):
 
     return sorted(reads, key=lambda read_desc: read_desc['Number'])
 
-def parse_sample_sheet(sample_sheet_file, lane_index):
+def parse_sample_sheet_1(sample_sheet_file, lane_index):
+    """Parses the sample sheet CSV file and returns a list of the
+    barcode(s) for the given lane."""
+
+    barcodes = []
+
+    with open(sample_sheet_file, 'r') as sfile:
+        for line in sfile:
+            line = line.strip()
+            fields = line.split(',')
+
+            assert len(fields) == 10, "Expected 10 fields but found %s; line '%s'" % (len(fields), line)
+
+            if fields[0] == 'FCID':
+                # header line
+                continue
+            elif int(fields[1]) != lane_index:
+                # wrong lane
+                continue
+            else:
+                barcodes.append(fields[4])
+
+    return barcodes
+
+def parse_sample_sheet_2(sample_sheet_file, lane_index):
     """Parses the sample sheet CSV file and returns a list of the
     barcode(s) for the given lane."""
 
@@ -103,7 +128,7 @@ def parse_sample_sheet(sample_sheet_file, lane_index):
             if fields[0] == 'Sample_Project':
                 # header line
                 continue
-            elif fields[1] != lane_index:
+            elif int(fields[1]) != lane_index:
                 # wrong lane
                 continue
             else:
@@ -189,8 +214,15 @@ def main():
     read_config = parse_run_info(args.run_info_file)
     print >> sys.stderr, 'read_config: %s' % read_config
 
-    barcodes = parse_sample_sheet(args.sample_sheet_file, args.lane_index)
-    print >> sys.stderr, 'barcodes: %s' % barcodes
+    if args.bcl2fastq_version == 1:
+        barcodes = parse_sample_sheet_1(args.sample_sheet_file, args.lane_index)
+        print >> sys.stderr, 'barcodes: %s' % barcodes
+    elif args.bcl2fastq_version == 2:
+        barcodes = parse_sample_sheet_2(args.sample_sheet_file, args.lane_index)
+        print >> sys.stderr, 'barcodes: %s' % barcodes
+    else:
+        print >> sys.stderr, 'Could not determine whether bcl2fastq 1/2 is being used: %d' % agrs.bcl2fastq_version
+        sys.exit()
 
     barcode_lengths = [get_barcode_length(bc) for bc in barcodes]
     print >> sys.stderr, 'barcode_lengths: %s' % barcode_lengths
