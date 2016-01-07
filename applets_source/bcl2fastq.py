@@ -103,28 +103,41 @@ class FlowcellLane:
 
     def upload_result_files(self):
 
-        # Dont tar files before uploading
+        # Obsolete code to tar everything and upload
         #fastq_tar_file = 'lane%d.fastq.tar' % self.lane_index
         #command = 'tar -cf %s %s' % (fastq_tar_file, self.output_dir)
         #self.createSubprocess(cmd=command, pipeStdout=False)
         #dxpy.upload_local_file(filename=fastq_tar_file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
-
-        lane_dir = self.home + '/Unaligned_L' + str(self.lane_index)
-        flowcell_dir = lane_dir + '/' + self.flowcell_id
         
-        # Upload all the fastq files from the lane directory (Unaligned_L%d)
-        os.chdir(lane_dir)
-        for file in os.listdir('.'):
-            if fnmatch.fnmatch(file, '*.fastq.gz'):
-                dxpy.upload_local_file(filename=file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
+        lane_dir = self.home + '/Unaligned_L' + str(self.lane_index)
 
-        # Upload all the fastq files from the flowcell directory (Unaligned_L%d/<flowcell_id>)
-        os.chdir(flowcell_dir)
-        for file in os.listdir('.'):
-            if fnmatch.fnmatch(file, '*.fastq.gz'):
-                dxpy.upload_local_file(filename=file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
+        # Upload all the fastq files from the lane directory (Unaligned_L%d) for bcl2fastq version 1 (1.8.4)
+        if self.bcl2fastq_version == 1:
+            flowcell_dir = lane_dir + '/Project_' + self.flowcell_id
+            sample_dir = flowcell_dir + '/Sample_lane%s' % self.lane_index
+
+            os.chdir(sample_dir)
+            for file in os.listdir('.'):
+                if fnmatch.fnmatch(file, '*.fastq.gz'):
+                    dxpy.upload_local_file(filename=file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
+
+        # Upload all the fastq files from the lane directory (Unaligned_L%d) for bcl2fastq version 2        
+        elif self.bcl2fastq_version == 2:
+            flowcell_dir = lane_dir + '/' + self.flowcell_id
+            
+            os.chdir(lane_dir)
+            for file in os.listdir('.'):
+                if fnmatch.fnmatch(file, '*.fastq.gz'):
+                    dxpy.upload_local_file(filename=file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
+
+            # Upload all the fastq files from the flowcell directory (Unaligned_L%d/<flowcell_id>)
+            os.chdir(flowcell_dir)
+            for file in os.listdir('.'):
+                if fnmatch.fnmatch(file, '*.fastq.gz'):
+                    dxpy.upload_local_file(filename=file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
 
         # Don't need to upload all the files in the reports directory. We make our own.
+    
     def create_sample_sheet(self):
         '''
         create_sample_sheet.py -r ${seq_run_name} \
@@ -150,11 +163,15 @@ class FlowcellLane:
         command = "python calculate_use_bases_mask.py {runinfoFile} {sampleSheet} {lane}"
         gbsc_utils.createSubprocess(cmd=command)
         '''
+        
         run_info_file = 'RunInfo.xml'
-        dxpy.download_dxfile(dxid='file-Bkv0yBQ0gq319q3bfx5B9Bzj', filename=run_info_file, project=self.lane_project_dxid)
+        
+        # TEST LINK - remove for production
+        #dxpy.download_dxfile(dxid='file-Bkv0yBQ0gq319q3bfx5B9Bzj', filename=run_info_file, project=self.lane_project_dxid) # HiSeq 4000
+        dxpy.download_dxfile(dxid='file-Bp5Q2x804f6Q7Xz4KjZQ2PK1', filename=run_info_file, project=self.lane_project_dxid)  # HiSeq 2000
 
-        command = 'python calculate_use_bases_mask.py %s %s %s' % (
-            run_info_file, self.sample_sheet, self.lane_index)
+        command = 'python calculate_use_bases_mask.py %s %s %s %d' % (
+            run_info_file, self.sample_sheet, self.lane_index, self.bcl2fastq_version)
         stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
         self.use_bases_mask = stdout
         print 'This is use_bases_mask value: %s' % self.use_bases_mask
@@ -165,7 +182,7 @@ class FlowcellLane:
         dxpy.upload_local_file(filename=use_bases_mask_file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
         return self.use_bases_mask
 
-    def run_bcl2fastq(self):
+    def run_bcl2fastq(self, mismatches=1, ignore_missing_stats=True, ignore_missing_bcl=True, with_failed_reads=False, tiles=None, test_mode=False):
         '''
         bcl2fastq --output-dir ${new_run_dir}/${seq_run_name}/Unaligned_L${SGE_TASK_ID} \
             --sample-sheet ${new_run_dir}/${seq_run_name}/${seq_run_name}_L${SGE_TASK_ID}_samplesheet.csv \
@@ -177,9 +194,47 @@ class FlowcellLane:
         '''
 
         self.output_dir = 'Unaligned_L%d' % self.lane_index
-        command = 'bcl2fastq --output-dir %s --sample-sheet %s --barcode-mismatches %d --use-bases-mask %d:%s' % (
-            self.output_dir, self.sample_sheet, 1, int(self.lane_index), self.use_bases_mask)
-        stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
+
+        # bcl2fastq version 2 for HiSeq 4000s
+        if self.bcl2fastq_version == 2:
+            self.output_dir = 'Unaligned_L%d' % self.lane_index
+            command = 'bcl2fastq --output-dir %s --sample-sheet %s --barcode-mismatches %d --use-bases-mask %d:%s' % (
+                self.output_dir, self.sample_sheet, 1, int(self.lane_index), self.use_bases_mask)
+            stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
+        
+        # bcl2fastq version 1 for HiSeq 2000s/MiSeq (1.8.4)
+        elif self.bcl2fastq_version == 1:
+
+            configure_script_path = '/usr/local/bin/configureBclToFastq.pl'
+            basecalls_dir = './Data/Intensities/BaseCalls'
+
+            ### Ripped from casava_bcl_to_fastq.py applet source
+            # Gather options for the configureBclToFastq.pl command
+            opts = "--no-eamss --input-dir " + basecalls_dir + " --output-dir " +  self.output_dir 
+            opts +=" --sample-sheet " + self.sample_sheet
+            opts +=" --use-bases-mask " + self.use_bases_mask
+            opts += " --fastq-cluster-count 0"  # I don't know what this does
+            if test_mode:
+                ignore_missing_bcl = True
+                tiles = 1112
+            if mismatches:
+                opts += " --mismatches " + str(mismatches)
+            if ignore_missing_stats:
+                opts += " --ignore-missing-stats"
+            if ignore_missing_bcl:
+                opts += " --ignore-missing-bcl"
+            if  with_failed_reads:
+                opts += " --with-failed-reads"
+            if tiles:
+                opts += " --tiles " + str(tiles)
+
+            # Run it
+            self.createSubprocess(cmd=configure_script_path + " " + opts,checkRetcode=True,pipeStdout=False)
+            self.createSubprocess(cmd="nohup make -C " + self.output_dir + " -j `nproc`",checkRetcode=True,pipeStdout=False)   # Don't know what this does
+
+        else:
+            print 'Could not determine bcl2fastq version'
+            print EMPTY_DEBUG_VARIABLE
 
     def createSubprocess(self, cmd, pipeStdout=False, checkRetcode=True):
         """
