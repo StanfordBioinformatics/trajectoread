@@ -1,0 +1,52 @@
+{
+  "name": "bwa_mem_controller",
+  "title": "Call DNAnexus app 'BWA-MEM FASTQ Read Mapper' v1.5 to perform genome mapping for every sample in lane",
+  "summary": "Converts Illumina data from BCL to FASTQ, demultiplexing barcoded samples if appropriate",
+  "dxapi": "1.0.0",
+  "version": "0.1.0",
+  "inputSpec": [
+		{
+			"name": "record_id",
+			"label": "DNAnexus ID of the sequencing lane DXRecord.",
+			"help": "The DNAnexus ID of the sequencing lane DXRecord.",
+			"class": "string",
+			"optional": false
+		},
+    {
+      "name": "dashboard_project_id",
+      "label": "Dashboard records project DXid",
+      "help": "SCGPM Dashboard Data",
+      "class": "string",
+      "optional": true
+    },
+  ],
+  "outputSpec": [],
+  "runSpec": {
+    "interpreter": "python2.7",
+    "file": "src/bwa_mem_controller.py",
+		"bundledDepends": [],
+    "execDepends": [
+      {"name": "libxml-simple-perl"},
+      {"name": "xsltproc"},
+      {"name": "imagemagick"},
+      {"name": "gnuplot-nox"},
+      {"name": "ghostscript"},
+      {"name": "zlib1g-dev"},
+      {"name": "libbz2-dev"},
+      {"name": "libxml2"},
+      {"name": "libxml2-dev"},
+      {"name": "libicu-dev"},
+      {"name": "libncurses5"},
+      {"name": "libncurses5-dev"}
+    ],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x8"
+      }
+    }
+  },
+  "access": {
+    "allProjects": "ADMINISTER",
+		"network": ["*"]
+  }
+}

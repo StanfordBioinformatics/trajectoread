@@ -1,0 +1,90 @@
+{
+  "name": "bcl2fastq",
+  "title": "Call Illumina bcl2fastq",
+  "summary": "Converts Illumina data from BCL to FASTQ, demultiplexing barcoded samples if appropriate",
+  "dxapi": "1.0.0",
+  "version": "0.1.0",
+  "inputSpec": [
+		{
+			"name": "test_mode",
+			"help": "Demultiplexes a single tile to speed things up in test mode.",
+			"class": "boolean",
+			"optional": true
+		},
+		{
+			"name": "record_id",
+			"label": "DNAnexus ID of the sequencing lane DXRecord.",
+			"help": "The DNAnexus ID of the sequencing lane DXRecord.",
+			"class": "string",
+			"optional": false
+		},
+    {
+      "name": "dashboard_project_id",
+      "label": "Dashboard records project DXid",
+      "help": "SCGPM Dashboard Data",
+      "class": "string",
+      "optional": true
+    },
+    {
+      "name": "mismatches",
+      "label": "Mismatches",
+      "help": "Number of allowed mismatches",
+      "class": "int",
+      "optional": true
+    },
+    {
+      "name": "ignore_missing_stats",
+      "label": "Ignore missing stats files?",
+      "class": "boolean",
+      "optional": true
+    },
+    {
+      "name": "ignore_missing_bcl",
+      "label": "Ignore missing bcl files?",
+      "class": "boolean",
+      "optional": true
+    },
+    {
+      "name": "with_failed_reads",
+      "label": "Include failed reads in output?",
+      "class": "boolean",
+      "optional": true
+    },
+		{
+			"name": "tiles",
+			"label": "Tiles to restrict the analysis to.",
+			"help": "See --tiles argument of the Illumina tool  bcl2fastq. Takes a comma-separated list of regular expressions to select only a subset of the tiles available in the flow-cell.",
+			"class": "string",
+			"optional": true
+		}
+  ],
+  "outputSpec": [],
+  "runSpec": {
+    "interpreter": "python2.7",
+    "file": "src/bcl2fastq.py",
+		"bundledDepends": [],
+    "execDepends": [
+      {"name": "libxml-simple-perl"},
+      {"name": "xsltproc"},
+      {"name": "imagemagick"},
+      {"name": "gnuplot-nox"},
+      {"name": "ghostscript"},
+      {"name": "zlib1g-dev"},
+      {"name": "libbz2-dev"},
+      {"name": "libxml2"},
+      {"name": "libxml2-dev"},
+      {"name": "libicu-dev"},
+      {"name": "libncurses5"},
+      {"name": "libncurses5-dev"}
+    ],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x8"
+      }
+    }
+  },
+  "access": {
+    "allProjects": "ADMINISTER",
+		"network": ["*"]
+  }
+}
