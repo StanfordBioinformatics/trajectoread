@@ -37,17 +37,17 @@ class Workflow:
 
 	def __init__(self, name, trajectoread_dirs, project_dxid=None, 
 		project_properties={}, object_dxid=None, summary='', description=''):
-			''' A workflow could theoretically hold infinite stages and 
-			dictionary should be designed to accomodate this. Current vision 
-			is for the stage key to be a combination of the applet name and the
-			index of the stage in the worflow. For example if 'bcl2fastq' was the
-			first-stage applet and bwa_mem_controller was the second, their keys would be 
-			'bcl2fastq-1' and 'bwa_mem_controller-2', respectively. Or, my original
-			thought was to do indexing by applet, i.e.: 
-			'bcl2fastq-1', bwa_mem_controller-1', bwa_mem_controller-2'. This was
-			when I was thinking in terms of applets instead of stages, and I feel
-			the stage based option makes more sense.
-			'''
+		''' A workflow could theoretically hold infinite stages and 
+		dictionary should be designed to accomodate this. Current vision 
+		is for the stage key to be a combination of the applet name and the
+		index of the stage in the worflow. For example if 'bcl2fastq' was the
+		first-stage applet and bwa_mem_controller was the second, their keys would be 
+		'bcl2fastq-1' and 'bwa_mem_controller-2', respectively. Or, my original
+		thought was to do indexing by applet, i.e.: 
+		'bcl2fastq-1', bwa_mem_controller-1', bwa_mem_controller-2'. This was
+		when I was thinking in terms of applets instead of stages, and I feel
+		the stage based option makes more sense.
+		'''
 		
 		self.name = name
 		self.project_dxid = project_dxid
@@ -83,7 +83,7 @@ class Workflow:
 		project.
 		'''
 
-		stage_index = len(stages)
+		stage_index = len(self.stages)
 		stage_name = applet_name + '-' + str(stage_index)
 
 		stage = Stage(stage_name, applet_name, self.project_dxid, self.trajectoread_dirs)
@@ -117,12 +117,13 @@ class Stage:
 		#### Initiate applet ####
 		## Find applet code
 		applet_code_basename = applet_name + '.py'
-		self.applet_code_path = os.path.join(trajectoread_dirs['applets_source'], applet_code_basename)
+		self.applet_code_path = os.path.join(self.trajectoread_dirs['applets_source'], applet_code_basename)
 		## Find applet configuration file
 		applet_config_basename = applet_name + '.template.json'
-		self.applet_config_path = os.path.join(trajectoread_dirs['applet_templates'], applet_config_basename)	# Config template will always be 
+		self.applet_config_path = os.path.join(self.trajectoread_dirs['applet_templates'], applet_config_basename)	# Config template will always be 
 		## Create applet object
-		self.applet = Applet(trajectoread_dirs['home'], applet_name, self.applet_code_path, self.applet_config_path)
+		self.applet = Applet(self.trajectoread_dirs['home'], applet_name, 
+			self.applet_code_path, self.applet_config_path, self.project_dxid)
 
 	def add_internal_applet_rscs(self, internal_rsc_manager, internal_rscs):
 		## Add applet internal rscs to bcl2fastq applet rscs/
@@ -147,25 +148,26 @@ class Stage:
 				pass
 
 	def commit(self):
-
+		#pdb.set_trace()
 		self.applet.write_config_file(self.applet_config_path)
 		self.applet_dxid = self.applet.build(project_dxid=self.project_dxid)
 		return(self.applet_dxid)
 
 class Applet:
 
-	def __init__(self, home, name, code, config_template):
+	def __init__(self, home, name, code, config_template, project_dxid):
 		self.home = home
 		self.name = name
 		self.source_code = code
 		self.config_template_file = config_template
-
+		self.project_dxid = project_dxid
 
 		timestamp = str(datetime.datetime.now()).split()[0]	# yyyy-mm-dd
 		current_commit = self._get_git_commit().rstrip()
 		self.version_label = '%s_%s' % (timestamp, current_commit)
 		
-		self.bundled_depends = []
+		self.internal_resources = []
+		self.bundled_depends = []	# External resources
 		# List of dictionaries: [{'filename':<filename>, 'dxid':<dxid>}, {...}, ...]
 
 		# Make applet directory structure because it is necessary for adding internal rscs
@@ -215,6 +217,8 @@ class Applet:
 		Returns:
 		'''
 		
+		local_path = local_path
+		dnanexus_path = dnanexus_path
 		applet_path = self.rscs_path + dnanexus_path
 		
 		# Create parent directories within applet
@@ -224,6 +228,7 @@ class Applet:
 
 		if (os.path.isfile(local_path)):
 			shutil.copyfile(local_path, applet_path)
+			self.internal_resources.append(local_path)
 		else:
 			print 'Could not find internal applet rsc file: ' + local_path 
 
@@ -270,12 +275,17 @@ class Applet:
 		## Dump configuration attributes into new 'dxapp.json' file
 		with open(out_path, 'w') as OUT:
 			json.dump(config_attributes, OUT, sort_keys=True, indent=4)
-		internal_resources = dxpy.app_builder.upload_resources(src_dir=self.applet_path, 
-			project='project-BkZ4jqj02j8X0FgQJbY1Y183', folder='/')
-		config_attributes['runSpec']['bundledDepends'].append(internal_resources[0])
-		with open(out_path, 'w') as OUT:
-			json.dump(config_attributes, OUT, sort_keys=True, indent=4)
 
+		# If applet has internal resources, upload them and add to config file
+		if len(self.internal_resources) > 0:
+			internal_resources = dxpy.app_builder.upload_resources(
+				src_dir=self.applet_path, project=self.project_dxid, folder='/')
+			config_attributes['runSpec']['bundledDepends'].append(
+				internal_resources[0])
+			with open(out_path, 'w') as OUT:
+				json.dump(config_attributes, OUT, sort_keys=True, indent=4)
+		else:
+			print 'Notice: No internal resources uploaded for applet %s' % self.name
 
 	## Private functions
 	def _make_new_dir(self, directory):
@@ -430,20 +440,19 @@ def main():
 	''' DEV: Same as old chunk except implemented in a dict for easier
 	transmission to function calls. Current vision is that each applet will
 	be built using its own function instead of in main().'''
-	trajectoread_dirs = {
-		'build_workflows' : os.path.dirname(os.path.abspath(__file__)),
-		'home' : os.path.split(trajectoread_dirs['build_workflows'])[0],
-		'external_rscs' : os.path.join(trajectoread_dirs['home'], 'external_resources'),
-		'applets_source' : os.path.join(trajectoread_dirs['home'], 'applets_source'),
-		'internal_rscs' : os.path.join(trajectoread_dirs['home'], 'internal_resources'),
-		'applet_templates' : os.path.join(trajectoread_dirs['home'], 'applet_config_templates'),
-	}
+	trajectoread_dirs = {}
+	trajectoread_dirs['build_workflows'] = os.path.dirname(os.path.abspath(__file__))
+	trajectoread_dirs['home'] = os.path.split(trajectoread_dirs['build_workflows'])[0]
+	trajectoread_dirs['external_rscs'] = os.path.join(trajectoread_dirs['home'], 'external_resources')
+	trajectoread_dirs['applets_source'] = os.path.join(trajectoread_dirs['home'], 'applets_source')
+	trajectoread_dirs['internal_rscs'] = os.path.join(trajectoread_dirs['home'], 'internal_resources')
+	trajectoread_dirs['applet_templates'] = os.path.join(trajectoread_dirs['home'], 'applet_config_templates')
 
 	#### Configure DNAnexus project ####
 
 	## Set DNAnexus variables
 	#dnanexus_os = "Ubuntu-12.04"
-	workflow_project_dxid = 'project-BkZ4jqj02j8X0FgQJbY1Y183'
+	workflow_project_dxid = 'project-BpBg678018gYf499QZZQXy4y'
 	workflow_object_dxid = ''
 	workflow_name = 'WF_HiSeq4000_BWA-MEM'
 	external_rscs_dxid = 'project-BkYXb580p6fv2VF8bjPYp2Qv'
@@ -451,7 +460,7 @@ def main():
 		'uhts_lims_url' : 'https://uhts.stanford.edu', 
 		'uhts_lims' : '9af4cc6d83fbfd793fe4'
 		}
-	workflow = Workflow(workflow_name, external_rscs_dxid, 
+	workflow = Workflow(name=workflow_name, trajectoread_dirs=trajectoread_dirs, 
 		project_dxid=workflow_project_dxid, project_properties=project_properties)
 
 	#### Create resource manager objects ####
@@ -461,7 +470,7 @@ def main():
 
 	#### Build applets ####
 	workflow_applets = {
-		0 : ['name' : 'bwa_mem_controller']
+		0 : {'name' : 'bwa_mem_controller'}
 		}
 
 	## Specify bwa_mem_controller resources
@@ -473,7 +482,7 @@ def main():
 	## Create a stage for each applet in workflow, then prepare and build applet on DNAnexus
 	for i in range(0, len(workflow_applets)):
 		applet = workflow_applets[i]['name']
-		stage = workflow.add_stage(trajectoread_dirs, applet)
+		stage = workflow.add_stage(applet)
 		## Add internal rscs to bwa_mem_controller applet rscs/
 		stage.add_internal_applet_rscs(internal_rsc_manager, internal_rscs[applet])
 		## Add bwa_mem_controller external rscs to configuration file	
@@ -492,7 +501,6 @@ def main():
 	#elif workflow_object_dxid:
 	#	dxworkflow = dxpy.DXWorkflow(workflow_object_dxid, workflow_project_dxid)
 	#	dxworkflow.update(, name='bcl2fastq')
-
 
 if __name__ == "__main__":
 	main() 

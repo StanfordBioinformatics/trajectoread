@@ -18,7 +18,7 @@
       "help": "SCGPM Dashboard Data",
       "class": "string",
       "optional": true
-    },
+    }
   ],
   "outputSpec": [],
   "runSpec": {
