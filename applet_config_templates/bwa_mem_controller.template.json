@@ -1,7 +1,7 @@
 {
   "name": "bwa_mem_controller",
-  "title": "Call DNAnexus app 'BWA-MEM FASTQ Read Mapper' v1.5 to perform genome mapping for every sample in lane",
-  "summary": "Converts Illumina data from BCL to FASTQ, demultiplexing barcoded samples if appropriate",
+  "title": "BWA-MEM Controller",
+  "summary": "Converts Illumina data from BCL to FASTQ, demultiplexing barcoded samples if appropriate. Uses DXApp 'BWA-MEM FASTQ Read Mapper' version 1.5.0.",
   "dxapi": "1.0.0",
   "version": "0.1.0",
   "inputSpec": [
@@ -18,9 +18,24 @@
       "help": "SCGPM Dashboard Data",
       "class": "string",
       "optional": true
+    },
+    {
+      "name": "fastqs",
+      "label": "Fastq files",
+      "class": "array:file",
+      "optional": true
     }
   ],
-  "outputSpec": [],
+  "outputSpec": [
+    {
+      "name": "bams",
+      "class": "array:file"
+    },
+    {
+      "name": "bais",
+      "class": "array:file"
+    }
+  ],
   "runSpec": {
     "interpreter": "python2.7",
     "file": "src/bwa_mem_controller.py",
