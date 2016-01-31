@@ -1,0 +1,95 @@
+{
+    "date_created": "2015-11-17",
+    "fastqc": {
+        "current": "0.10.1",
+        "dx_id": "",
+        "versions": {
+            "0.10.1": {
+                "program": "fastqc",
+                "version": "0.10.1",
+                "filename": "fastqc-0.10.1.tar",
+                "OS": "Ubuntu-12.04",
+                "used_by": "",
+                "id": {"$dnanexus_link": ""}
+            }
+        }
+    },
+    "bedtools": {
+        "current": "2.19.0",
+        "dx_id": "",
+        "versions": {
+            "2.19.0": {
+                "program": "bedtools",
+                "version": "2.19.0",
+                "filename": "bedtools-2.19.0",
+                "OS": "Ubuntu-12.04",
+                "used_by": "",
+                "id": {"$dnanexus_link": ""}
+            }
+        }
+    },
+    "bwa": {
+        "current": "0.7.7",
+        "dx_id": "",
+        "versions": {
+            "0.7.7": {
+                "program": "bwa",
+                "version": "0.7.7",
+                "filename": "bwa-0.7.7",
+                "OS": "Ubuntu-12.04",
+                "used_by": "",
+                "id": {"$dnanexus_link": ""}
+            },
+            "0.6.2": {
+                "program": "bwa",
+                "version": "0.6.2",
+                "filename": "bwa-0.6.2",
+                "OS": "Ubuntu-12.04",
+                "used_by": "",
+                "id": {"$dnanexus_link": ""}
+            }
+        }
+    },
+    "picard_tools": {
+        "current": "1.107",
+        "dx_id": "",
+        "versions": {
+            "1.107": {
+                "program": "picard_tools",
+                "version": "1.107",
+                "filename": "picard_tools-1.107.tar",
+                "OS": "Ubuntu-12.04",
+                "used_by": "",
+                "id": {"$dnanexus_link": ""}
+            }
+        }
+    },
+    "samtools": {
+        "current": "0.1.19",
+        "dx_id": "",
+        "versions": {
+            "0.1.19": {
+                "program": "samtools",
+                "version": "0.1.19",
+                "filename": "samtools-0.1.19",
+                "OS": "Ubuntu-12.04",
+                "used_by": "",
+                "id": {"$dnanexus_link": ""}
+            }
+        }
+    },
+    "pdf_reports": {
+        "current": "1.0",
+        "dx_id": "",
+        "versions": {
+            "1.0": {
+                "program": "pdf_reports",
+                "version": "1.0",
+                "filename": "pdf_reports-1.0.tar",
+                "OS": "Ubuntu-12.04",
+                "used_by": "",
+                "id": {"$dnanexus_link": ""}
+            }
+        }
+    }
+}       

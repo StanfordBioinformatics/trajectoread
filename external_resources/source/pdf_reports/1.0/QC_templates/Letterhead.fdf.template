@@ -1,0 +1,10 @@
+%FDF-1.2
+1 0 obj<</FDF<< /Fields[
+<</T(Date)/V({date})>>
+<</T(Time)/V({time})>>
+<</T(PageNumber)/V({page_number})>>
+] >> >>
+endobj
+trailer
+<</Root 1 0 R>>
+%%EOF

@@ -1,0 +1,76 @@
+%FDF-1.2
+1 0 obj<</FDF<< /Fields[
+<</T(Date)/V({date})>>
+<</T(Time)/V({time})>>
+<</T(Title)/V({title})>>
+<</T(fc-int01-generateAppearances)/V(Test 0)>>
+<</T(No-Match_cQvqfPBHfBM4Mlc8SuRxcw.0)/V({no_match_1})>>
+<</T(No-Match_cQvqfPBHfBM4Mlc8SuRxcw.1)/V({no_match_1_percent})>>
+<</T(No-Match_cQvqfPBHfBM4Mlc8SuRxcw.2)/V({no_match_2})>>
+<</T(No-Match_cQvqfPBHfBM4Mlc8SuRxcw.3)/V({no_match_2_percent})>>
+<</T(Name_MMUu7qFL2AwPqbSH4RjJuA.0)/V(Read 1, Post-Filter)>>
+<</T(Name_MMUu7qFL2AwPqbSH4RjJuA.1)/V(\% of PF Reads)>>
+<</T(Name_MMUu7qFL2AwPqbSH4RjJuA.2)/V(Read 2, Post-Filter)>>
+<</T(Name_MMUu7qFL2AwPqbSH4RjJuA.3)/V(\% of PF Reads)>>
+<</T(Reads_Kn-gL5URrVFEsyXUpaKEdA.0)/V({reads_1})>>
+<</T(Reads_Kn-gL5URrVFEsyXUpaKEdA.1)/V({reads_1_percent})>>
+<</T(Reads_Kn-gL5URrVFEsyXUpaKEdA.2)/V({reads_2})>>
+<</T(Reads_Kn-gL5URrVFEsyXUpaKEdA.3)/V(P{reads_2_percent})>>
+<</T(Mapped_UYWPVXRtajr6EJBxwWv74Q.0)/V({mapped_1})>>
+<</T(Mapped_UYWPVXRtajr6EJBxwWv74Q.1)/V({mapped_1_percent})>>
+<</T(Mapped_UYWPVXRtajr6EJBxwWv74Q.2)/V({mapped_2})>>
+<</T(Mapped_UYWPVXRtajr6EJBxwWv74Q.3)/V({mapped_2_percent})>>
+<</T(Unique_3ZdkV181gvXK04MMIGqjwQ.0)/V({unique_1})>>
+<</T(Unique_3ZdkV181gvXK04MMIGqjwQ.1)/V({unique_1_percent})>>
+<</T(Unique_3ZdkV181gvXK04MMIGqjwQ.2)/V({unique_2})>>
+<</T(Unique_3ZdkV181gvXK04MMIGqjwQ.3)/V({unique_2_percent})>>
+<</T(Unique 0mm_9fiIYDcXFvLzd2Y9SkIq7w.0)/V({unique_1_0mm})>>
+<</T(Unique 0mm_9fiIYDcXFvLzd2Y9SkIq7w.1)/V({unique_1_0mm_percent})>>
+<</T(Unique 0mm_9fiIYDcXFvLzd2Y9SkIq7w.2)/V({unique_2_0mm})>>
+<</T(Unique 0mm_9fiIYDcXFvLzd2Y9SkIq7w.3)/V({unique_2_0mm_percent})>>
+<</T(Unique 1mm_74aJLkcEdhaFU4IRm*tm4A.0)/V({unique_1_1mm})>>
+<</T(Unique 1mm_74aJLkcEdhaFU4IRm*tm4A.1)/V({unique_1_1mm_percent})>>
+<</T(Unique 1mm_74aJLkcEdhaFU4IRm*tm4A.2)/V({unique_2_1mm})>>
+<</T(Unique 1mm_74aJLkcEdhaFU4IRm*tm4A.3)/V({unique_2_1mm_percent})>>
+<</T(Unique 2mm_3Cdy8DVNm511TilrkXkr9Q.0)/V({unique_1_2mm})>>
+<</T(Unique 2mm_3Cdy8DVNm511TilrkXkr9Q.1)/V({unique_1_2mm_percent})>>
+<</T(Unique 2mm_3Cdy8DVNm511TilrkXkr9Q.2)/V({unique_2_2mm})>>
+<</T(Unique 2mm_3Cdy8DVNm511TilrkXkr9Q.3)/V({unique_2_2mm_percent})>>
+<</T(Unique 3+mm_CAxG0j905KyWPCwhOnDckQ.0)/V({unique_1_3mm})>>
+<</T(Unique 3+mm_CAxG0j905KyWPCwhOnDckQ.1)/V({unique_1_3mm_percent})>>
+<</T(Unique 3+mm_CAxG0j905KyWPCwhOnDckQ.2)/V({unique_2_3mm})>>
+<</T(Unique 3+mm_CAxG0j905KyWPCwhOnDckQ.3)/V({unique_2_3mm_percent})>>
+<</T(Unique w/ Indel_8v-F-xTSLU4erj1ufouYrw.0)/V({unique_1_indel})>>
+<</T(Unique w/ Indel_8v-F-xTSLU4erj1ufouYrw.1)/V({unique_1_indel_percent})>>
+<</T(Unique w/ Indel_8v-F-xTSLU4erj1ufouYrw.2)/V({unique_2_indel})>>
+<</T(Unique w/ Indel_8v-F-xTSLU4erj1ufouYrw.3)/V({unique_2_indel_percent})>>
+<</T(Non-Unique_uzYl2CjhzhYR1PmV6pm2hQ.0)/V({non_unique_1})>>
+<</T(Non-Unique_uzYl2CjhzhYR1PmV6pm2hQ.1)/V({non_unique_1_percent})>>
+<</T(Non-Unique_uzYl2CjhzhYR1PmV6pm2hQ.2)/V({non_unique_2})>>
+<</T(Non-Unique_uzYl2CjhzhYR1PmV6pm2hQ.3)/V({non_unique_2_percent})>>
+<</T(Non-Unique 0mm_x4nVrAusjjnAJWM2POSWJg.0)/V({non_unique_1_0mm})>>
+<</T(Non-Unique 0mm_x4nVrAusjjnAJWM2POSWJg.1)/V({non_unique_1_0mm_percent})>>
+<</T(Non-Unique 0mm_x4nVrAusjjnAJWM2POSWJg.2)/V({non_unique_2_0mm})>>
+<</T(Non-Unique 0mm_x4nVrAusjjnAJWM2POSWJg.3)/V({non_unique_2_0mm_percent})>>
+<</T(Non-Unique 1mm_udmsFx1k*mm*jP5hPyWX6Q.0)/V({non_unique_1_1mm})>>
+<</T(Non-Unique 1mm_udmsFx1k*mm*jP5hPyWX6Q.1)/V({non_unique_1_1mm_percent})>>
+<</T(Non-Unique 1mm_udmsFx1k*mm*jP5hPyWX6Q.2)/V({non_unique_2_1mm})>>
+<</T(Non-Unique 1mm_udmsFx1k*mm*jP5hPyWX6Q.3)/V({non_unique_2_1mm_percent})>>
+<</T(Non-Unique 2mm_E7kGoNh68z7BYmTJ3Z*Mew.0)/V({non_unique_1_2mm})>>
+<</T(Non-Unique 2mm_E7kGoNh68z7BYmTJ3Z*Mew.1)/V({non_unique_1_2mm_percent})>>
+<</T(Non-Unique 2mm_E7kGoNh68z7BYmTJ3Z*Mew.2)/V({non_unique_2_2mm})>>
+<</T(Non-Unique 2mm_E7kGoNh68z7BYmTJ3Z*Mew.3)/V({non_unique_2_2mm_percent})>>
+<</T(Non-Unique 3+mm_kxWM719*uF93KoGCKBQDIA.0)/V({non_unique_1_3mm})>>
+<</T(Non-Unique 3+mm_kxWM719*uF93KoGCKBQDIA.1)/V({non_unique_1_3mm_percent})>>
+<</T(Non-Unique 3+mm_kxWM719*uF93KoGCKBQDIA.2)/V({non_unique_2_3mm})>>
+<</T(Non-Unique 3+mm_kxWM719*uF93KoGCKBQDIA.3)/V({non_unique_2_3mm_percent})>>
+<</T(Non-Unique w/ Indel_cg40CT0pyfM7M8Xe5NipXw.0)/V({non_unique_1_indel})>>
+<</T(Non-Unique w/ Indel_cg40CT0pyfM7M8Xe5NipXw.1)/V({non_unique_1_indel_percent})>>
+<</T(Non-Unique w/ Indel_cg40CT0pyfM7M8Xe5NipXw.2)/V({non_unique_2_indel})>>
+<</T(Non-Unique w/ Indel_cg40CT0pyfM7M8Xe5NipXw.3)/V({non_unique_2_indel_percent})>>
+<</T(PageNumber)/V({page_number})>>
+] >> >>
+endobj
+trailer
+<</Root 1 0 R>>
+%%EOF

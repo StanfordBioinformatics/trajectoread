@@ -1,0 +1,140 @@
+{
+    "date_created": "2016-1-25",
+    "bedtools": {
+        "current": "2.19.0", 
+        "dxid": "file-BpYF4pQ0p6fzg88xxjy26f3F",
+        "filename": "bedtools-2.19.0.tar", 
+        "versions": {
+            "2.19.0": {
+                "OS": "Ubuntu-12.04", 
+                "filename": "bedtools-2.19.0.tar", 
+                "dxid": "file-BpYF4pQ0p6fzg88xxjy26f3F", 
+                "program": "bedtools",
+                "compression": "none", 
+                "used_by": "", 
+                "version": "2.19.0"
+            }
+        }
+    }, 
+    "bwa": {
+        "current": "0.7.7", 
+        "dxid": "file-Bk5gqZj0J0qjv3fx858Z8Z9b", 
+        "filename": "bwa-0.6.2",
+        "versions": {
+            "0.6.2": {
+                "OS": "Ubuntu-12.04", 
+                "filename": "bwa-0.6.2", 
+                "dxid": "",
+                "program": "bwa", 
+                "compression": "none",
+                "used_by": "", 
+                "version": "0.6.2"
+            }, 
+            "0.7.7": {
+                "OS": "Ubuntu-12.04", 
+                "filename": "bwa-0.7.7", 
+                "dxid": "file-Bk5gqZj0J0qjv3fx858Z8Z9b",
+                "program": "bwa",
+                "compression": "none", 
+                "used_by": "", 
+                "version": "0.7.7"
+            }
+        }
+    }, 
+    "fastqc": {
+        "current": "0.10.1", 
+        "dxid": "file-BpPFgy00p6fgffjx0Ggjk84Q",
+        "filename": "fastqc-0.10.1.tar", 
+        "versions": {
+            "0.10.1": {
+                "OS": "Ubuntu-12.04", 
+                "filename": "fastqc-0.10.1.tar", 
+                "dxid": "file-BpPFgy00p6fgffjx0Ggjk84Q",
+                "program": "fastqc",
+                "compression": "tar", 
+                "used_by": "", 
+                "version": "0.10.1"
+            }
+        }
+    }, 
+    "pdf_reports": {
+        "current": "1.0", 
+        "dxid": "file-BpYBbyQ0p6fkQFPzp4y8jPbf", 
+        "filename": "pdf_reports-1.0.tar",
+        "versions": {
+            "1.0": {
+                "OS": "Ubuntu-12.04", 
+                "filename": "pdf_reports-1.0.tar", 
+                "dxid": "file-BpYBbyQ0p6fkQFPzp4y8jPbf",
+                "program": "pdf_reports", 
+                "compression": "tar",
+                "used_by": "", 
+                "version": "1.0"
+            }
+        }
+    }, 
+    "picard_tools": {
+        "current": "1.107", 
+        "dxid": "file-Bk5j9k80J0qb6vzGvb3v57VK", 
+        "filename": "picard_tools-1.107.tar",
+        "versions": {
+            "1.107": {
+                "OS": "Ubuntu-12.04", 
+                "filename": "picard_tools-1.107.tar", 
+                "dxid": "file-Bk5j9k80J0qb6vzGvb3v57VK",
+                "program": "picard_tools", 
+                "compression": "tar",
+                "used_by": "", 
+                "version": "1.107"
+            }
+        }
+    }, 
+    "samtools": {
+        "current": "0.1.19", 
+        "dxid": "file-Bk5gpKQ0J0qbkB200b48k9Xy", 
+        "filename": "samtools-0.1.19",
+        "versions": {
+            "0.1.19": {
+                "OS": "Ubuntu-12.04", 
+                "filename": "samtools-0.1.19", 
+                "dxid": "file-Bk5gpKQ0J0qbkB200b48k9Xy",
+                "program": "samtools",
+                "compression": "none", 
+                "used_by": "", 
+                "version": "0.1.19"
+            }
+        }
+    },
+    "bcl2fastq2": {
+        "current": "2.17.1.14",
+        "dxid": "file-Bkv3Ppj0p6fybVzq5xKg9p80",
+        "filename": "bcl2fastq2-2.17.1.14.tar",
+        "versions": {
+            "2.17.1.14": {
+                "OS": "Ubuntu-12.04",
+                "filename": "bcl2fastq2-2.17.1.14.tar",
+                "dxid": "file-Bkv3Ppj0p6fybVzq5xKg9p80",
+                "program": "bcl2fastq",
+                "compression": "tar",
+                "used_by": "",
+                "version": "2.17.1.14"
+            }
+        }
+    },
+    "bcl2fastq": {
+        "current": "1.8.4",
+        "dxid": "file-BfzyzJ805zbxbyqbyjxgJ1pG",
+        "filename": "bcl2fastq-1.8.4.tar.gz",
+        "versions": {
+            "1.8.4": {
+                "OS": "Ubuntu-12.04",
+                "filename": "bcl2fastq-1.8.4.tar.gz",
+                "dxid": "file-BfzyzJ805zbxbyqbyjxgJ1pG",
+                "program": "bcl2fastq",
+                "compression": "targz",
+                "used_by": "",
+                "version": "1.8.4"
+            }
+        }
+    }
+}

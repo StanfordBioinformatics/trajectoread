@@ -1,0 +1,16 @@
+%FDF-1.2
+1 0 obj<</FDF<< /Fields[
+<</T(Date)/V({date})>>
+<</T(Time)/V({time})>>
+<</T(Genome:_8v-F-xTSLU4erj1ufouYrw)/V({genome_name})>>
+<</T(Mapper:_CAxG0j905KyWPCwhOnDckQ)/V({mapper_name})>>
+<</T(Sample:_74aJLkcEdhaFU4IRm*tm4A)/V({sample_name})>>
+<</T(Lane:_9fiIYDcXFvLzd2Y9SkIq7w)/V({lane_number})>>
+<</T(Flow Cell:_3ZdkV181gvXK04MMIGqjwQ)/V({flow_cell})>>
+<</T(Run Name:_Kn-gL5URrVFEsyXUpaKEdA)/V({run_name})>>
+<</T(PageNumber)/V({page_number})>>
+] >> >>
+endobj
+trailer
+<</Root 1 0 R>>
+%%EOF

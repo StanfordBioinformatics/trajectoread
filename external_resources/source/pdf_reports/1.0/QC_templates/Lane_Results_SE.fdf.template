@@ -1,0 +1,43 @@
+%FDF-1.2
+1 0 obj<</FDF<< /Fields[
+<</T(Date)/V({date})>>
+<</T(Time)/V({time})>>
+<</T(Title)/V({title})>>
+<</T(No-Match_cQvqfPBHfBM4Mlc8SuRxcw.0)/V({no_match})>>
+<</T(No-Match_cQvqfPBHfBM4Mlc8SuRxcw.1)/V({no_match_percent})>>
+<</T(Name_MMUu7qFL2AwPqbSH4RjJuA.0)/V(Reads, Post-Filter)>>
+<</T(Name_MMUu7qFL2AwPqbSH4RjJuA.1)/V(\% of PF Reads)>>
+<</T(Reads_Kn-gL5URrVFEsyXUpaKEdA.0)/V({reads})>>
+<</T(Reads_Kn-gL5URrVFEsyXUpaKEdA.1)/V({reads_percent})>>
+<</T(Mapped_UYWPVXRtajr6EJBxwWv74Q.0)/V({mapped})>>
+<</T(Mapped_UYWPVXRtajr6EJBxwWv74Q.1)/V({mapped_percent})>>
+<</T(Unique_3ZdkV181gvXK04MMIGqjwQ.0)/V({unique})>>
+<</T(Unique_3ZdkV181gvXK04MMIGqjwQ.1)/V({unique_percent})>>
+<</T(Unique 0mm_9fiIYDcXFvLzd2Y9SkIq7w.0)/V({unique_0mm})>>
+<</T(Unique 0mm_9fiIYDcXFvLzd2Y9SkIq7w.1)/V({unique_0mm_percent})>>
+<</T(Unique 1mm_74aJLkcEdhaFU4IRm*tm4A.0)/V({unique_1mm})>>
+<</T(Unique 1mm_74aJLkcEdhaFU4IRm*tm4A.1)/V({unique_1mm_percent})>>
+<</T(Unique 2mm_3Cdy8DVNm511TilrkXkr9Q.0)/V({unique_2mm})>>
+<</T(Unique 2mm_3Cdy8DVNm511TilrkXkr9Q.1)/V({unique_2mm_percent})>>
+<</T(Unique 3+mm_CAxG0j905KyWPCwhOnDckQ.0)/V({unique_3mm})>>
+<</T(Unique 3+mm_CAxG0j905KyWPCwhOnDckQ.1)/V({unique_3mm_percent})>>
+<</T(Unique w/ Indel_8v-F-xTSLU4erj1ufouYrw.0)/V({unique_indel})>>
+<</T(Unique w/ Indel_8v-F-xTSLU4erj1ufouYrw.1)/V({unique_indel_percent})>>
+<</T(Non-Unique_uzYl2CjhzhYR1PmV6pm2hQ.0)/V({non_unique})>>
+<</T(Non-Unique_uzYl2CjhzhYR1PmV6pm2hQ.1)/V({non_unique_percent})>>
+<</T(Non-Unique 0mm_x4nVrAusjjnAJWM2POSWJg.0)/V({non_unique_0mm})>>
+<</T(Non-Unique 0mm_x4nVrAusjjnAJWM2POSWJg.1)/V({non_unique_0mm_percent})>>
+<</T(Non-Unique 1mm_udmsFx1k*mm*jP5hPyWX6Q.0)/V({non_unique_1mm})>>
+<</T(Non-Unique 1mm_udmsFx1k*mm*jP5hPyWX6Q.1)/V({non_unique_1mm_percent})>>
+<</T(Non-Unique 2mm_E7kGoNh68z7BYmTJ3Z*Mew.0)/V({non_unique_2mm})>>
+<</T(Non-Unique 2mm_E7kGoNh68z7BYmTJ3Z*Mew.1)/V({non_unique_2mm_percent})>>
+<</T(Non-Unique 3+mm_kxWM719*uF93KoGCKBQDIA.0)/V({non_unique_3mm})>>
+<</T(Non-Unique 3+mm_kxWM719*uF93KoGCKBQDIA.1)/V({non_unique_3mm_percent})>>
+<</T(Non-Unique w/ Indel_cg40CT0pyfM7M8Xe5NipXw.0)/V({non_unique_indel})>>
+<</T(Non-Unique w/ Indel_cg40CT0pyfM7M8Xe5NipXw.1)/V({non_unique_indel_percent})>>
+<</T(PageNumber)/V({page_number})>>
+] >> >>
+endobj
+trailer
+<</Root 1 0 R>>
+%%EOF
