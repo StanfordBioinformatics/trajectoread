@@ -1,0 +1,118 @@
+{
+  "name": "qc_sample",
+  "title": "QC Sample",
+  "summary": "Runs various QC programs on a sample and outputs a report",
+  "description": "This app performs the sample-level QC for the SCGPM production pipeline. Various QC programs are executed. The raw output files from those programs are output, as well as a JSON object summarizing those outputs. These JSON objects are later combined to produce the lane-level QC report.",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "categories": [],
+  "inputSpec": [
+    {
+      "name": "fastq_files",
+      "label": "FASTQ files",
+      "class": "array:file",
+      "optional": false,
+      "patterns": ["*.fastq.gz", "*.fq.gz"]
+    },
+    {
+      "name": "bam_file",
+      "label": "BAM file",
+      "class": "file",
+      "optional": true,
+      "patterns": ["*.bam"]
+    },
+    {
+      "name": "aligner",
+      "label": "Aligner used",
+      "class": "string",
+      "optional": true,
+      "choices": ["bwa_mem", "bwa_aln", "Bowtie2"]
+    },
+    {
+      "name": "genome_fasta_file",
+      "label": "Genome FASTA file",
+      "class": "file",
+      "optional": true,
+      "patterns": ["genome.fa.gz", "*.fa.gz"]
+    },
+    {
+      "name": "fastq_files2",
+      "label": "FASTQ files (read 2)",
+      "class": "array:file",
+      "optional": true,
+      "patterns": ["*.fq.gz", "*.fastq.gz"]
+    },
+    {
+      "name": "sample_name",
+      "label": "Sample name",
+      "class": "string",
+      "optional": false
+    },
+    {
+      "name": "properties",
+      "label": "Properties",
+      "class": "hash",
+      "optional": true
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "alignment_summary_metrics",
+      "label": "Alignment summary metrics",
+      "class": "file",
+      "optional": true
+    },
+    {
+      "name": "fastqc_reports",
+      "label": "FastQC reports",
+      "class": "array:file"
+    },
+    {
+      "name": "insert_size_metrics",
+      "label": "Insert size metrics",
+      "class": "file",
+      "optional": true
+    },
+    {
+      "name": "mismatch_metrics",
+      "label": "Per cycle metrics on mismatches",
+      "class": "file",
+      "optional": true
+    },
+    {
+      "name": "json_output_file",
+      "label": "JSON Statistics Summary",
+      "class": "file"
+    },
+    {
+      "name": "tools_used",
+      "label": "JSON file with tools and command lines used in this module.",
+      "class": "file"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "python2.7",
+    "file": "src/qc_sample.py",
+    "bundledDepends": [],
+    "execDepends": [
+      {
+        "name": "openjdk-6-jre-headless"
+      },
+      {
+        "name": "pysam",
+        "package_manager": "pip"
+      }
+    ],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x2"
+      }
+    }
+  },
+  "access": {
+		"network": ["*"],
+		"allProjects": "ADMINISTER",
+    "project": "ADMINISTER",
+    "developer": true
+	}
+}

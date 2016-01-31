@@ -1,0 +1,151 @@
+{
+  "name": "qc_controller",
+  "title": "QC Controller",
+  "summary": "Process a lane by grouping FASTQ files by sample and processing each sample",
+  "description": "This app performs the lane-level processing for the SCGPM production pipeline. It fetches metadata from Syapse and invokes the sample-level processing for each sample within the lane.",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "categories": [],
+  "inputSpec": [
+    { 
+      "name": "record_id",
+      "label": "Lane Record DXID",
+      "class": "string",
+      "optional": false
+    },
+    {
+      "name": "dashboard_project_id",
+      "label": "Dashboard project dxid",
+      "class": "string",
+      "optional": true
+    },
+    {
+      "name": "fastqs",
+      "label": "Fastq files",
+      "class": "array:file",
+      "optional": true
+    },
+    {
+      "name": "bams",
+      "label": "BAM files",
+      "class": "array:file",
+      "optional": true
+    },
+    {
+      "name": "bais",
+      "label": "BAI files",
+      "class": "array:file",
+      "optional": true
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "merged_fastq_files",
+      "label": "Merged FASTQ files",
+      "class": "array:file",
+      "optional": true
+    },
+    {
+      "name": "bam_files",
+      "label": "BAM files",
+      "class": "array:file",
+      "optional": true
+    },
+    {
+      "name": "qc_report_files",
+      "label": "QC report files",
+      "class": "array:file",
+      "optional": true
+    },
+    {
+      "name": "qc_pdf_report",
+      "label": "QC report pdf",
+      "class": "file",
+      "optional": true
+    },
+    {
+      "name": "coverage_files",
+      "label": "Coverage files",
+      "class": "array:file",
+      "optional": true
+    },
+    {
+      "name": "mappings_tables",
+      "label": "Mappings tables",
+      "class": "array:gtable",
+      "optional": true
+    },
+    {
+      "name": "coverage_tracks",
+      "label": "Coverage tracks",
+      "class": "array:record",
+      "optional": true
+    },
+    {
+      "name": "mismatch_metrics",
+      "label": "Per cycle metrics on mismatches",
+      "class": "array:file",
+      "optional": true
+    },
+    {
+      "name": "qc_json_files",
+      "label": "QC data in JSON format",
+      "class": "array:file"
+    },
+    {
+      "name": "tools_used",
+      "label": "JSON files with tools and command lines used.",
+      "class": "array:file"
+    },
+    {
+      "name": "run_details_json",
+      "label": "run_details_json",
+      "class": "file"
+    },
+    {
+      "name": "barcodes_json",
+      "label": "barcodes_json",
+      "class": "file"
+    },
+    {
+      "name": "sample_stats_json",
+      "label": "sample_stats_json",
+      "class": "file"
+    },
+    {
+      "name": "insert_size_metrics",
+      "label": "insert_size_metrics",
+      "class": "array:file"
+    },
+    {
+      "name": "alignment_summary_metrics",
+      "label": "alignment_summary_metrics",
+      "class": "array:file"
+    },
+    {
+      "name": "fastqc_reports",
+      "label": "fastqc_reports",
+      "class": "array:file"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "python2.7",
+    "file": "src/qc_controller.py",
+    "bundledDepends": [],
+    "execDepends": [
+      {"name": "pdftk"},
+      {"name": "imagemagick"},
+      {"name": "ghostscript"},
+      {"name": "openjdk-7-jre-headless"},
+      {"name": "requests", "package_manager": "pip"},
+      {"name": "pyPdf", "package_manager": "pip"},
+      {"name": "pytz", "package_manager": "pip"}
+    ]
+  },
+  "access": {
+    "project": "ADMINISTER",
+    "allProjects": "ADMINISTER",
+    "network": ["*"]
+  },
+  "authorizedUsers": []
+}
