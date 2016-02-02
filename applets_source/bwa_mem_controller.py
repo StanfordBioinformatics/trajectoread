@@ -28,7 +28,7 @@ class FlowcellLane:
             self.dashboard_project_dxid = 'project-BY82j6Q0jJxgg986V16FQzjx'
 
         self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
-                                                project = self.dashboard_project_dxid)
+                                              project = self.dashboard_project_dxid)
 
         self.fastq_dxids = fastqs
         self.samples_dicts = None

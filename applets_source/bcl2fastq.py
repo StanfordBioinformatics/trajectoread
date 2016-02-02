@@ -32,12 +32,14 @@ Author : pbilling
 '''
 
 import os
+import re
 import sys
 import dxpy
-import subprocess
-import datetime
 import time
+import shutil
 import fnmatch
+import datetime
+import subprocess
 
 from distutils.version import StrictVersion
 
@@ -96,9 +98,12 @@ class InputParameters:
 
 class FlowcellLane:
     
-    def __init__(self, dashboard_record):
+    def __init__(self, dashboard_record_dxid, dashboard_project_dxid):
         
-        self.dashboard_record = dashboard_record
+        self.dashboard_record_dxid = dashboard_record_dxid 
+        self.dashboard_project_dxid = dashboard_project_dxid
+        self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
+                                              project = self.dashboard_project_dxid)
         self.properties = self.dashboard_record.get_properties()
 
         # For now just get/put everything in properties
@@ -117,10 +122,11 @@ class FlowcellLane:
         self.flowcell_id = None
         self.bcl2fastq_version = None
 
+        # DEV: get this info from samplesheet - more robust to formatting changes
         # Get flowcell id
-        run_elements = self.run_name.split('_')
-        flowcell_info = run_elements[3]
-        self.flowcell_id = flowcell_info[1:6]
+        #run_elements = self.run_name.split('_')
+        #flowcell_info = run_elements[3]
+        #self.flowcell_id = flowcell_info[1:6]
 
         # Choose bcl2fastq version based on rta_version
         if StrictVersion(self.rta_version) < StrictVersion('2.0.0'):
@@ -170,6 +176,10 @@ class FlowcellLane:
         self.createSubprocess(cmd=command, pipeStdout=False)
 
     def upload_result_files(self):
+        ''' DEV: Look into using glob.glob to find all fastq files instead of 
+                 manually listing the directories and searching them, a la 
+                 implementation in gbsc/gbsc_utils/demultiplexing.py.
+        '''
         
         fastq_files = []
         lane_dir = self.home + '/Unaligned_L' + str(self.lane_index)
@@ -181,11 +191,11 @@ class FlowcellLane:
 
             # Upload all the fastq files from the lane directory (Unaligned_L%d)
             os.chdir(sample_dir)
-            for file_ in os.listdir('.'):
-                if fnmatch.fnmatch(file_, '*.fastq.gz'):
-                    scgpm_fastq_name = FlowcellLane.get_SCGPM_fastq_name(file_)
+            for filename in os.listdir('.'):
+                if fnmatch.fnmatch(filename, '*.fastq.gz'):
+                    scgpm_fastq_name = self.get_SCGPM_fastq_name_rta_v1(filename)
                     if not os.path.isfile(scgpm_fastq_name):
-                        shutil.move(file_, scgpm_fastq_name)
+                        shutil.move(filename, scgpm_fastq_name)
                     fastq_file = dxpy.upload_local_file(filename=scgpm_fastq_name, properties=None, 
                                             project=self.lane_project_dxid, 
                                             folder='/', parents=True)
@@ -197,11 +207,11 @@ class FlowcellLane:
             
             # Upload all the fastq files from the lane directory (Unaligned_L%d)            
             os.chdir(lane_dir)
-            for file_ in os.listdir('.'):
-                if fnmatch.fnmatch(file_, '*.fastq.gz'):
-                    scgpm_fastq_name = FlowcellLane.get_SCGPM_fastq_name(file_)
+            for filename in os.listdir('.'):
+                if fnmatch.fnmatch(filename, '*.fastq.gz'):
+                    scgpm_fastq_name = self.get_SCGPM_fastq_name_rta_v2(filename)
                     if not os.path.isfile(scgpm_fastq_name):
-                        shutil.move(file_, scgpm_fastq_name)
+                        shutil.move(filename, scgpm_fastq_name)
                     fastq_file = dxpy.upload_local_file(filename=scgpm_fastq_name, properties=None, 
                                             project=self.lane_project_dxid, 
                                             folder='/', parents=True)
@@ -209,11 +219,11 @@ class FlowcellLane:
 
             # Upload all the fastq files from the flowcell directory (Unaligned_L%d/<flowcell_id>)
             os.chdir(flowcell_dir)
-            for file_ in os.listdir('.'):
-                if fnmatch.fnmatch(file_, '*.fastq.gz'):
-                    scgpm_fastq_name = FlowcellLane.get_SCGPM_fastq_name(file_)
+            for filename in os.listdir('.'):
+                if fnmatch.fnmatch(filename, '*.fastq.gz'):
+                    scgpm_fastq_name = self.get_SCGPM_fastq_name_rta_v2(filename)
                     if not os.path.isfile(scgpm_fastq_name):
-                        shutil.move(file_, scgpm_fastq_name)
+                        shutil.move(filename, scgpm_fastq_name)
                     fastq_file = dxpy.upload_local_file(filename=scgpm_fastq_name, properties=None, 
                                             project=self.lane_project_dxid, 
                                             folder='/', parents=True)
@@ -241,6 +251,8 @@ class FlowcellLane:
         self.sample_sheet = stdout_elements[1]
         print 'This is the self.sample_sheet: %s' % self.sample_sheet
         
+        # DEV: insert check so that samplesheet is only uploaded if does not exist.
+        #      Also, maybe add it to output?
         dxpy.upload_local_file(filename = self.sample_sheet, 
                                properties = None, 
                                project = self.lane_project_dxid, 
@@ -249,6 +261,43 @@ class FlowcellLane:
                               )
         return self.sample_sheet
         
+    def get_flowcell_id(self):
+        ''' Description: Get flowcell ID from samplesheet generated from LIMS.
+        '''
+
+        if not self.sample_sheet:
+            warning = 'Warning: Cannot get flowcell ID without creating '
+            warning += 'samplesheet. Creating samplesheet now.'
+            self.sample_sheet = self.create_sample_sheet()
+
+        get_flowcell_id_from_line = False
+        with open(self.sample_sheet, 'r') as SAMPLE_SHEET:
+            for line in SAMPLE_SHEET:
+                elements = line.split(',')
+                if get_flowcell_id_from_line == True:
+                    self.flowcell_id = elements[0]
+                    break
+                elif elements[0] == 'FCID' or elements[0] == 'Sample_Project':
+                    # RTA v1 == 'FCID', RTA v2 == 'Sample_Project'
+                    get_flowcell_id_from_line = True
+                else:
+                    continue
+
+        if not self.flowcell_id:
+            print 'Error: Could not get flowcell ID from sample sheet'
+            sys.exit()
+        else:
+            # Add flowcell ID as a record property
+            input_params = {
+                            'project': self.dashboard_project_dxid, 
+                            'properties': {'flowcell_id': self.flowcell_id}
+                           }
+            print input_params
+            print self.dashboard_record_dxid
+            dxpy.api.record_set_properties(object_id = self.dashboard_record_dxid,
+                                           input_params = input_params)
+            return self.flowcell_id
+
     def get_use_bases_mask(self):
         '''
         command = "python calculate_use_bases_mask.py {runinfoFile} {sampleSheet} {lane}"
@@ -375,13 +424,76 @@ class FlowcellLane:
             return popen
             #return stdout,stderr
 
-    @classmethod
-    def get_SCGPM_fastq_name(fastq_filename):
+    def get_SCGPM_fastq_name_rta_v1(self, fastq_filename):
         '''
         Returns a fastq filename that matches SCGPM naming convention.
         Does not actually rename files.
         '''
 
+        elements = fastq_filename.split('_')
+        if len(elements) < 4 or len(elements) > 6:
+            print 'WARNING: fastq filename has unusual number of elements : %s' % fastq
+            sys.exit()
+        
+        # One barcode : lane1_TAGGCATG_L001_R2_001.fastq.gz
+        # Two barcodes : lane1_TCTCGCGC-TCAGAGCC_L001_R2_001.fastq.gz
+        elif len(elements) == 5:
+            lane = elements[0]
+            barcode = elements[1]
+            read = elements[3]
+
+            lane_index_match = re.match(r'lane(\d)', lane)
+            if lane_index_match:
+                lane_index = lane_index_match.group(1)
+            else:
+                print 'Could not determine lane index: %s' % lane
+                sys.exit()
+            read_index_match = re.match(r'R(\d)', read)
+            #pdb.set_trace()
+            if read_index_match:
+                read_index = read_index_match.group(1)
+            else:
+                print 'Could not determine read index: %s' % read
+                sys.exit()
+            # new format : 151202_BRISCOE_0270_BC847TACXX_L1_TAGGCATG_1_pf.fastq.gz
+            new_fastq_filename = '%s_L%s_%s_%s_pf.fastq.gz' % (self.run_name, lane_index, barcode, read_index)
+        
+        # No barcode : Undetermined_L001_R1_001.fastq.gz
+        elif len(elements) == 4:
+            lane = elements[1]
+            read = elements[2]
+
+            lane_index_match = re.match(r'L00(\d)', lane)
+            if lane_index_match:
+                lane_index = lane_index_match.group(1)
+            else:
+                print 'Could not determine lane index: %s' % lane
+                sys.exit()
+            read_index_match = re.match(r'R(\d)', read)
+            if read_index_match:
+                read_index = read_index_match.group(1)
+            else:
+                print 'Could not determine read index: %s' % read
+            # new format : 151106_LYNLEY_0515_AC7F31ACXX_L1_unmatched_1_pf.fastq.gz
+            new_fastq_filename = '%s_L%s_unmatched_%s_pf.fastq.gz' % (self.run_name, lane_index, read_index)
+        
+        else:
+            print "Could not get metadata for:\nfastq: %s\nlane: %s\nrun: %s" % (fastq, lane, self.run_name)
+            pass
+        return new_fastq_filename
+
+    def get_SCGPM_fastq_name_rta_v2(self, fastq_filename):
+        '''
+        Returns a fastq filename that matches SCGPM naming convention.
+        Does not actually rename files.
+        '''
+
+        # DEV: I need a better way to do this.
+        # Information I need: run, lane, read index, barcode
+        # FlowcellLane object already has run, lane
+        # Sample sheet has list of all barcodes
+        # <run>_<lane>_<barcode>_<read_index>.fastq.gz
+        # Need to be able to find read_index and barcode information
         elements = fastq_filename.split('_')
         if len(elements) < 5 or len(elements) > 7:
             print 'WARNING: fastq filename has unusual number of elements : %s' % fastq
@@ -406,9 +518,9 @@ class FlowcellLane:
                 print 'Could not determine read index: %s' % read
             
             # new format : 151202_BRISCOE_0270_BC847TACXX_L1_TAGGCATG-TAGGCATG_1_pf.fastq.gz
-            new_fastq_filename = '%s_L%s_%s-%s_%s_pf.fastq.gz' % (run, lane_index, barcodes[0], barcodes[1], read_index) 
+            new_fastq_filename = '%s_L%s_%s-%s_%s_pf.fastq.gz' % (self.run_name, lane_index, barcodes[0], barcodes[1], read_index) 
         elif len(elements) == 6:
-            # One barcode
+            # One barcode : lane1_TCAGAGCC_S47_L001_R2_001.fastq.gz
             lane = elements[0]
             barcode = elements[1]
             read = elements[4]
@@ -428,7 +540,7 @@ class FlowcellLane:
                 sys.exit()
 
             # new format : 151202_BRISCOE_0270_BC847TACXX_L1_TAGGCATG_1_pf.fastq.gz
-            new_fastq_filename = '%s_L%s_%s_%s_pf.fastq.gz' % (run, lane_index, barcode, read_index)
+            new_fastq_filename = '%s_L%s_%s_%s_pf.fastq.gz' % (self.run_name, lane_index, barcode, read_index)
         elif len(elements) == 5:
             # No barcode : Undetermined_S1_L001_R1_001.fastq.gz
             lane = elements[2]
@@ -447,9 +559,9 @@ class FlowcellLane:
                 print 'Could not determine read index: %s' % read
             
             # new format : 151106_LYNLEY_0515_AC7F31ACXX_L1_unmatched_1_pf.fastq.gz
-            new_fastq_filename = '%s_L%s_unmatched_%s_pf.fastq.gz' % (run, lane_index, read_index)
+            new_fastq_filename = '%s_L%s_unmatched_%s_pf.fastq.gz' % (self.run_name, lane_index, read_index)
         else:
-            print "Could not get metadata for:\nfastq: %s\nlane: %s\nrun: %s" % (fastq, lane, run)
+            print "Could not get metadata for:\nfastq: %s\nlane: %s\nrun: %s" % (fastq, lane, self.run_name)
             pass
         return new_fastq_filename
 
@@ -467,9 +579,8 @@ def main(**applet_input):
     output = {}
     params = InputParameters(applet_input)
 
-    lane_dashboard_record = dxpy.DXRecord(dxid=params.record_dxid, 
-                                          project=params.dashboard_project_dxid)
-    lane = FlowcellLane(dashboard_record=lane_dashboard_record)
+    lane = FlowcellLane(dashboard_record_dxid = params.record_dxid,
+                        dashboard_project_dxid = params.dashboard_project_dxid)
     lane.describe()
     
     print 'Downloading lane data'
@@ -477,10 +588,13 @@ def main(**applet_input):
     lane.unpack_tar(params.metadata_tar)
     
     print 'Creating sample sheet\n'
-    sample_sheet = lane.create_sample_sheet()
+    lane.create_sample_sheet()
+
+    print 'Parsing sample sheet to get flowcell ID'
+    lane.get_flowcell_id()
     
     print 'Get use bases mask\n'
-    use_bases_mask = lane.get_use_bases_mask()
+    lane.get_use_bases_mask()
     
     print 'Convert bcl to fastq files'
     lane.run_bcl2fastq(mismatches = params.mismatches,
@@ -491,11 +605,13 @@ def main(**applet_input):
                        test_mode = params.test_mode
                        )
     
-    print 'Rename fastq files to match SCGPM convention'
-    lane.rename_fastqs()
-    
-    print 'Upload fastq files tarball back to DNAnexus'
-    fastq_files = lane.upload_result_files()
+    print 'Uploading fastq files back to DNAnexus'
+    fastq_files = lane.upload_result_files()        # returns DXLink objects
+    #print EMPTY_DEBUG_VARIABLE
+
+    output = {}
     output['fastqs'] = fastq_files
+
+    return output
 
 dxpy.run()

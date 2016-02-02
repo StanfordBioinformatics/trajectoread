@@ -37,7 +37,8 @@ class FlowcellLane:
         if not self.dashboard_project_dxid:
             self.dashboard_project_dxid = 'project-BY82j6Q0jJxgg986V16FQzjx'
         self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
-                                                project = self.dashboard_project_dxid)
+                                              project = self.dashboard_project_dxid
+                                             )
 
         self.fastq_dxids = fastqs
         self.bam_dxids = bams
@@ -51,7 +52,7 @@ class FlowcellLane:
         self.reference_genome = self.properties['reference_genome']
         self.lane_project_dxid = self.properties['lane_project_dxid']
         self.run_name = self.properties['run']
-        self.flowcell_name = self.properties['flowcell_name']
+        self.flowcell_id = self.properties['flowcell_id']
         self.lane_index = self.properties['lane_index']
         self.library_name = self.properties['library']
         self.operator = self.properties['operator']
@@ -96,9 +97,15 @@ class FlowcellLane:
 
     def find_interop_file(self):
 
-        interop_file = dxpy.find_one_data_object(classname='file',
-            name='InterOp.tar.gz', name_mode='exact', project=self.lane_project_dxid,
-            folder='/', zero_ok=False, more_ok=False)
+        interop_name = '%s.InterOp.tar.gz' % self.run_name
+        interop_file = dxpy.find_one_data_object(classname = 'file',
+                                                 name = interop_name, 
+                                                 name_mode = 'exact', 
+                                                 project = self.lane_project_dxid,
+                                                 folder = '/', 
+                                                 zero_ok = False, 
+                                                 more_ok = True
+                                                )
         return interop_file['id']
 
     def find_bam_files(self):
@@ -337,7 +344,7 @@ def main(record_id, fastqs=None, bams=None, bais=None, dashboard_project_id=None
 
     # Now handle the generation of the QC PDF report.
     run_details = {'run_name': lane.run_name,
-                'flow_cell': lane.flowcell_name, #should be the same for all fq files
+                'flow_cell': lane.flowcell_id, #should be the same for all fq files
                 'lane': lane.lane_index,
                 'library': lane.library_name,
                 'operator': lane.operator,

@@ -1,6 +1,6 @@
 {
   "name": "bcl2fastq",
-  "title": "Call Illumina bcl2fastq",
+  "title": "Convert bcl to fastq files",
   "summary": "Converts Illumina data from BCL to FASTQ, demultiplexing barcoded samples if appropriate",
   "dxapi": "1.0.0",
   "version": "0.1.0",
