@@ -1,0 +1,56 @@
+{
+  "editVersion": "",
+  "workflow_dxid": "",
+  "applets": {
+    "bcl2fastq": {
+      "resources": {
+        "scripts": ["create_sample_sheet.py", "calculate_use_bases_mask.py"],
+        "python_packages": ["scgpm_lims"],
+        "software": [{"name": "bcl2fastq", "version": "1.8.4"}]
+      }
+    },
+    "bwa_controller": {
+      "resources": {}
+    },
+    "map_sample": {
+      "resources": {}
+    }
+  },
+  "stages": {
+    "1": {
+      "executable": "bcl2fastq",
+      "name": "Demultiplex and bcl2fastq",
+      "folder": "stage1_bcl2fastq",
+      "dxid": "",
+      "input": {
+                "record_dxid": "",  
+                "lane_data_tar": "",
+                "metadata_tar": ""
+      },
+      "output": ["fastqs"]
+    },
+    "2": {
+      "executable": "bwa_controller",
+      "name": "bwa",
+      "folder": "stage2_bwa",
+      "dxid": "",
+      "input": {
+                "record_dxid": "",
+                "fastqs": {
+                           "$dnanexus_link": {
+                                              "stage": "1", 
+                                              "output": "fastqs"
+                           }
+                }
+      },
+      "link_input": {
+                     "fastqs": {
+                                "stage": "1",
+                                "field": "output",
+                                "name": "fastqs"
+                     }
+      },
+      "output": ["bams", "bais"]
+    }
+  }
+}

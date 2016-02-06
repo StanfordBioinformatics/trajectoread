@@ -85,6 +85,33 @@ class Manager:
             # Invoke mapping workflow with bcl2fastq-bwa-qc
 
     def configure_inputs(lane_dxid, workflow_dxid):
+        # Find lane, interop, metadata files
+        run_name = dxpy.DXProject(dxid=lane_dxid).get_properties()['run']
+        lane_name = dxpy.DXProject(dxid=lane_dxid).describe()['name']
+        
+        lane_tar_name = '%s.tar.gz'
+        lane_tar = dxpy.find_one_data_object(classname = 'file', 
+                                             name = lane_tar_name,
+                                             name_mode = 'exact',
+                                             project = lane_dxid,
+                                             folder = 'raw_data'
+                                            )
+        metadata_tar_name = '%s.metadata.tar.gz' % run_name
+        metadata_tar = dxpy.find_one_data_object(classname = 'file',
+                                                 name = metadata_tar,
+                                                 name_mode = 'exact',
+                                                 project = lane_dxid,
+                                                 folder = 'raw_data'
+                                                )
+        interop_tar_name = '%s.InterOp.tar.gz' % run_name
+        interop_tar = dxpy.find_one_data_object(classname= 'file',
+                                                name = interop_tar_name,
+                                                name_mode = 'exact',
+                                                project = lane_dxid,
+                                                folder = 'raw_data'
+                                               )
+
+        # [{u'$dnanexus_link': {u'outputField': u'fastqs', u'stage': u'stage-Bpk8b600kjGv15Pj8Z50gzJ0'}}]
 
 
 @dxpy.entry_point("main")
