@@ -1,63 +1,73 @@
 {
-  "workflow_project_dxid": "",
-  "workflow_name": "WF_bcl2fastq_bwa",
-  "workflow_dxid": ""
-  "edit_version": "",
-  "dx_OS": "",
-  "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv",
-  "applets": {
-    "bcl2fastq": {
-      "applet_dxid": "",
-      "resources": {
-        "scripts": ["create_sample_sheet.py", "calculate_use_bases_mask.py"],
-        "python_packages": ["scgpm_lims"],
-        "software": [{"name": "bcl2fastq", "version": "1.8.4"}]
-      }
-    },
-    "bwa_controller": {
-      "applet_dxid": "",
-      "resources": {}
-    },
-    "map_sample": {
-      "applet_dxid": "",
-      "resources": {}
-    }
-  },
-  "stages": {
-    "1": {
-      "executable": "bcl2fastq",
-      "name": "Demultiplex and bcl2fastq",
-      "folder": "stage1_bcl2fastq",
-      "dxid": "",
-      "input": {
-                "record_dxid": "",  
-                "lane_data_tar": "",
-                "metadata_tar": ""
-      },
-      "output": ["fastqs"]
-    },
-    "2": {
-      "executable": "bwa_controller",
-      "name": "bwa",
-      "folder": "stage2_bwa",
-      "dxid": "",
-      "input": {
-                "record_dxid": "",
-                "fastqs": {
-                           "$dnanexus_link": {
-                                              "stage": "1", 
-                                              "output": "fastqs"
-                           }
+    "applets": {
+        "bcl2fastq": {
+            "applet_dxid": "", 
+            "dxid": "applet-Bpq8pq00BQV10846XvxzjJ3x", 
+            "external_rscs": [
+                {
+                    "name": "bcl2fastq", 
+                    "version": "1.8.4"
                 }
-      },
-      "link_input": {
-                     "fastqs": {
-                                "stage": "1",
-                                "field": "output",
-                                "name": "fastqs"
-                     }
-      },
-      "output": ["bams", "bais"]
-    }
-  }
+            ], 
+            "internal_rscs": {
+                "python_packages": [
+                    "scgpm_lims"
+                ], 
+                "scripts": [
+                    "create_sample_sheet.py", 
+                    "calculate_use_bases_mask.py"
+                ]
+            }
+        }, 
+        "bwa_mem_controller": {
+            "applet_dxid": "", 
+            "dxid": "applet-Bpq8pjj0BQVGz3kXKvxZ107p", 
+            "external_rscs": [], 
+            "internal_rscs": {}
+        }
+    }, 
+    "date_created": "2016-02-06", 
+    "dx_OS": "Ubuntu-12.04", 
+    "edit_version": 2, 
+    "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
+    "stages": {
+        "0": {
+            "dxid": "stage-Bpq8pq00BQV3VFggVjxypZz3", 
+            "executable": "bcl2fastq", 
+            "folder": "stage1_bcl2fastq", 
+            "input": {
+                "lane_data_tar": "", 
+                "metadata_tar": "", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {}, 
+            "name": "Demultiplex and bcl2fastq", 
+            "output": [
+                "fastqs"
+            ]
+        }, 
+        "1": {
+            "dxid": "stage-Bpq8pq80BQV3G8VVYvxX292Y", 
+            "executable": "bwa_mem_controller", 
+            "folder": "stage2_bwa", 
+            "input": {
+                "record_dxid": ""
+            }, 
+            "linked_input": {
+                "fastqs": {
+                    "field": "outputField", 
+                    "name": "fastqs", 
+                    "stage": "0"
+                }
+            }, 
+            "name": "bwa", 
+            "output": [
+                "bams", 
+                "bais"
+            ]
+        }
+    }, 
+    "workflow_dxid": "workflow-Bpq8pq00BQV5YJ7PJGxvzBgp", 
+    "workflow_project_dxid": "project-Bpq66j00BQVPg8JYXQ0z6766", 
+    "workflow_title": "WF_bcl2fastq_bwa"
 }
