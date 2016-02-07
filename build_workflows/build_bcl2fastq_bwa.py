@@ -18,10 +18,6 @@ import subprocess
 
 from dxpy import app_builder
 
-#class DirectoryListing:
-#   def __init__(self, home):
-#       # [dirname, basename] = os.path.split(abspath)
-
 class WorkflowConfig:
 
     def __init__(self, config_path, workflow_config_dir):
@@ -476,11 +472,6 @@ class InternalRscsManager:
         path = self.config["dnanexus_path"][path_name]["path"]
         full_path = path + '/' + name
         return full_path
-
-def add_applet(trajectoread_dirs, name):
-
-    applet_name = name
-    applet_code = os.path.join(trajectoread_dirs['applets_source'], 'bwa_mem_controller.py')
 
 def main():
     dry_run = True  # Test mode
