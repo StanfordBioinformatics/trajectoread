@@ -1,0 +1,58 @@
+{
+  "name": "qc_sample",
+  "title": "QC Sample",
+  "summary": "Runs various QC programs on a sample and outputs a report",
+  "description": "This app performs the sample-level QC for the SCGPM production pipeline. Various QC programs are executed. The raw output files from those programs are output, as well as a JSON object summarizing those outputs. These JSON objects are later combined to produce the lane-level QC report.",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "categories": [],
+  "inputSpec": [
+    {
+      "name": "bam_file",
+      "label": "BAM file",
+      "class": "file",
+      "optional": true,
+      "patterns": ["*.bam"]
+    },
+    {
+      "name": "aligner",
+      "label": "Aligner used",
+      "class": "string",
+      "optional": true,
+      "choices": ["bwa_mem", "bwa_aln", "Bowtie2"]
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "mismatch_per_cycle_stats",
+      "label": "Mismatch per cycle",
+      "class": "file",
+      "optional": true
+    },
+  ],
+  "runSpec": {
+    "interpreter": "python2.7",
+    "file": "src/qc_sample.py",
+    "bundledDepends": [],
+    "execDepends": [
+      {
+        "name": "openjdk-6-jre-headless"
+      },
+      {
+        "name": "pysam",
+        "package_manager": "pip"
+      }
+    ],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x2"
+      }
+    }
+  },
+  "access": {
+		"network": ["*"],
+		"allProjects": "ADMINISTER",
+    "project": "ADMINISTER",
+    "developer": true
+	}
+}

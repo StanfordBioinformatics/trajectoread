@@ -211,15 +211,19 @@ def create_tools_used_file(tools_used):
     return TOOLS_USED_TXT_FN
 
 @dxpy.entry_point("run_qc_sample")
-def qc_sample(fastq_files, sample_name, properties=None, aligner=None, 
+def qc_sample(fastq_files, sample_name, applet_project, applet_folder, properties=None, aligner=None, 
     genome_fasta_file = None, fastq_files2=None, bam_file=None):
 
     # DEV: change to be dynamically gotten
     # find mapping app
     qc_sample_applet_name = 'qc_sample' 
     qc_sample_applet_dxid = dxpy.find_one_data_object(classname='applet',
-        name=qc_sample_applet_name, name_mode='exact', project='project-BpP8Yg00zz07ffjx0Ggjk71f',
-        folder='/builds/2016-01-20_fc6411e', zero_ok=False, more_ok=False)
+                                                      name=qc_sample_applet_name, 
+                                                      name_mode='exact', 
+                                                      applet_project=applet_project,
+                                                      applet_folder=applet_folder, 
+                                                      zero_ok=False, 
+                                                      more_ok=False)
     qc_sample_applet = dxpy.DXApplet(qc_sample_applet_dxid['id'])
 
     fastq_files = [dxpy.dxlink(x) for x in fastq_files]
@@ -307,10 +311,11 @@ def generate_qc_pdf_report(**job_inputs):
             }
 
 @dxpy.entry_point("main")
-def main(record_id, fastqs=None, bams=None, bais=None, dashboard_project_id=None):
+def main(record_dxid, applet_project, applet_build_version, fastqs=None, bams=None, bais=None, dashboard_project_dxid=None):
 
-    lane = FlowcellLane(record_dxid=record_id, fastqs=fastqs, bams=bams, 
-                        bais=bais, dashboard_project_dxid=dashboard_project_id)
+    applet_folder = '/builds/%s' % applet_build_version
+    lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, bams=bams, 
+                        bais=bais, dashboard_project_dxid=dashboard_project_dxid)
 
     output = {"alignment_summary_metrics": [], 
                 "fastqc_reports": [], 
@@ -328,6 +333,8 @@ def main(record_id, fastqs=None, bams=None, bais=None, dashboard_project_id=None
             "fastq_files": fastq_files,
             "fastq_files2": fastq_files2, 
             "sample_name": barcode, 
+            "applet_project": applet_project,
+            "applet_folder": applet_folder,
             "properties": None,
             "aligner": lane.aligner, 
             "genome_fasta_file": lane.ref_genome_dxid,

@@ -8,13 +8,13 @@
   "categories": [],
   "inputSpec": [
     { 
-      "name": "record_id",
+      "name": "record_dxid",
       "label": "Lane Record DXID",
       "class": "string",
       "optional": false
     },
     {
-      "name": "dashboard_project_id",
+      "name": "dashboard_project_dxid",
       "label": "Dashboard project dxid",
       "class": "string",
       "optional": true
@@ -36,6 +36,18 @@
       "label": "BAI files",
       "class": "array:file",
       "optional": true
+    },
+    {
+      "name": "applet_project",
+      "label": "Project where qc_sample applet is",
+      "class": "string",
+      "optional": false
+    },
+    {
+      "name": "applet_build_version",
+      "label": "qc_sample build directory",
+      "class": "string",
+      "optional": false
     }
   ],
   "outputSpec": [

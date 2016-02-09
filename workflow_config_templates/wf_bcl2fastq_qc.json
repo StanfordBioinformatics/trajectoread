@@ -1,0 +1,107 @@
+{
+    "applets": {
+        "bcl2fastq": {
+            "applet_dxid": "", 
+            "dxid": "applet-BpvKQbj0KY5Jg4Y8ZQ0z3Z7f", 
+            "external_rscs": [
+                {
+                    "name": "bcl2fastq", 
+                    "version": "1.8.4"
+                }
+            ], 
+            "internal_rscs": {
+                "python_packages": [
+                    "scgpm_lims"
+                ], 
+                "scripts": [
+                    "create_sample_sheet.py", 
+                    "calculate_use_bases_mask.py"
+                ]
+            }
+        }, 
+        "qc_controller": {
+            "applet_dxid": "", 
+            "dxid": "applet-BpvKQp80KY5Jg4Y8ZQ0z3Z7q", 
+            "external_rscs": [
+                {
+                    "name": "pdf_reports", 
+                    "version": "1.0"
+                }
+            ], 
+            "internal_rscs": {}
+        }, 
+        "qc_sample": {
+            "applet_dxid": "", 
+            "dxid": "applet-BpvKQp00KY595VvYYQ0yxJxy", 
+            "external_rscs": [
+                {
+                    "name": "picard_tools", 
+                    "version": "1.107"
+                }, 
+                {
+                    "name": "fastqc", 
+                    "version": "0.10.1"
+                }
+            ], 
+            "internal_rscs": {
+                "c_programs": [
+                    "bwa_mismatches", 
+                    "collect_uniqueness_metrics"
+                ]
+            }
+        }
+    }, 
+    "date_created": "2016-02-08", 
+    "dx_OS": "Ubuntu-12.04", 
+    "edit_version": 2, 
+    "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
+    "stages": {
+        "0": {
+            "dxid": "stage-BpvKQpQ0KY5J9b8XJj0zxxzk", 
+            "executable": "bcl2fastq", 
+            "folder": "stage0_bcl2fastq", 
+            "input": {
+                "lane_data_tar": "", 
+                "metadata_tar": "", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {}, 
+            "name": "Demultiplex and bcl2fastq", 
+            "output": [
+                "fastqs"
+            ]
+        }, 
+        "1": {
+            "dxid": "stage-BpvKQpQ0KY56vVBQPG0yV4V7", 
+            "executable": "qc_controller", 
+            "folder": "stage1_qc", 
+            "input": {
+                "applet_build_version": "2016-02-08_8c23b31", 
+                "applet_project": "project-Bpv3PZQ0KY5P9vk59kg639jf", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {
+                "fastqs": {
+                    "field": "outputField", 
+                    "name": "fastqs", 
+                    "stage": "0"
+                }
+            }, 
+            "name": "QC Report", 
+            "output": [
+                "merged_fastq_files", 
+                "qc_report_files", 
+                "qc_pdf_report", 
+                "tools_used", 
+                "run_details_json", 
+                "barcodes_json", 
+                "sample_stats_json", 
+                "insert_size_metrics", 
+                "fastqc_reports"
+            ]
+        }
+    }, 
+    "workflow_dxid": "workflow-BpvKQp80KY595VvYYQ0yxJy0", 
+    "workflow_project_dxid": "project-Bpv3PZQ0KY5P9vk59kg639jf", 
+    "workflow_title": "WF_bcl2fastq_qc"
+}

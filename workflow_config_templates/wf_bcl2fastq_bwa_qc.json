@@ -1,0 +1,133 @@
+{
+    "applets": {
+        "bcl2fastq": {
+            "applet_dxid": "", 
+            "dxid": "applet-BpvY1g00ZgQ37YKQVGXYvjpp", 
+            "external_rscs": [
+                {
+                    "name": "bcl2fastq", 
+                    "version": "1.8.4"
+                }
+            ], 
+            "internal_rscs": {
+                "python_packages": [
+                    "scgpm_lims"
+                ], 
+                "scripts": [
+                    "create_sample_sheet.py", 
+                    "calculate_use_bases_mask.py"
+                ]
+            }
+        }, 
+        "bwa_controller": {
+            "applet_dxid": "", 
+            "dxid": "applet-BpvY1jQ0ZgQ52QpxQGXv5fQ7", 
+            "external_rscs": [], 
+            "internal_rscs": {}
+        }, 
+        "qc_controller": {
+            "applet_dxid": "", 
+            "dxid": "applet-BpvY1j80ZgQ37YKQVGXYvjpv", 
+            "external_rscs": [
+                {
+                    "name": "pdf_reports", 
+                    "version": "1.0"
+                }
+            ], 
+            "internal_rscs": {}
+        }, 
+        "qc_sample": {
+            "applet_dxid": "", 
+            "dxid": "applet-BpvY1j00ZgQ6jqJzPGXyx0fB", 
+            "external_rscs": [
+                {
+                    "name": "picard_tools", 
+                    "version": "1.107"
+                }, 
+                {
+                    "name": "fastqc", 
+                    "version": "0.10.1"
+                }
+            ], 
+            "internal_rscs": {
+                "c_programs": [
+                    "bwa_mismatches", 
+                    "collect_uniqueness_metrics"
+                ]
+            }
+        }
+    }, 
+    "date_created": "2016-02-08", 
+    "dx_OS": "Ubuntu-12.04", 
+    "edit_version": 6, 
+    "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
+    "stages": {
+        "0": {
+            "dxid": "stage-BpvY1jQ0ZgQ6jqJzPGXyx0fG", 
+            "executable": "bcl2fastq", 
+            "folder": "stage0_bcl2fastq", 
+            "input": {
+                "lane_data_tar": "", 
+                "metadata_tar": "", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {}, 
+            "name": "Demultiplex and bcl2fastq", 
+            "output": [
+                "fastqs"
+            ]
+        }, 
+        "1": {
+            "dxid": "stage-BpvY1jj0ZgQ310q5X8Xbkpq4", 
+            "executable": "bwa_controller", 
+            "folder": "stage1_bwa", 
+            "input": {
+                "applet_build_version": "2016-02-08_8c23b31", 
+                "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {
+                "fastqs": {
+                    "field": "outputField", 
+                    "name": "fastqs", 
+                    "stage": "0"
+                }
+            }, 
+            "name": "bwa", 
+            "output": [
+                "bams", 
+                "bais"
+            ]
+        }, 
+        "2": {
+            "dxid": "stage-BpvY1jj0ZgQF32ZYYGXx1YJ7", 
+            "executable": "qc_controller", 
+            "folder": "stage2_qc", 
+            "input": {
+                "applet_build_version": "2016-02-08_8c23b31", 
+                "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {
+                "bais": {
+                    "field": "outputField", 
+                    "name": "bais", 
+                    "stage": "1"
+                }, 
+                "bams": {
+                    "field": "outputField", 
+                    "name": "bams", 
+                    "stage": "1"
+                }, 
+                "fastqs": {
+                    "field": "outputField", 
+                    "name": "fastqs", 
+                    "stage": "0"
+                }
+            }
+        }
+    }, 
+    "workflow_dxid": "workflow-BpvY1jQ0ZgQ37YKQVGXYvjpy", 
+    "workflow_project_dxid": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
+    "workflow_title": "WF_bcl2fastq_bwa_qc"
+}
