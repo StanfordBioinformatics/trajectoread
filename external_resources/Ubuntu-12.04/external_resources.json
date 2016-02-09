@@ -1,5 +1,9 @@
 {
     "date_created": "2016-1-25",
+    "lims": {
+        "url": "https://uhts.stanford.edu",
+        "token": "9af4cc6d83fbfd793fe4"
+    },
     "bedtools": {
         "current": "2.19.0", 
         "dxid": "file-BpYF4pQ0p6fzg88xxjy26f3F",
@@ -135,6 +139,32 @@
                 "used_by": "",
                 "version": "1.8.4"
             }
+        }
+    },
+    "workflow": {
+        "WF_bcl2fastq_bwa_qc": {
+            "project_dxid": "project-Bpbqf3Q0kjGzjj52zxbGzXpv",
+            "current": "2016-02-01_990de97",
+            "object_dxid": "workflow-Bpk8b3j0kjGf0ff9405KfBBQ",
+            "versions": {
+                "2016-02-01_990de97": {
+                    "object_dxid": ""
+                },
+                "2016-01-29_cf4316d": {
+                    "object_dxid": ""
+                }
+            }
+        },
+        "WF_bcl2fastq_qc": {
+            "project_dxid": "",
+            "current": "2016-02-01_990de97",
+            "object_dxid": "",
+            "versions": {
+                "2016-02-01_990de97": {
+                    "object_dxid": ""
+                }
+            }
+
         }
     }
 }

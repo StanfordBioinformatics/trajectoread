@@ -8,9 +8,12 @@
 		},
 		"$home": {
 			"path": "/home/dnanexus"
+		},
+		"$root": {
+			"path": "/"
 		}
 	},
-	"python_package": {
+	"python_packages": {
 		"scgpm_lims": {
 			"local_path": "python_packages/scgpm_lims",
 			"dnanexus_location": "$python_dist-packages",
@@ -24,7 +27,7 @@
 			]
 		}
 	},
-	"script": {
+	"scripts": {
 		"create_sample_sheet.py": {
 			"local_path": "scripts/create_sample_sheet.py",
 			"dnanexus_location": "$home"
@@ -32,6 +35,16 @@
 		"calculate_use_bases_mask.py": {
 			"local_path": "scripts/calculate_use_bases_mask.py",
 			"dnanexus_location": "$home"
+		}
+	},
+	"c_programs": {
+		"bwa_mismatches": {
+			"local_path": "c_programs/bwa_mismatches",
+			"dnanexus_location": "$root"
+		},
+		"collect_uniqueness_metrics": {
+			"local_path": "c_programs/collect_uniqueness_metrics",
+			"dnanexus_location": "$root"
 		}
 	}
 }
