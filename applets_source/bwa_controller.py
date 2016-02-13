@@ -30,9 +30,11 @@ class FlowcellLane:
         # Get reference genome information and dx references
         self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
                                               project = self.dashboard_project_dxid)
-        self.properties = self.dashboard_record.get_properties()
-        self.ref_genome_index_dxid = self.properties['reference_index_dxid']
-        self.lane_project_dxid = self.properties['lane_project_dxid']
+        
+        self.details = self.dashboard_record.get_details()
+        self.lane_project_dxid = self.details['lane_project']
+
+        self.properties = self.dashboard_record.get_properties()    
         self.mapper = self.properties['mapper']
         self.reference_genome_dxid = self.properties['reference_genome_dxid']
         self.reference_index_dxid = self.properties['reference_index_dxid']
@@ -256,8 +258,8 @@ def main(record_dxid, applet_project, applet_build_version, fastqs=None, dashboa
                                                   "mapper": lane.mapper,
                                                   "sample_name": barcode,
                                                   "mark_duplicates": mark_duplicates
-                                                 }, fn_name="run_map_sample") 
-                                        )
+                                                 }, fn_name="run_map_sample"
+                                       ) 
 
     #for barcode in lane.samples_dicts:
     #    bwa_mapper_job = dxpy.new_dxjob(fn_input={

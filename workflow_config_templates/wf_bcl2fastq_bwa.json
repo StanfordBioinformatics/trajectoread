@@ -2,7 +2,7 @@
     "applets": {
         "bcl2fastq": {
             "applet_dxid": "", 
-            "dxid": "applet-Bpq8pq00BQV10846XvxzjJ3x", 
+            "dxid": "applet-Bpq8x800BQV19876PZxgZ5BQ", 
             "external_rscs": [
                 {
                     "name": "bcl2fastq", 
@@ -21,7 +21,7 @@
         }, 
         "bwa_mem_controller": {
             "applet_dxid": "", 
-            "dxid": "applet-Bpq8pjj0BQVGz3kXKvxZ107p", 
+            "dxid": "applet-Bpq8x680BQV7K3bJQZxQgb00", 
             "external_rscs": [], 
             "internal_rscs": {}
         }
@@ -32,7 +32,7 @@
     "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
     "stages": {
         "0": {
-            "dxid": "stage-Bpq8pq00BQV3VFggVjxypZz3", 
+            "dxid": "stage-Bpq8x800BQV10846XvxzjJ40", 
             "executable": "bcl2fastq", 
             "folder": "stage1_bcl2fastq", 
             "input": {
@@ -47,11 +47,13 @@
             ]
         }, 
         "1": {
-            "dxid": "stage-Bpq8pq80BQV3G8VVYvxX292Y", 
+            "dxid": "stage-Bpq8x880BQV19876PZxgZ5BX", 
             "executable": "bwa_mem_controller", 
             "folder": "stage2_bwa", 
             "input": {
-                "record_dxid": ""
+                "record_dxid": "",
+                "applet_build_version": "",
+                "applet_project": ""
             }, 
             "linked_input": {
                 "fastqs": {
@@ -67,7 +69,7 @@
             ]
         }
     }, 
-    "workflow_dxid": "workflow-Bpq8pq00BQV5YJ7PJGxvzBgp", 
+    "workflow_dxid": "workflow-Bpq8x800BQVGz3kXKvxZ1080", 
     "workflow_project_dxid": "project-Bpq66j00BQVPg8JYXQ0z6766", 
     "workflow_title": "WF_bcl2fastq_bwa"
 }

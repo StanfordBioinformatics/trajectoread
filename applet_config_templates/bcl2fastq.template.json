@@ -16,14 +16,14 @@
       "name": "lane_data_tar",
       "label": "Lane tar file",
       "class": "file",
-      "patterns": ["*.tar"],
+      "patterns": ["*.tar", "*.tar.gz"],
       "optional": false
     },
     {
       "name": "metadata_tar",
       "label": "Metadata tar file",
       "class": "file",
-      "patterns": ["*.tar"],
+      "patterns": ["*metadata.tar", "*metadata.tar.gz"],
       "optional": false
     },
     {
@@ -67,7 +67,7 @@
 		{
 			"name": "tiles",
 			"label": "Tiles to restrict the analysis to.",
-			"help": "See --tiles argument of the Illumina tool  bcl2fastq. Takes a comma-separated list of regular expressions to select only a subset of the tiles available in the flow-cell.",
+			"help": "See --tiles argument of the Illumina tool bcl2fastq. Takes a comma-separated list of regular expressions to select only a subset of the tiles available in the flow-cell.",
 			"class": "string",
 			"optional": true
 		}

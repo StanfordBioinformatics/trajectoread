@@ -1,12 +1,15 @@
 {
     "applets": {
         "bcl2fastq": {
-            "applet_dxid": "", 
-            "dxid": "applet-BpvY1g00ZgQ37YKQVGXYvjpp", 
+            "dxid": "applet-Bpz6q880ZgQ7bkZKkJ22zG5k", 
             "external_rscs": [
                 {
                     "name": "bcl2fastq", 
                     "version": "1.8.4"
+                }, 
+                {
+                    "name": "bcl2fastq2", 
+                    "version": "2.17.1.14"
                 }
             ], 
             "internal_rscs": {
@@ -20,14 +23,26 @@
             }
         }, 
         "bwa_controller": {
-            "applet_dxid": "", 
-            "dxid": "applet-BpvY1jQ0ZgQ52QpxQGXv5fQ7", 
+            "dxid": "applet-Bpz6qBj0ZgQFfKKYj923PYyY", 
             "external_rscs": [], 
             "internal_rscs": {}
         }, 
+        "map_sample": {
+            "dxid": "applet-Bpz6q4j0ZgQ31ykzqJ2JV2Yz", 
+            "external_rscs": [
+                {
+                    "name": "bwa", 
+                    "version": "0.6.2"
+                }, 
+                {
+                    "name": "bwa", 
+                    "version": "0.7.7"
+                }
+            ], 
+            "internal_rscs": {}
+        }, 
         "qc_controller": {
-            "applet_dxid": "", 
-            "dxid": "applet-BpvY1j80ZgQ37YKQVGXYvjpv", 
+            "dxid": "applet-Bpz6qBQ0ZgQ1xYPQvJ21Qb7q", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -37,8 +52,7 @@
             "internal_rscs": {}
         }, 
         "qc_sample": {
-            "applet_dxid": "", 
-            "dxid": "applet-BpvY1j00ZgQ6jqJzPGXyx0fB", 
+            "dxid": "applet-Bpz6qBQ0ZgQFfKKYj923PYyV", 
             "external_rscs": [
                 {
                     "name": "picard_tools", 
@@ -57,13 +71,13 @@
             }
         }
     }, 
-    "date_created": "2016-02-08", 
+    "date_created": "2016-02-12", 
     "dx_OS": "Ubuntu-12.04", 
-    "edit_version": 6, 
+    "edit_version": 4, 
     "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
     "stages": {
         "0": {
-            "dxid": "stage-BpvY1jQ0ZgQ6jqJzPGXyx0fG", 
+            "dxid": "stage-Bpz6qF00ZgQ7bkZKkJ22zG5q", 
             "executable": "bcl2fastq", 
             "folder": "stage0_bcl2fastq", 
             "input": {
@@ -78,11 +92,11 @@
             ]
         }, 
         "1": {
-            "dxid": "stage-BpvY1jj0ZgQ310q5X8Xbkpq4", 
+            "dxid": "stage-Bpz6qF00ZgQFfKKYj923PYyb", 
             "executable": "bwa_controller", 
             "folder": "stage1_bwa", 
             "input": {
-                "applet_build_version": "2016-02-08_8c23b31", 
+                "applet_build_version": "2016-02-12_080e544", 
                 "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
                 "record_dxid": ""
             }, 
@@ -100,11 +114,11 @@
             ]
         }, 
         "2": {
-            "dxid": "stage-BpvY1jj0ZgQF32ZYYGXx1YJ7", 
+            "dxid": "stage-Bpz6qF80ZgQKxKVKp927Q3kg", 
             "executable": "qc_controller", 
             "folder": "stage2_qc", 
             "input": {
-                "applet_build_version": "2016-02-08_8c23b31", 
+                "applet_build_version": "2016-02-12_080e544", 
                 "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
                 "record_dxid": ""
             }, 
@@ -127,7 +141,7 @@
             }
         }
     }, 
-    "workflow_dxid": "workflow-BpvY1jQ0ZgQ37YKQVGXYvjpy", 
+    "workflow_dxid": "workflow-Bpz6qBj0ZgQ4jQZQf929z1QK", 
     "workflow_project_dxid": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
     "workflow_title": "WF_bcl2fastq_bwa_qc"
 }

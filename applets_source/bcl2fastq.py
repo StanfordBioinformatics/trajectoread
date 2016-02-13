@@ -95,7 +95,6 @@ class InputParameters:
         else:
             self.tiles = params_dict['tiles']
 
-
 class FlowcellLane:
     
     def __init__(self, dashboard_record_dxid, dashboard_project_dxid):
@@ -105,11 +104,14 @@ class FlowcellLane:
         self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
                                               project = self.dashboard_project_dxid)
         self.properties = self.dashboard_record.get_properties()
+        self.details = self.dashboard_record.get_details()
 
-        # For now just get/put everything in properties
-        self.lane_project_dxid = self.properties['lane_project_dxid']
-        self.run_name = self.properties['run']
-        self.lane_index = int(self.properties['lane_index'])
+        # Details (Used for Dashboard information)
+        self.lane_project_dxid = self.details['laneProject']
+        self.run_name = self.details['run']
+        self.lane_index = int(self.details['lane'])
+
+        # Properties
         self.lims_url = self.properties['lims_url']
         self.lims_token = self.properties['lims_token']
         self.rta_version = self.properties['rta_version']
@@ -179,6 +181,7 @@ class FlowcellLane:
         ''' DEV: Look into using glob.glob to find all fastq files instead of 
                  manually listing the directories and searching them, a la 
                  implementation in gbsc/gbsc_utils/demultiplexing.py.
+            DEV: Upload
         '''
         
         fastq_files = []
@@ -322,7 +325,8 @@ class FlowcellLane:
         dxpy.upload_local_file(filename=use_bases_mask_file, properties=None, project=self.lane_project_dxid, folder='/', parents=True)
         return self.use_bases_mask
 
-    def run_bcl2fastq(self, mismatches, ignore_missing_stats, ignore_missing_bcl, with_failed_reads, tiles, test_mode):
+    def run_bcl2fastq(self, mismatches, ignore_missing_stats, 
+                      ignore_missing_bcl, with_failed_reads, tiles, test_mode):
         '''
         DEV: Change definition line to "def run_bcl2fastq(self, **optional_params)"
         bcl2fastq --output-dir ${new_run_dir}/${seq_run_name}/Unaligned_L${SGE_TASK_ID}
@@ -346,7 +350,7 @@ class FlowcellLane:
             command += '--sample-sheet %s ' % self.sample_sheet
             command += '--barcode-mismatches %d ' % mismatches
             command += '--use-bases-mask %d:%s ' % (int(self.lane_index), self.use_bases_mask)
-            if test_mode:
+            if test_mode and tiles:
                 command += '--tiles %d ' % tiles
             stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
         
@@ -362,7 +366,7 @@ class FlowcellLane:
             opts +=" --sample-sheet " + self.sample_sheet
             opts +=" --use-bases-mask " + self.use_bases_mask
             opts += " --fastq-cluster-count 0"  # I don't know what this does
-            if test_mode:
+            if ignore_missing_bcl:
                 ignore_missing_bcl = True
             if mismatches:
                 opts += " --mismatches " + str(mismatches)
@@ -372,7 +376,7 @@ class FlowcellLane:
                 opts += " --ignore-missing-bcl"
             if  with_failed_reads:
                 opts += " --with-failed-reads"
-            if tiles:
+            if test_mode and tiles:
                 opts += " --tiles " + str(tiles)
 
             # Run it

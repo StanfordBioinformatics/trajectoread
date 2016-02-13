@@ -23,7 +23,7 @@
     "bwa": {
         "current": "0.7.7", 
         "dxid": "file-Bk5gqZj0J0qjv3fx858Z8Z9b", 
-        "filename": "bwa-0.6.2",
+        "filename": "bwa-0.7.7",
         "versions": {
             "0.6.2": {
                 "OS": "Ubuntu-12.04", 

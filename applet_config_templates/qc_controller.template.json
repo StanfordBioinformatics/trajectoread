@@ -38,6 +38,12 @@
       "optional": true
     },
     {
+      "name": "interop_tar",
+      "label": "InterOp tarball",
+      "class": "file",
+      "patterns": ["*.InterOp.tar", "*.InterOp.tar.gz"]
+    },
+    {
       "name": "applet_project",
       "label": "Project where qc_sample applet is",
       "class": "string",

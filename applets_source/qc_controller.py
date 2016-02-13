@@ -30,7 +30,7 @@ TOOLS_USED_TXT_FN = 'tools_used.txt'
 class FlowcellLane:
 
     def __init__(self, record_dxid, fastqs=None, bams=None, bais=None, 
-                    dashboard_project_dxid=None):
+                    interop_tar=None, dashboard_project_dxid=None):
 
         self.dashboard_record_dxid = record_dxid
         self.dashboard_project_dxid = dashboard_project_dxid
@@ -43,7 +43,7 @@ class FlowcellLane:
         self.fastq_dxids = fastqs
         self.bam_dxids = bams
         self.bai_dxids = bais
-        self.interop_dxid = None
+        self.interop_dxid = interop_tar
         self.samples_dicts = None
 
         # Get reference genome information and dx references
@@ -311,11 +311,11 @@ def generate_qc_pdf_report(**job_inputs):
             }
 
 @dxpy.entry_point("main")
-def main(record_dxid, applet_project, applet_build_version, fastqs=None, bams=None, bais=None, dashboard_project_dxid=None):
+def main(record_dxid, applet_project, applet_build_version, fastqs=None, bams=None, bais=None, interop_tar=None, dashboard_project_dxid=None):
 
     applet_folder = '/builds/%s' % applet_build_version
     lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, bams=bams, 
-                        bais=bais, dashboard_project_dxid=dashboard_project_dxid)
+                        bais=bais, interop_tar=interop_tar, dashboard_project_dxid=dashboard_project_dxid)
 
     output = {"alignment_summary_metrics": [], 
                 "fastqc_reports": [], 
