@@ -7,15 +7,15 @@
   "inputSpec": [
 		{
 			"name": "record_dxid",
-			"label": "DNAnexus ID of the sequencing lane DXRecord.",
-			"help": "The DNAnexus ID of the sequencing lane DXRecord.",
+			"label": "Lane record dxid.",
+			"help": "The DNAnexus ID of the dashboard record for the sequencing lane.",
 			"class": "string",
 			"optional": false
 		},
     {
       "name": "dashboard_project_id",
-      "label": "Dashboard records project DXid",
-      "help": "SCGPM Dashboard Data",
+      "label": "Dashboard project dxid",
+      "help": "SCGPM Dashboard Data project dxid.",
       "class": "string",
       "optional": true
     },

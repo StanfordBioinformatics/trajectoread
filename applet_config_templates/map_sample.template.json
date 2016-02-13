@@ -80,7 +80,7 @@
   "runSpec": {
     "interpreter": "python2.7",
     "file": "src/map_sample.py",
-    "bundledDepends": [{"name": "scgpm_resources.tar.gz", "id": {"$dnanexus_link": ""}}],
+    "bundledDepends": [],
     "execDepends": [
       {
         "name": "openjdk-6-jre-headless"
