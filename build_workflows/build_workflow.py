@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 '''
 Description: This will build all the applets in the HiSeq4000_bcl2fastq workflow.
     For this pilot workflow, the only applet built will be bcl2fastq
@@ -13,6 +13,7 @@ import dxpy
 import json
 import stat
 import shutil
+import argparse
 import datetime
 import subprocess
 
@@ -115,9 +116,20 @@ class WorkflowConfig:
                                               )
             self.stages[stage_index]['dxid'] = stage_dxid
 
-    def set_stage_linked_inputs(self, stage_index):
+    def set_stage_inputs(self, stage_index):
         if not self.stages[stage_index]['dxid']:
             print 'Error: Stage %s has not been created' % stage_index
+        stage_input = {}
+
+        standard_inputs = self.stages[stage_index]['input']
+        for name in standard_inputs:
+            if name == 'applet_build_version':
+                version_label = self.get_version_label()
+                self.stages[stage_index]['input']['applet_build_version'] = version_label
+                stage_input[name] = version_label
+            elif name == 'applet_project':
+                self.stages[stage_index]['input']['applet_project'] = self.project_dxid
+                stage_input[name] = self.project_dxid
 
         linked_inputs = self.stages[stage_index]['linked_input']
         for name in linked_inputs:
@@ -126,35 +138,19 @@ class WorkflowConfig:
             field_name = linked_input['name']
             input_stage_index = linked_input['stage']
             input_stage_dxid = self.stages[input_stage_index]['dxid']
-            stage_input = {
-                           linked_input['name']: {
-                                                  '$dnanexus_link': {
-                                                                     'stage': input_stage_dxid,
-                                                                     field_type: field_name
-                                                                    }
-                                                 } 
-                          }
-            self.edit_version = self.object.describe()['editVersion']
-            self.object.update_stage(stage = stage_index,
-                                     edit_version = self.edit_version,
-                                     stage_input = stage_input
-                                    )
-
-    def set_stage_inputs(self, stage_index):
-        executable = self.stages[stage_index]['executable']
-
-        if executable == 'qc_controller':
-            version_label = self.get_version_label()
-            self.stages[stage_index]['input']['applet_build_version'] = version_label
-            self.stages[stage_index]['input']['applet_project'] = self.project_dxid
-        
-        elif executable == 'bwa_controller':
-            version_label = self.get_version_label()
-            self.stages[stage_index]['input']['applet_build_version'] = version_label
-            self.stages[stage_index]['input']['applet_project'] = self.project_dxid
+            stage_input[field_name] = {'$dnanexus_link': {
+                                                          'stage': input_stage_dxid,
+                                                          field_type: field_name
+                                                         }
+                                      }
+        self.edit_version = self.object.describe()['editVersion']
+        self.object.update_stage(stage = stage_index,
+                                 edit_version = self.edit_version,
+                                 stage_input = stage_input
+                                )
 
     def update_config_file(self):
-        ''' Description: Open local 'external_rscs.json', get 'date_created' value,
+        ''' Description: Open workflow config file, get 'date_created' value,
                          and rename to 'external_rscs_<date_created>.json'
         '''
         
@@ -171,7 +167,7 @@ class WorkflowConfig:
             existing_config_archived = '%s_%s.%s' % (filename, 
                                                      existing_date_created, 
                                                      filetype)
-            existing_config_archived_path = os.path.join(self.workflow_config_dir, 
+            existing_config_archived_path = os.path.join(self.workflow_config_dir, 'archive',
                                                          existing_config_archived)
             os.rename(existing_config_path, existing_config_archived_path)
         
@@ -499,8 +495,18 @@ class InternalRscsManager:
         full_path = path + '/' + name
         return full_path
 
+def parse_args():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config_json', dest='config_json', type=str, 
+                        help='Basename of workflow JSON configuration file')
+    args = parser.parse_args()
+    return args
+
 def main():
-    dry_run = True  # Test mode
+
+    args = parse_args()
+    config_json = args.config_json
 
     ## DEV: Create new object to handle all directory listings
     ## DEV: dir_list = DirectoryListing(home_)
@@ -515,8 +521,7 @@ def main():
     trajectoread_dirs['applets'] = os.path.join(trajectoread_dirs['home'], 'applets')
 
     #### Configure DNAnexus project ####
-    # DEV: pass this as an argument
-    workflow_config_basename = 'wf_bcl2fastq_bwa_qc.json'
+    workflow_config_basename = config_json
     workflow_config_path = os.path.join(trajectoread_dirs['workflow_config_templates'], 
                                         workflow_config_basename)
     workflow_config = WorkflowConfig(workflow_config_path, 
@@ -530,9 +535,6 @@ def main():
     external_rsc_manager = ExternalRscsManager(workflow_config.external_rscs_dxid, 
                                                trajectoread_dirs['external_rscs'])
 
-    ''' DEV: Getting rid of Workflow and Stage classes. Instead using, WorkflowConfigution,
-             Applet, and Internal/ExternalResources classes to handle Building.
-    '''
     for applet_name in workflow_config.applets:
         print 'Building %s applet' % applet_name
         applet = Applet(name=applet_name, 
@@ -553,6 +555,7 @@ def main():
     ''' DEV: Create workflow object and add stages.
         ! Issue when you create new applets and then try to initialize
         existing workflow with missing applets.
+        - Current solution is just to rebuild everything everytime
     '''
     workflow_config.initialize_workflow()
     for stage_index in range(0, len(workflow_config.stages)):
@@ -563,12 +566,6 @@ def main():
         print 'Setting inputs for stage %d' % stage_index
         workflow_config.set_stage_inputs(str(stage_index))
 
-    for stage_index in range(0, len(workflow_config.stages)):
-        print 'Setting linked inputs for stage %d' % stage_index
-        workflow_config.set_stage_linked_inputs(str(stage_index))
-
-    ''' DEV: Update workflow_config file with new information
-    '''
     workflow_config.update_config_file()
         
 if __name__ == "__main__":
