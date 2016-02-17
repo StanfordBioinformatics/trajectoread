@@ -8,6 +8,18 @@
   "categories": [],
   "inputSpec": [
     {
+      "name": "project_dxid",
+      "label": "Project dxid",
+      "class": "string",
+      "optional": false
+    },
+    {
+      "name": "output_folder",
+      "label": "Output folder",
+      "class": "string",
+      "optional": false
+    },
+    {
       "name": "fastq_files",
       "label": "FASTQ files (read 1)",
       "class": "array:file",
@@ -88,7 +100,7 @@
     ],
     "systemRequirements": {
       "*": {
-        "instanceType": "mem1_ssd1_x4"
+        "instanceType": "mem1_ssd2_x4"
       }
     }
   },

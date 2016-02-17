@@ -32,7 +32,7 @@ class FlowcellLane:
                                               project = self.dashboard_project_dxid)
         
         self.details = self.dashboard_record.get_details()
-        self.lane_project_dxid = self.details['lane_project']
+        self.project_dxid = self.details['laneProject']
 
         self.properties = self.dashboard_record.get_properties()    
         self.mapper = self.properties['mapper']
@@ -40,17 +40,17 @@ class FlowcellLane:
         self.reference_index_dxid = self.properties['reference_index_dxid']
 
         self.fastq_dxids = fastqs
-        self.samples_dicts = None
+        #self.samples_dicts = None
 
         # Get fastq files information and dx references
-        if not self.fastq_dxids:
-            self.fastq_dxids = self.find_fastq_files()
-        self.samples_dicts = self.set_sample_files()
+        #if not self.fastq_dxids:
+        #    self.fastq_dxids = self.find_fastq_files()
+        #self.samples_dicts = self.set_sample_files()
 
-        if not self.samples_dicts:
-            print('Error: sample dictionaries containing bam and fastq files' +
-                    'were not generated')
-            sys.exit()  # DEV: use more specific errors (?) if possible
+        #if not self.samples_dicts:
+        #    print('Error: sample dictionaries containing bam and fastq files' +
+        #            'were not generated')
+        #    sys.exit()  # DEV: use more specific errors (?) if possible
 
     def find_fastq_files(self):
         '''
@@ -63,7 +63,7 @@ class FlowcellLane:
         '''
         fastq_dxids = []
         fastq_files_generator = dxpy.find_data_objects(classname='file', 
-            name='*.fastq.gz', name_mode='glob', project=self.lane_project_dxid, 
+            name='*.fastq.gz', name_mode='glob', project=self.project_dxid, 
             folder='/')
         for fastq_dict in self.fastq_files_generator: 
             fastq_dxid = fastq_dict['id']
@@ -75,7 +75,7 @@ class FlowcellLane:
         Description: Returns a dict of sample fastq files; 
         key = barcode/index, 
         value = dict of fastq dxids;
-            key = read index ['1'/'2'],
+            key = read index [1/2],
             value = fastq dxid
         ''' 
 
@@ -93,7 +93,57 @@ class FlowcellLane:
         
         return(self.samples_dicts)
 
+def group_files_by_barcode(fastq_files):
+    """
+    Group FASTQ files by sample according to their SampleID and Index
+    properties. Returns a dict mapping (SampleID, Index) tuples to lists of
+    files.
+    Note - since I have casava outputting each barcode read in a single file, the value of each group should be a single file for single-end sequencing,
+     or two files for PE sequencing.
+    """
+    
+    print("Grouping Fastq files by barcode")
+    sample_dict = {}
+
+    for fastq_file in fastq_files:
+        props = fastq_file.get_properties()
+        barcode =  props["barcode"] #will be NoIndex if non-multiplex (see bcl2fatq UG sectino "FASTQ Files")
+        if barcode not in sample_dict:
+            sample_dict[barcode] = []
+        sample_dict[barcode].append(fastq_file)
+    print("Grouped FASTQ files as follows:")
+    print(sample_dict)
+    return sample_dict
+
+def group_files_by_read(fastq_files):
+    """
+    Function : Groups a list of FASTQ files by the values of their Read property that indicates the read number.
+                       Returns a dict mapping each observed value of the property (or 'none' if a file does not have a value
+                         for the property) to a list of the files with that value. Within each group, the files are sorted by their
+                       value of the Chunk property (to ensure that left and right reads of a given chunk are handled together.
+    Args     : fastq_files - a list of dxpy.DXFile objects representing FASTQ files.
+    Returns  : dict.
+    """
+
+    print("Grouping Fastq files by read number")
+    read_dict = {}
+
+    for fastq_file in fastq_files:
+        props = fastq_file.get_properties()
+        read_num = props["read"]
+        if read_num not in ["1", "2", "none"]:
+            raise dxpy.AppError("%s has invalid Read property: %s" % (fastq_file.get_id(), read_num))
+        if read_num not in read_dict:
+            read_dict[read_num] = []
+        read_dict[read_num].append(fastq_file)
+
+    #for read_num in read_dict:
+    #    read_dict[read_num] = sorted(read_dict[read_num], key=chunk_property)
+
+    return read_dict
+
 class MapperApp:
+    ''' DEV: Deprecated now that we use our own custom applet'''
 
     def __init__(self, name='bwa_mem_fastq_read_mapper', version='1.5.0'):
         # Currently doesn't look like search function allows option to search for particular version
@@ -131,30 +181,41 @@ class MapperApp:
         print 'DNAnexus app name: %s, version: %s, dxid: %s' % (self.name, self.version, self.dxid)
 
 @dxpy.entry_point("run_map_sample")
-def run_map_sample(fastq_files, genome_fasta_file, genome_index_file, mapper, 
-                   fastq_files2=None, mark_duplicates=False, sample_name=None, 
-                   properties=None):
+def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file, genome_index_file, mapper, 
+    applet_project, applet_build_version, fastq_files2=None, mark_duplicates=False, 
+    sample_name=None, properties=None):
     
-    mapper_applet_name = 'map_sample'
+    applet_name = 'map_sample'
     applet_folder = '/builds/%s' % applet_build_version
-    mapper_applet = dxpy.find_one_data_object(classname='applet',
-                                              name=mapper_applet_name,
-                                              name_mode='exact',
-                                              project=applet_project,
-                                              folder=applet_folder,
-                                              zero_ok=False,
-                                              more_ok=False)
-    
+    mapper_applet_id = dxpy.find_one_data_object(classname = 'applet',
+                                                 name = applet_name,
+                                                 name_mode = 'exact',
+                                                 project = applet_project,
+                                                 folder = applet_folder,
+                                                 zero_ok = False,
+                                                 more_ok = False
+                                                )
+    mapper_applet = dxpy.DXApplet(dxid = mapper_applet_id['id'], 
+                                  project = mapper_applet_id['project']
+                                 )
+    print 'Running map_sample'
     mapper_input = {
+                    "project_dxid": project_dxid,
+                    "output_folder": output_folder,
                     "fastq_files": fastq_files,
                     "fastq_files2": fastq_files2,
-                    "genome_fasta_file": genome_fasta_file,
-                    "genome_index_file": genome_index_file,
+                    "genome_fasta_file": dxpy.dxlink(genome_fasta_file),
+                    "genome_index_file": dxpy.dxlink(genome_index_file),
                     "mapper": mapper,
                     "sample_name": sample_name,
                     "mark_duplicates": mark_duplicates
                    }
     map_sample_job = mapper_applet.run(mapper_input)
+    mapper_output = {
+        "bam": {"job": map_sample_job.get_id(), "field": "bam_file"},
+        "tools_used": {"job": map_sample_job.get_id(), "field": "tools_used"}
+    }
+    return mapper_output
 
 @dxpy.entry_point("run_bwa_mem")
 def run_bwa_mem(sample, fastq_dict, mapper_app_dxid, ref_genome_index, project_id):
@@ -166,6 +227,11 @@ def run_bwa_mem(sample, fastq_dict, mapper_app_dxid, ref_genome_index, project_i
         ref_genome (dxid)
     '''
     
+    ## Stock DNAnexus BWA-MEM app
+    #mapper_app_name = 'bwa_mem_fastq_read_mapper'
+    #mapper_app_version = '1.5.0'
+    #mapper_app = MapperApp(name=mapper_app_name, version=mapper_app_version)   # DXApp object
+
     dxpy.set_workspace_id(project_id)
     # Create dict to store mapper app inputs
     mapper_app = dxpy.DXApp(mapper_app_dxid)
@@ -203,74 +269,70 @@ def test_mapping():
         })
 
 @dxpy.entry_point("main")
-def main(record_dxid, applet_project, applet_build_version, fastqs=None, dashboard_project_id=None, mark_duplicates=False):
+def main(record_dxid, applet_project, applet_build_version, fastqs, output_folder, dashboard_project_id=None, mark_duplicates=False):
 
+    output = {"bams": [], "tools_used": []}
     lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, 
                         dashboard_project_dxid=dashboard_project_id)
-
-    # Change workspace to lane project 
-    # DEV: Does not have an effect on job "Monitor"
-    dxpy.set_workspace_id(lane.lane_project_dxid)
     
-    ## Stock DNAnexus BWA-MEM app
-    #mapper_app_name = 'bwa_mem_fastq_read_mapper'
-    #mapper_app_version = '1.5.0'
-    #mapper_app = MapperApp(name=mapper_app_name, version=mapper_app_version)   # DXApp object
+    fastq_files = [dxpy.DXFile(item) for item in fastqs]
+    sample_dict = group_files_by_barcode(fastq_files)
 
-    # SCGPM custom map_sample applet
-    mapper_applet_name = 'map_sample'
-    applet_folder = '/builds/%s' % applet_build_version
-    mapper_applet = dxpy.find_one_data_object(classname='applet',
-                                              name=mapper_applet_name,
-                                              name_mode='exact',
-                                              project=applet_project,
-                                              folder=applet_folder,
-                                              zero_ok=False,
-                                              more_ok=False)
+    for barcode in sample_dict:
+        print 'Processing sample: %s' % barcode
+        read_dict = group_files_by_read(sample_dict[barcode])
 
-    # DNAnexus reference genome files project dxid: project-BQpp3Y804Y0xbyG4GJPQ01xv
-    # For each sample, start a child process to call bwa-mem and perform mapping
-    # UPDATE: Don't need to create child process (I think)- app does that on its own
-    
-    output = {"bams": [], "bais": []}
+        fastq_files2 = None
 
-    for barcode in lane.samples_dicts:
+        if "1" in read_dict and "2" in read_dict:
+            # Sample is paired; there should be no files without a 'read'
+            # property of "1" or "2"
+            fastq_files = [dxpy.dxlink(item) for item in read_dict["1"]]
+            fastq_files2 = [dxpy.dxlink(item) for item in read_dict["2"]]
+        else:
+            fastq_files = [dxpy.dxlink(item) for item in fastq_files]
+
+        print("fastq_files: {}".format(fastq_files))
+        print("fastq_files2: {}".format(fastq_files2))
+        
+        ''' My old code
         fastq_dict = lane.samples_dicts[barcode]
         # Add fastq files to mapper app input dict
         if len(fastq_dict) == 0:
             print 'Error: No fastq files listed for sample %s' % sample
             sys.exit()
         elif len(fastq_dict) == 1:
-            fastq_files = [fastq_dict['1']]
+            fastq_files = [dxpy.dxlink(fastq_dict[1])]
             fastq_files2 = None
+            print fastq_files
         elif len(fastq_dict) == 2:
-            fastq_files = [fastq_dict['1']]
-            fastq_files2 = [fastq_dict['2']]
+            fastq_files = [dxpy.dxlink(fastq_dict[1])]
+            fastq_files2 = [dxpy.dxlink(fastq_dict[2])]
+            print fastq_files, fastq_files2
         else:
             print 'Error: More than 2 fastq files passed for mapping sample %s' % sample
             sys.exit()
+        '''
 
+        print 'Initiating map sample job'
         map_sample_job = dxpy.new_dxjob(fn_input={
+                                                  "project_dxid": lane.project_dxid,
+                                                  "output_folder": output_folder,
                                                   "fastq_files": fastq_files,
                                                   "fastq_files2": fastq_files2,
                                                   "genome_fasta_file": lane.reference_genome_dxid,
                                                   "genome_index_file": lane.reference_index_dxid,
                                                   "mapper": lane.mapper,
                                                   "sample_name": barcode,
-                                                  "mark_duplicates": mark_duplicates
-                                                 }, fn_name="run_map_sample"
+                                                  "mark_duplicates": mark_duplicates,
+                                                  "applet_project": applet_project,
+                                                  "applet_build_version": applet_build_version
+                                                 }, 
+                                        fn_name="run_map_sample"
                                        ) 
-
-    #for barcode in lane.samples_dicts:
-    #    bwa_mapper_job = dxpy.new_dxjob(fn_input={
-    #        "sample": barcode,
-    #        "fastq_dict": lane.samples_dicts[barcode], 
-    #        "mapper_app_dxid": mapper_app.dxid, 
-    #        "ref_genome_index": lane.ref_genome_index_dxid,
-    #        "project_id": lane.lane_project_dxid
-    #        }, fn_name="bwa_mem")
-    #    output["bams"].append({"job": bwa_mapper_job.get_id(), "field": "BAM"})
-    #    output["bais"].append({"job": bwa_mapper_job.get_id(), "field": "BAI"})
-    #return output
+        output["bams"].append({"job": map_sample_job.get_id(), "field": "bam"})
+        #output["bais"].append({"job": map_sample_job.get_id(), "field": "BAI"})
+        output["tools_used"].append({"job": map_sample_job.get_id(), "field": "tools_used"})
+    return output
 
 dxpy.run()

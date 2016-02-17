@@ -27,6 +27,12 @@
       "optional": false
     },
     {
+      "name": "output_folder",
+      "label": "Output folder",
+      "class": "string",
+      "optional": false
+    },
+    {
       "name": "dashboard_project_dxid",
       "label": "Dashboard records project DXid",
       "help": "SCGPM Dashboard Data",
@@ -55,6 +61,20 @@
     {
       "name": "ignore_missing_bcl",
       "label": "Ignore missing bcl files?",
+      "class": "boolean",
+      "optional": true
+    },
+    {
+      "name": "ignore_missing_positions",
+      "label": "Ignore missing positions",
+      "help": "(bcl2fastq2) Missing or corrupt positions files are ignored",
+      "class": "boolean",
+      "optional": true
+    },
+    {
+      "name": "ignore_missing_filter",
+      "label": "Ignore missing filter files",
+      "help": "(bcl2fastq2) Missing or corrupt filter files are ignored. Assumes Passing Filter for all clusters in tiles where filter files are missing.",
       "class": "boolean",
       "optional": true
     },

@@ -44,6 +44,12 @@
       "label": "Mark Duplicates",
       "class": "boolean",
       "optional": true
+    },
+    {
+      "name": "output_folder",
+      "label": "Output Folder",
+      "class": "string",
+      "optional": false
     }
   ],
   "outputSpec": [
@@ -52,7 +58,7 @@
       "class": "array:file"
     },
     {
-      "name": "bais",
+      "name": "tools_used",
       "class": "array:file"
     }
   ],

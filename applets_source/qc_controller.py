@@ -46,36 +46,28 @@ class FlowcellLane:
         self.interop_dxid = interop_tar
         self.samples_dicts = None
 
-        # Get reference genome information and dx references
+        # Get relevant dashboard details
+        self.details = self.dashboard_record.get_details()
+        self.run_name = self.details['run']
+        self.lane_index = self.details['lane']
+        self.library_name = self.details['library']
+
+        # Get relevant dashboard properties
         self.properties = self.dashboard_record.get_properties()
-        self.ref_genome_dxid = self.properties['reference_genome_dxid']
-        self.reference_genome = self.properties['reference_genome']
-        self.lane_project_dxid = self.properties['lane_project_dxid']
-        self.run_name = self.properties['run']
+        self.project_dxid = self.properties['lane_project_dxid']
         self.flowcell_id = self.properties['flowcell_id']
-        self.lane_index = self.properties['lane_index']
-        self.library_name = self.properties['library']
-        self.operator = self.properties['operator']
-        self.aligner = self.properties['aligner']
         self.lab_name = self.properties['lab_name']
+        self.operator = 'None'     # Still need to grab this info
 
-        # Get fastq files information and dx references
-        if not self.fastq_dxids:
-            self.fastq_dxids = self.find_fastq_files()
-        if not self.bam_dxids:
-            self.bam_dxids = self.find_bam_files()
-        if not self.interop_dxid:
-            self.interop_dxid = self.find_interop_file()
-        self.samples_dicts = self.set_sample_files()
-
-        # Add in checks to make sure all files accounted for
-        if not self.samples_dicts:
-            print('Error: sample dictionaries containing bam and fastq files' +
-                    'were not generated')
-            sys.exit()  # DEV: use more specific errors (?) if possible
-        elif not self.interop_dxid:
-            print('Error: InterOp.tar file has not been located')
-            sys.exit()
+        # Get mapping info for mapped lanes
+        self.mapper = self.properties['mapper']
+        if self.mapper == 'None':
+            self.mapper = None
+            self.ref_genome_dxid = None
+            self.reference_genome = None
+        else:
+            self.ref_genome_dxid = self.properties['reference_genome_dxid']
+            self.reference_genome = self.details['mappingReference']
 
     def find_fastq_files(self):
         '''
@@ -88,7 +80,7 @@ class FlowcellLane:
         '''
         fastq_dxids = []
         fastq_files_generator = dxpy.find_data_objects(classname='file', 
-            name='*.fastq.gz', name_mode='glob', project=self.lane_project_dxid, 
+            name='*.fastq.gz', name_mode='glob', project=self.project_dxid, 
             folder='/')
         for fastq_dict in self.fastq_files_generator: 
             fastq_dxid = fastq_dict['id']
@@ -101,7 +93,7 @@ class FlowcellLane:
         interop_file = dxpy.find_one_data_object(classname = 'file',
                                                  name = interop_name, 
                                                  name_mode = 'exact', 
-                                                 project = self.lane_project_dxid,
+                                                 project = self.project_dxid,
                                                  folder = '/', 
                                                  zero_ok = False, 
                                                  more_ok = True
@@ -114,12 +106,18 @@ class FlowcellLane:
 
         bam_dxids = []
         bam_files_generator = dxpy.find_data_objects(classname='file',
-            name='*.bam', name_mode='glob', project=self.lane_project_dxid,
+            name='*.bam', name_mode='glob', project=self.project_dxid,
             folder='/')
-        for bam_dict in self.bam_files_generator:
-            bam_dxid = bam_dict['id']
-            bam_dxids.append(bam_dxid)
-        return bam_dxids
+        bam_files = list(bam_files_generator)
+        
+        if len(bam_files) < 1:
+            print 'Info: No bam files found.'
+            pass
+        else:
+            for bam_dict in bam_files:
+                bam_dxid = bam_dict['id']
+                bam_dxids.append(bam_dxid)
+            return bam_dxids
         
     def set_sample_files(self):
         '''
@@ -142,16 +140,17 @@ class FlowcellLane:
             else:
                 self.samples_dicts[barcode] = {int(read) : fastq_dxid}
         
-        for bam_dxid in self.bam_dxids:
-            bam_file = dxpy.DXFile(bam_dxid)
-            bam_name = bam_file.describe()['name']
-            elements = bam_name.split('_')
-            barcode = elements[5]
-            if barcode in self.samples_dicts.keys():
-                self.samples_dicts[barcode]['bam'] = bam_dxid
-            else:
-                print 'Error: Unmatched bam file with barcode: %s' % barcode
-                sys.exit()
+        if self.bam_dxids != None:
+            for bam_dxid in self.bam_dxids:
+                bam_file = dxpy.DXFile(bam_dxid)
+                bam_name = bam_file.describe()['name']
+                elements = bam_name.split('_')
+                barcode = elements[5]
+                if barcode in self.samples_dicts.keys():
+                    self.samples_dicts[barcode]['bam'] = bam_dxid
+                else:
+                    print 'Error: Unmatched bam file with barcode: %s' % barcode
+                    sys.exit()
         return(self.samples_dicts)
 
 def download_file(file_dxid):
@@ -210,25 +209,78 @@ def create_tools_used_file(tools_used):
             fh.write('\n')
     return TOOLS_USED_TXT_FN
 
-@dxpy.entry_point("run_qc_sample")
-def qc_sample(fastq_files, sample_name, applet_project, applet_folder, properties=None, aligner=None, 
-    genome_fasta_file = None, fastq_files2=None, bam_file=None):
+def group_files_by_read(fastq_files):
+    """
+    Function : Groups a list of FASTQ files by the values of their Read property that indicates the read number.
+                       Returns a dict mapping each observed value of the property (or 'none' if a file does not have a value
+                         for the property) to a list of the files with that value. Within each group, the files are sorted by their
+                       value of the Chunk property (to ensure that left and right reads of a given chunk are handled together.
+    Args     : fastq_files - a list of dxpy.DXFile objects representing FASTQ files.
+    Returns  : dict.
+    """
 
-    # DEV: change to be dynamically gotten
-    # find mapping app
+    print("Grouping Fastq files by read number")
+    read_dict = {}
+
+    for fastq_file in fastq_files:
+        props = fastq_file.get_properties()
+        read_num = props["read"]
+        if read_num not in ["1", "2", "none"]:
+            raise dxpy.AppError("%s has invalid Read property: %s" % (fastq_file.get_id(), read_num))
+        if read_num not in read_dict:
+            read_dict[read_num] = []
+        read_dict[read_num].append(fastq_file)
+
+    #for read_num in read_dict:
+    #    read_dict[read_num] = sorted(read_dict[read_num], key=chunk_property)
+
+    return read_dict
+
+def group_files_by_barcode(fastq_files):
+    """
+    Group FASTQ files by sample according to their SampleID and Index
+    properties. Returns a dict mapping (SampleID, Index) tuples to lists of
+    files.
+    Note - since I have casava outputting each barcode read in a single file, the value of each group should be a single file for single-end sequencing,
+     or two files for PE sequencing.
+    """
+    
+    print("Grouping Fastq files by barcode")
+    sample_dict = {}
+
+    for fastq_file in fastq_files:
+        props = fastq_file.get_properties()
+        barcode =  props["barcode"] #will be NoIndex if non-multiplex (see bcl2fatq UG sectino "FASTQ Files")
+        if barcode not in sample_dict:
+            sample_dict[barcode] = []
+        sample_dict[barcode].append(fastq_file)
+    print("Grouped FASTQ files as follows:")
+    print(sample_dict)
+    return sample_dict
+
+@dxpy.entry_point("run_qc_sample")
+def qc_sample(fastq_files, sample_name, applet_project, applet_folder, output_project, output_folder, properties=None, 
+    aligner=None, genome_fasta_file = None, fastq_files2=None, bam_file=None):
+
     qc_sample_applet_name = 'qc_sample' 
-    qc_sample_applet_dxid = dxpy.find_one_data_object(classname='applet',
-                                                      name=qc_sample_applet_name, 
-                                                      name_mode='exact', 
-                                                      applet_project=applet_project,
-                                                      applet_folder=applet_folder, 
-                                                      zero_ok=False, 
-                                                      more_ok=False)
+    qc_sample_applet_dxid = dxpy.find_one_data_object(classname = 'applet',
+                                                      name = qc_sample_applet_name, 
+                                                      name_mode = 'exact', 
+                                                      project = applet_project,
+                                                      folder = applet_folder, 
+                                                      zero_ok = False, 
+                                                      more_ok = False)
     qc_sample_applet = dxpy.DXApplet(qc_sample_applet_dxid['id'])
 
     fastq_files = [dxpy.dxlink(x) for x in fastq_files]
     fastq_files2 = [dxpy.dxlink(x) for x in fastq_files2]
-    qc_input = {'fastq_files': fastq_files, 'sample_name': sample_name}
+
+    qc_input = {
+                'fastq_files': fastq_files, 
+                'sample_name': sample_name,
+                'output_project': output_project,
+                'output_folder': output_folder
+               }
                 
     if properties:
         qc_input['properties'] = properties
@@ -239,12 +291,19 @@ def qc_sample(fastq_files, sample_name, applet_project, applet_folder, propertie
         qc_input['bam_file'] = dxpy.dxlink(bam_file)
     qc_job = qc_sample_applet.run(qc_input)
 
-    output = {'alignment_summary_metrics': {'job': qc_job.get_id(), 'field': 'alignment_summary_metrics'},
-            'fastqc_reports': {'job': qc_job.get_id(), 'field': 'fastqc_reports'},
-            'insert_size_metrics': {'job': qc_job.get_id(), 'field': 'insert_size_metrics'},
-            'mismatch_metrics': {'job': qc_job.get_id(), 'field': 'mismatch_metrics'},
-            'qc_json_file': {'job': qc_job.get_id(), 'field': 'json_output_file'},
-            'tools_used': {'job': qc_job.get_id(), 'field': 'tools_used'}}
+    output = {}
+    output["fastqc_reports"] = ({"job": qc_job.get_id(), "field": "fastqc_reports"})
+    output["qc_json_file"] = ({"job": qc_job.get_id(), "field": "json_output_file"})
+    output["tools_used"] = ({"job": qc_job.get_id(), "field": "tools_used"})
+
+    if bam_file != None:
+        if genome_fasta_file != None:
+            output["alignment_summary_metrics"] = ({"job": qc_job.get_id(), "field": "alignment_summary_metrics"})
+        if aligner != None:
+            output["mismatch_metrics"] = ({"job": qc_job.get_id(), "field": "mismatch_metrics"})
+        if fastq_files2 != None:
+            output["insert_size_metrics"] = ({"job": qc_job.get_id(), "field": "insert_size_metrics"})
+    
     return output
 
 @dxpy.entry_point("generate_qc_pdf_report")
@@ -294,59 +353,102 @@ def generate_qc_pdf_report(**job_inputs):
     print cmd
     subprocess.check_call(cmd, shell=True)
 
-    qc_pdf_report = dxpy.upload_local_file(ofn)
-    run_details_json_fid = dxpy.upload_local_file(RUN_DETAILS_JSON_FN)
-    barcodes_json_fid = dxpy.upload_local_file(BARCODES_JSON_FN)
-    sample_stats_json_fid = dxpy.upload_local_file(SAMPLE_STATS_JSON_FN)
+    qc_pdf_report = dxpy.upload_local_file(filename = ofn, 
+                                           project = output_project,
+                                           folder = output_folder,
+                                           parents = True
+                                          )
+    run_details_json_fid = dxpy.upload_local_file(filename = RUN_DETAILS_JSON_FN,
+                                                  project = output_project,
+                                                  folder = output_folder,
+                                                  parents = True
+                                                 )
+    barcodes_json_fid = dxpy.upload_local_file(filename = BARCODES_JSON_FN,
+                                               project = output_project,
+                                               folder = output_folder,
+                                               parents = True
+                                              )
+    sample_stats_json_fid = dxpy.upload_local_file(filename = SAMPLE_STATS_JSON_FN,
+                                                   project = output_project,
+                                                   folder = output_folder,
+                                                   parents = True
+                                                  )
     #dashboard_record_object = app_utils.get_dashboard_record_object(job_inputs['dashboard_record_id'])
     #props = dashboard_record_object.get_properties()
     #props[conf.qcReportIdAttrName] = dxpy.PROJECT_CONTEXT_ID + ':' + qc_pdf_report.get_id()
     #props[conf.pipelineStageAttrName] = conf.pipelineStageAttrValues["complete"]
     #dashboard_record_object.set_properties(props)
 
-    return {'qc_pdf_report': dxpy.dxlink(qc_pdf_report), 
+    return {
+            'qc_pdf_report': dxpy.dxlink(qc_pdf_report), 
             'run_details_json': dxpy.dxlink(run_details_json_fid), 
             'barcodes_json': dxpy.dxlink(barcodes_json_fid), 
             'sample_stats_json': dxpy.dxlink(sample_stats_json_fid)
-            }
+           }
 
 @dxpy.entry_point("main")
-def main(record_dxid, applet_project, applet_build_version, fastqs=None, bams=None, bais=None, interop_tar=None, dashboard_project_dxid=None):
+def main(record_dxid, applet_project, applet_build_version, output_folder, fastqs=None, bams=None, bais=None, interop_tar=None, dashboard_project_dxid=None):
 
     applet_folder = '/builds/%s' % applet_build_version
     lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, bams=bams, 
                         bais=bais, interop_tar=interop_tar, dashboard_project_dxid=dashboard_project_dxid)
 
-    output = {"alignment_summary_metrics": [], 
-                "fastqc_reports": [], 
-                "insert_size_metrics": [],
-                "mismatch_metrics": [],
-                "qc_json_files": [],
-                "tools_used": []}
+    qc_job_output = {"alignment_summary_metrics": [], 
+                     "fastqc_reports": [], 
+                     "insert_size_metrics": [],
+                     "mismatch_metrics": [],
+                     "qc_json_files": [],
+                     "tools_used": []}
 
-    # DEV: In 'test' mode, I want to skip this section and use supplied
-    #       inputs. Change this to be a function in 'Sample' object (?)
-    for barcode in lane.samples_dicts:
-        fastq_files = [lane.samples_dicts[barcode][1]]
-        fastq_files2 = [lane.samples_dicts[barcode][2]]
-        qc_job = dxpy.new_dxjob(fn_input={
-            "fastq_files": fastq_files,
-            "fastq_files2": fastq_files2, 
-            "sample_name": barcode, 
-            "applet_project": applet_project,
-            "applet_folder": applet_folder,
-            "properties": None,
-            "aligner": lane.aligner, 
-            "genome_fasta_file": lane.ref_genome_dxid,
-            "bam_file": lane.samples_dicts[barcode]['bam']
-            }, fn_name="run_qc_sample")
-        #qc_jobs.append(qc_job)     # Artifact of previous approach (?)
-        output["alignment_summary_metrics"].append({"job": qc_job.get_id(), "field": "alignment_summary_metrics"})
-        output["fastqc_reports"].append({"job": qc_job.get_id(), "field": "fastqc_reports"})
-        output["insert_size_metrics"].append({"job": qc_job.get_id(), "field": "insert_size_metrics"})
-        output["mismatch_metrics"].append({"job": qc_job.get_id(), "field": "mismatch_metrics"})
-        output["qc_json_files"].append({"job": qc_job.get_id(), "field": "qc_json_file"})
-        output["tools_used"].append({"job": qc_job.get_id(), "field": "tools_used"})
+    fastq_files = [dxpy.DXFile(item) for item in fastqs]
+    sample_dict = group_files_by_barcode(fastq_files)
+    
+    jobs = []
+    for barcode in sample_dict:
+        print 'Processing sample: %s' % barcode
+        read_dict = group_files_by_read(sample_dict[barcode])
+        
+        fastq_files2 = None
+
+        if "1" in read_dict and "2" in read_dict:
+            # Sample is paired; there should be no files without a 'read'
+            # property of "1" or "2"
+            fastq_files = [dxpy.dxlink(item) for item in read_dict["1"]]
+            fastq_files2 = [dxpy.dxlink(item) for item in read_dict["2"]]
+        else:
+            fastq_files = [dxpy.dxlink(item) for item in fastq_files]
+
+        print("fastq_files: {}".format(fastq_files))
+        print("fastq_files2: {}".format(fastq_files2))
+        
+        qc_job_input = {'fastq_files': fastq_files,
+                        'sample_name': barcode,
+                        'applet_project': applet_project,
+                        'applet_folder': applet_folder,
+                        'output_folder': output_folder,
+                        'output_project': lane.project_dxid,
+                        'properties': None
+                        }
+        # Optional qc job inputs
+        if fastq_files2:
+            qc_job_input['fastq_files2'] = fastq_files2
+        if lane.mapper != None:
+            qc_job_input['aligner'] = lane.mapper
+            qc_job_input['genome_fasta_file'] = lane.ref_genome_dxid
+            qc_job_input['bam_file'] = lane.sample_dicts[barcode]['bam']
+        qc_job = dxpy.new_dxjob(fn_input=qc_job_input, fn_name="run_qc_sample")
+   
+        qc_job_output["fastqc_reports"].append({"job": qc_job.get_id(), "field": "fastqc_reports"})
+        qc_job_output["qc_json_files"].append({"job": qc_job.get_id(), "field": "qc_json_file"})
+        qc_job_output["tools_used"].append({"job": qc_job.get_id(), "field": "tools_used"})
+
+        if bams != None:
+            if lane.reference_genome != None:
+                qc_job_output["alignment_summary_metrics"].append({"job": qc_job.get_id(), "field": "alignment_summary_metrics"})
+            if lane.mapper != None:
+                qc_job_output["mismatch_metrics"].append({"job": qc_job.get_id(), "field": "mismatch_metrics"})
+            if fastq_files2 != None:
+                qc_job_output["insert_size_metrics"].append({"job": qc_job.get_id(), "field": "insert_size_metrics"})
 
 
     # Now handle the generation of the QC PDF report.
@@ -357,7 +459,7 @@ def main(record_dxid, applet_project, applet_build_version, fastqs=None, bams=No
                 'operator': lane.operator,
                 'genome_name': lane.reference_genome,
                 'lab_name': lane.lab_name,
-                'mapper': lane.aligner}     # DEV: change this to be 'aligner' in 'create_pdf_reports.py' for consistency
+                'mapper': lane.mapper}     # DEV: change this to be 'aligner' in 'create_pdf_reports.py' for consistency
 
     # test data
     #output = {'alignment_summary_metrics': [{u'$dnanexus_link': u'file-BpPvQK00Bz3x94FXjQ5bq2G5'}],
@@ -368,20 +470,25 @@ def main(record_dxid, applet_project, applet_build_version, fastqs=None, bams=No
     #            'qc_json_files': [{u'$dnanexus_link': u'file-BpPvX900Bz3Y43B48Zy10vb8'}],
     #            'tools_used': [{u'$dnanexus_link': u'file-BpPvXfj0Bz3x94FXjQ5bq3gg'}]
     #            }
-    qc_pdf_report_input = {'samples_stats_json_files': output['qc_json_files'],
+    qc_pdf_report_input = {
+                            'output_folder': output_folder,
+                            'output_project': lane.project_dxid,
+                            'samples_stats_json_files': qc_job_output['qc_json_files'],
                             'dashboard_record_id': lane.dashboard_record_dxid,
                             'run_details': run_details,
-                            'barcodes': lane.samples_dicts.keys(),
+                            'barcodes': sample_dict.keys(),
                             'mark_duplicates': False,
                             'interop_file': lane.interop_dxid,
-                            'tools_used': output['tools_used'],
-                            'paired_end': True}
+                            'tools_used': qc_job_output['tools_used'],
+                            'paired_end': True
+                          }
     if lane.reference_genome and lane.aligner:
-        qc_pdf_report_input['mismatch_metrics'] = output['mismatch_metrics']
+        qc_pdf_report_input['mismatch_metrics'] = qc_job_output['mismatch_metrics']
 
     # Spawn QC PDF Report job
     qc_pdf_report_job = dxpy.new_dxjob(fn_input=qc_pdf_report_input, fn_name="generate_qc_pdf_report")
 
+    output = {}
     output["qc_pdf_report"] = qc_pdf_report_job.get_output_ref("qc_pdf_report")
     output["run_details_json"] = qc_pdf_report_job.get_output_ref("run_details_json")
     output["barcodes_json"] = qc_pdf_report_job.get_output_ref("barcodes_json")

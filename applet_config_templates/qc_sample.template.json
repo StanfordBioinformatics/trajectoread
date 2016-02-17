@@ -53,6 +53,18 @@
       "label": "Properties",
       "class": "hash",
       "optional": true
+    },
+    {
+      "name": "output_project",
+      "label": "Output project",
+      "class": "string",
+      "optional": false
+    },
+    {
+      "name": "output_folder",
+      "label": "Output folder",
+      "class": "string",
+      "optional": false
     }
   ],
   "outputSpec": [

@@ -1,0 +1,73 @@
+{
+    "applets": {
+        "bcl2fastq": {
+            "applet_dxid": "", 
+            "dxid": "applet-Bpq8vb00BQV7K3bJQZxQgZzx", 
+            "external_rscs": [
+                {
+                    "name": "bcl2fastq", 
+                    "version": "1.8.4"
+                }
+            ], 
+            "internal_rscs": {
+                "python_packages": [
+                    "scgpm_lims"
+                ], 
+                "scripts": [
+                    "create_sample_sheet.py", 
+                    "calculate_use_bases_mask.py"
+                ]
+            }
+        }, 
+        "bwa_mem_controller": {
+            "applet_dxid": "", 
+            "dxid": "applet-Bpq8vZ00BQV3VFggVjxypZz6", 
+            "external_rscs": [], 
+            "internal_rscs": {}
+        }
+    }, 
+    "date_created": "2016-02-06", 
+    "dx_OS": "Ubuntu-12.04", 
+    "edit_version": 2, 
+    "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
+    "stages": {
+        "0": {
+            "dxid": "stage-Bpq8vb80BQV10846XvxzjJ3z", 
+            "executable": "bcl2fastq", 
+            "folder": "stage1_bcl2fastq", 
+            "input": {
+                "lane_data_tar": "", 
+                "metadata_tar": "", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {}, 
+            "name": "Demultiplex and bcl2fastq", 
+            "output": [
+                "fastqs"
+            ]
+        }, 
+        "1": {
+            "dxid": "stage-Bpq8vb80BQV7K3bJQZxQgZzz", 
+            "executable": "bwa_mem_controller", 
+            "folder": "stage2_bwa", 
+            "input": {
+                "record_dxid": ""
+            }, 
+            "linked_input": {
+                "fastqs": {
+                    "field": "outputField", 
+                    "name": "fastqs", 
+                    "stage": "0"
+                }
+            }, 
+            "name": "bwa", 
+            "output": [
+                "bams", 
+                "bais"
+            ]
+        }
+    }, 
+    "workflow_dxid": "workflow-Bpq8vb00BQV5YJ7PJGxvzBgz", 
+    "workflow_project_dxid": "project-Bpq66j00BQVPg8JYXQ0z6766", 
+    "workflow_title": "WF_bcl2fastq_bwa"
+}

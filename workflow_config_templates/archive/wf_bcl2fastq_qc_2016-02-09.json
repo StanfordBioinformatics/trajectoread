@@ -2,15 +2,11 @@
     "applets": {
         "bcl2fastq": {
             "applet_dxid": "", 
-            "dxid": "applet-Bq2KQ0Q0KY55PppJk961gVPX", 
+            "dxid": "applet-Bpx4xv00KY5006Y6fxvjJPf9", 
             "external_rscs": [
                 {
                     "name": "bcl2fastq", 
                     "version": "1.8.4"
-                }, 
-                {
-                    "name": "bcl2fastq2", 
-                    "version": "2.17.1.14"
                 }
             ], 
             "internal_rscs": {
@@ -25,7 +21,7 @@
         }, 
         "qc_controller": {
             "applet_dxid": "", 
-            "dxid": "applet-Bq2KQ200KY52Yp0kg566VQkF", 
+            "dxid": "applet-Bpx4xxQ0KY5Fpb6VX1vzQ0Jv", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -36,7 +32,7 @@
         }, 
         "qc_sample": {
             "applet_dxid": "", 
-            "dxid": "applet-Bq2KQ200KY52Yp0kg566VQk9", 
+            "dxid": "applet-Bpx4xx80KY5006Y6fxvjJPfF", 
             "external_rscs": [
                 {
                     "name": "picard_tools", 
@@ -55,19 +51,18 @@
             }
         }
     }, 
-    "date_created": "2016-02-17", 
+    "date_created": "2016-02-09", 
     "dx_OS": "Ubuntu-12.04", 
     "edit_version": 2, 
     "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
     "stages": {
         "0": {
-            "dxid": "stage-Bq2KQ280KY5Gp3pBq960Xv35", 
+            "dxid": "stage-Bpx4xxQ0KY52Qp0vQ9vpgQJB", 
             "executable": "bcl2fastq", 
             "folder": "stage0_bcl2fastq", 
             "input": {
                 "lane_data_tar": "", 
                 "metadata_tar": "", 
-                "output_folder": "", 
                 "record_dxid": ""
             }, 
             "linked_input": {}, 
@@ -77,11 +72,11 @@
             ]
         }, 
         "1": {
-            "dxid": "stage-Bq2KQ2Q0KY55PppJk961gVPZ", 
+            "dxid": "stage-Bpx4xxj0KY5Fpb6VX1vzQ0Jy", 
             "executable": "qc_controller", 
             "folder": "stage1_qc", 
             "input": {
-                "applet_build_version": "2016-02-17_57df5a6", 
+                "applet_build_version": "2016-02-09_080e544", 
                 "applet_project": "project-Bpv3PZQ0KY5P9vk59kg639jf", 
                 "record_dxid": ""
             }, 
@@ -106,7 +101,7 @@
             ]
         }
     }, 
-    "workflow_dxid": "workflow-Bq2KQ280KY5GZBF0bV60gJx7", 
+    "workflow_dxid": "workflow-Bpx4xxQ0KY5F1B92ZxvV3KvX", 
     "workflow_project_dxid": "project-Bpv3PZQ0KY5P9vk59kg639jf", 
     "workflow_title": "WF_bcl2fastq_qc"
 }

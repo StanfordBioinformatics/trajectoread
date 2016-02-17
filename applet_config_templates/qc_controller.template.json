@@ -23,7 +23,7 @@
       "name": "fastqs",
       "label": "Fastq files",
       "class": "array:file",
-      "optional": true
+      "optional": false
     },
     {
       "name": "bams",
@@ -52,6 +52,12 @@
     {
       "name": "applet_build_version",
       "label": "qc_sample build directory",
+      "class": "string",
+      "optional": false
+    },
+    {
+      "name": "output_folder",
+      "label": "Output folder",
       "class": "string",
       "optional": false
     }
@@ -108,12 +114,14 @@
     {
       "name": "qc_json_files",
       "label": "QC data in JSON format",
-      "class": "array:file"
+      "class": "array:file",
+      "optional": true
     },
     {
       "name": "tools_used",
       "label": "JSON files with tools and command lines used.",
-      "class": "array:file"
+      "class": "array:file",
+      "optional": true
     },
     {
       "name": "run_details_json",
@@ -133,17 +141,20 @@
     {
       "name": "insert_size_metrics",
       "label": "insert_size_metrics",
-      "class": "array:file"
+      "class": "array:file",
+      "optional": true
     },
     {
       "name": "alignment_summary_metrics",
       "label": "alignment_summary_metrics",
-      "class": "array:file"
+      "class": "array:file",
+      "optional": true
     },
     {
       "name": "fastqc_reports",
       "label": "fastqc_reports",
-      "class": "array:file"
+      "class": "array:file",
+      "optional": true
     }
   ],
   "runSpec": {

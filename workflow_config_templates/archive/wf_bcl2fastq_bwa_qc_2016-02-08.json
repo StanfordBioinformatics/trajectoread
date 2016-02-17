@@ -1,15 +1,12 @@
 {
     "applets": {
         "bcl2fastq": {
-            "dxid": "applet-Bq2KQ680ZgQ4ZjFYf96BpJB3", 
+            "applet_dxid": "", 
+            "dxid": "applet-BpvZ0400ZgQK1q388kg3QYB0", 
             "external_rscs": [
                 {
                     "name": "bcl2fastq", 
                     "version": "1.8.4"
-                }, 
-                {
-                    "name": "bcl2fastq2", 
-                    "version": "2.17.1.14"
                 }
             ], 
             "internal_rscs": {
@@ -23,34 +20,14 @@
             }
         }, 
         "bwa_controller": {
-            "dxid": "applet-Bq2KQ7j0ZgQGp3pBq960Xv38", 
+            "applet_dxid": "", 
+            "dxid": "applet-BpvZ06j0ZgQ6BQvq65g7pXfK", 
             "external_rscs": [], 
             "internal_rscs": {}
         }, 
-        "map_sample": {
-            "dxid": "applet-Bq2KQ500ZgQ4ZjFYf96BpJB1", 
-            "external_rscs": [
-                {
-                    "name": "bwa", 
-                    "version": "0.6.2"
-                }, 
-                {
-                    "name": "bwa", 
-                    "version": "0.7.7"
-                }, 
-                {
-                    "name": "picard_tools", 
-                    "version": "1.107"
-                }, 
-                {
-                    "name": "samtools", 
-                    "version": "0.1.19"
-                }
-            ], 
-            "internal_rscs": {}
-        }, 
         "qc_controller": {
-            "dxid": "applet-Bq2KQ7Q0ZgQG2yG6jJ62J6ff", 
+            "applet_dxid": "", 
+            "dxid": "applet-BpvZ06j0ZgQ23ppYBkg4BfbJ", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -60,7 +37,8 @@
             "internal_rscs": {}
         }, 
         "qc_sample": {
-            "dxid": "applet-Bq2KQ780ZgQGZBF0bV60gJx9", 
+            "applet_dxid": "", 
+            "dxid": "applet-BpvZ06Q0ZgQ37JPVFkg1JZ8J", 
             "external_rscs": [
                 {
                     "name": "picard_tools", 
@@ -79,19 +57,18 @@
             }
         }
     }, 
-    "date_created": "2016-02-17", 
+    "date_created": "2016-02-08", 
     "dx_OS": "Ubuntu-12.04", 
-    "edit_version": 4, 
+    "edit_version": 6, 
     "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
     "stages": {
         "0": {
-            "dxid": "stage-Bq2KQ800ZgQ5PppJk961gVPb", 
+            "dxid": "stage-BpvZ0700ZgQK1q388kg3QYB2", 
             "executable": "bcl2fastq", 
             "folder": "stage0_bcl2fastq", 
             "input": {
                 "lane_data_tar": "", 
                 "metadata_tar": "", 
-                "output_folder": "", 
                 "record_dxid": ""
             }, 
             "linked_input": {}, 
@@ -101,11 +78,11 @@
             ]
         }, 
         "1": {
-            "dxid": "stage-Bq2KQ800ZgQ79068vJ61F0f8", 
+            "dxid": "stage-BpvZ0700ZgQ6BQvq65g7pXfQ", 
             "executable": "bwa_controller", 
             "folder": "stage1_bwa", 
             "input": {
-                "applet_build_version": "2016-02-17_57df5a6", 
+                "applet_build_version": "2016-02-08_080e544", 
                 "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
                 "record_dxid": ""
             }, 
@@ -123,15 +100,20 @@
             ]
         }, 
         "2": {
-            "dxid": "stage-Bq2KQ880ZgQ2Yp0kg566VQkY", 
+            "dxid": "stage-BpvZ0780ZgQP9vk59kg63Jpx", 
             "executable": "qc_controller", 
             "folder": "stage2_qc", 
             "input": {
-                "applet_build_version": "2016-02-17_57df5a6", 
+                "applet_build_version": "2016-02-08_080e544", 
                 "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
                 "record_dxid": ""
             }, 
             "linked_input": {
+                "bais": {
+                    "field": "outputField", 
+                    "name": "bais", 
+                    "stage": "1"
+                }, 
                 "bams": {
                     "field": "outputField", 
                     "name": "bams", 
@@ -145,7 +127,7 @@
             }
         }
     }, 
-    "workflow_dxid": "workflow-Bq2KQ7j0ZgQGZBF0bV60gJxK", 
+    "workflow_dxid": "workflow-BpvZ0700ZgQ6V9767kg6ZQvb", 
     "workflow_project_dxid": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
     "workflow_title": "WF_bcl2fastq_bwa_qc"
 }

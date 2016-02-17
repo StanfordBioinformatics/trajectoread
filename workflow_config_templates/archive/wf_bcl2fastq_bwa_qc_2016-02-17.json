@@ -1,7 +1,7 @@
 {
     "applets": {
         "bcl2fastq": {
-            "dxid": "applet-Bq2KQ680ZgQ4ZjFYf96BpJB3", 
+            "dxid": "applet-Bq2GXk80ZgQ6gKkb703Z21Vg", 
             "external_rscs": [
                 {
                     "name": "bcl2fastq", 
@@ -23,12 +23,12 @@
             }
         }, 
         "bwa_controller": {
-            "dxid": "applet-Bq2KQ7j0ZgQGp3pBq960Xv38", 
+            "dxid": "applet-Bq2GXpj0ZgQJPyfX803kJBYP", 
             "external_rscs": [], 
             "internal_rscs": {}
         }, 
         "map_sample": {
-            "dxid": "applet-Bq2KQ500ZgQ4ZjFYf96BpJB1", 
+            "dxid": "applet-Bq2GXj00ZgQJPyfX803kJBYJ", 
             "external_rscs": [
                 {
                     "name": "bwa", 
@@ -50,7 +50,7 @@
             "internal_rscs": {}
         }, 
         "qc_controller": {
-            "dxid": "applet-Bq2KQ7Q0ZgQG2yG6jJ62J6ff", 
+            "dxid": "applet-Bq2GXpQ0ZgQFv67p9v3kZv5j", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -60,7 +60,7 @@
             "internal_rscs": {}
         }, 
         "qc_sample": {
-            "dxid": "applet-Bq2KQ780ZgQGZBF0bV60gJx9", 
+            "dxid": "applet-Bq2GXpQ0ZgQ2JxZY5v3xJkpV", 
             "external_rscs": [
                 {
                     "name": "picard_tools", 
@@ -85,7 +85,7 @@
     "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
     "stages": {
         "0": {
-            "dxid": "stage-Bq2KQ800ZgQ5PppJk961gVPb", 
+            "dxid": "stage-Bq2GXq00ZgQ8y96y4Z3y7Bzj", 
             "executable": "bcl2fastq", 
             "folder": "stage0_bcl2fastq", 
             "input": {
@@ -101,7 +101,7 @@
             ]
         }, 
         "1": {
-            "dxid": "stage-Bq2KQ800ZgQ79068vJ61F0f8", 
+            "dxid": "stage-Bq2GXq00ZgQJFXkB303gQBxX", 
             "executable": "bwa_controller", 
             "folder": "stage1_bwa", 
             "input": {
@@ -123,7 +123,7 @@
             ]
         }, 
         "2": {
-            "dxid": "stage-Bq2KQ880ZgQ2Yp0kg566VQkY", 
+            "dxid": "stage-Bq2GXq80ZgQ6gKkb703Z21Vk", 
             "executable": "qc_controller", 
             "folder": "stage2_qc", 
             "input": {
@@ -145,7 +145,7 @@
             }
         }
     }, 
-    "workflow_dxid": "workflow-Bq2KQ7j0ZgQGZBF0bV60gJxK", 
+    "workflow_dxid": "workflow-Bq2GXpj0ZgQJGjf73j3zv4Y7", 
     "workflow_project_dxid": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
     "workflow_title": "WF_bcl2fastq_bwa_qc"
 }
