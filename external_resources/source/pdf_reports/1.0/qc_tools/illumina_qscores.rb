@@ -121,6 +121,8 @@ class IlluminaQScores
     case version
     when 4
       read_metrics_v4(ios)
+    when 5
+      read_metrics_v5(ios)
     when 6
       read_metrics_v6(ios)
     else
@@ -167,6 +169,51 @@ class IlluminaQScores
     puts "Found #{cycle} cycles." if @verbose
   end
 
+  def read_metrics_v5(ios)
+    record_len = readb(ios, 1, 'C', :required => true, :single => true)
+        byte2 = readb(ios,1,'C',:required => true, :single => true)
+        if byte2 == 1 #then quality score binning on; skip the next X bytes as we don't use them in the pipeline as of present:
+      puts "Quality score binning on"
+            byte3 = readb(ios, 1, 'C', :required => true, :single => true) #number of quality score bins B
+            readb(ios,4 - (4 + byte3 - 1),'C',:required => true) #lower boundary of quality score bins. Skip these bytes
+            readb(ios,(4 + byte3) - (4 + 2*byte3 - 1),'C',:required => true) #upper boundary of quality score bins. Skip these bytes.
+            readb(ios,(4 + 2*byte3) - (4 + 3*byte3 - 1),'C',:required => true) #remapped scores of quality score bins. Skip these bytes.
+        end
+    puts "Record Length: #{record_len}" if @verbose
+    eof = false
+    while !eof do
+      record = readb(ios, record_len, 'S3L50')
+      break if record.nil?
+      lane = record[0]
+      tile = record[1]
+      cycle = record[2]
+      @max_cycle = cycle if cycle > @max_cycle
+      if @counts[lane].nil?
+        STDERR.puts "read_metrics_v4(): error: invalid lane #{lane}"
+        if @force
+          next
+        else
+          exit 1
+        end
+      end
+      if @counts[lane][cycle].nil?
+        @counts[lane][cycle] = Hash.new
+      end
+      @counts[lane][cycle][tile] = Hash.new if @counts[lane][cycle][tile].nil?
+      ccounts = @counts[lane][cycle][tile]
+      (1..50).each do |score|
+        # Don't know why Phil was adding these across all the tiles, but it
+        # seems that only the last record for any lane/tile/cycle is valid.
+        # ccounts[score] = 0 if ccounts[score].nil?
+        # ccounts[score] += record[(score - 1) + 3]
+        ccounts[score] = record[(score - 1) + 3]
+        #print "#{ccounts[score]} " if @debug
+      end
+      #print "\n" if @debug
+    end
+    puts "Found #{@max_cycle} cycles." if @verbose
+  end
+
   def read_metrics_v6(ios)
     @max_qual = 7   # Only 7 quality bins used (see: illumina whitepaper_datacompression.pdf)
     record_len = readb(ios, 1, 'C', :required => true, :single => true)
@@ -177,7 +224,7 @@ class IlluminaQScores
     remapB = Array.new
     nBins = 50
 
-    # Need to check whther quality score binning is on
+    # Need to check whether quality score binning is on
     # Currently don't do anything with binning data if it exists
     binning = readb(ios, 1, 'C', :required => true, :single => true)
     case binning
