@@ -140,9 +140,10 @@ class FlowcellLane:
         self.bcl2fastq_version = None
 
         # Choose bcl2fastq version based on rta_version
-        if StrictVersion(self.rta_version) < StrictVersion('2.0.0'):
+        ## DEV: Update version to match official documentation: i.e. 1.18.54 or later
+        if StrictVersion(self.rta_version) < StrictVersion('1.18.54'):
             self.bcl2fastq_version = 1
-        elif StrictVersion(self.rta_version) >= StrictVersion('2.0.0'):
+        elif StrictVersion(self.rta_version) >= StrictVersion('1.18.54'):
             self.bcl2fastq_version = 2
 
     def describe(self):
@@ -153,7 +154,9 @@ class FlowcellLane:
         '''
         DEV: Eventually integrate dx-toolkit into trajectoread repo so I can 
              transition to using 'dx-download-all-inputs' to handle unpacking
-             all input files
+             all input files.
+             Pipeline used to store lane file dxids as project properties 
+             and then pass to "dx download"
         Description: Download and untar metadata and lane data files 
                      (/Data/Intensities/BaseCalls)
         '''
@@ -173,6 +176,9 @@ class FlowcellLane:
         dxpy.download_dxfile(dxid=file_dxid, filename=filename, project=project_dxid)
 
         # Untar file
+        ## DEV: Check if this is even in use anymore; also should have some method for 
+        ## checking what type of compression was used.
+        ## But I don't think this is in use
         command = 'tar -xf %s --owner root --group root --no-same-owner' % filename
         self.createSubprocess(cmd=command, pipeStdout=False)
 
@@ -333,6 +339,7 @@ class FlowcellLane:
         gbsc_utils.createSubprocess(cmd=command)
         '''
         
+        ## DEV: remove
         run_info_file = 'RunInfo.xml'
         
         # TEST LINK - remove for production
@@ -371,6 +378,8 @@ class FlowcellLane:
 
         self.output_dir = 'Unaligned_L%d' % self.lane_index
 
+        ## DEV : set all --ignore flags to on by default (consistent with existing practices)
+
         # bcl2fastq version 2 for HiSeq 4000s
         if self.bcl2fastq_version == 2:
             self.output_dir = 'Unaligned_L%d' % self.lane_index
@@ -404,7 +413,7 @@ class FlowcellLane:
             opts = "--no-eamss --input-dir " + basecalls_dir + " --output-dir " +  self.output_dir 
             opts +=" --sample-sheet " + self.sample_sheet
             opts +=" --use-bases-mask " + self.use_bases_mask
-            opts += " --fastq-cluster-count 0"  # I don't know what this does
+            opts += " --fastq-cluster-count 0"  # Output it all in one file
             if ignore_missing_bcl:
                 ignore_missing_bcl = True
             if mismatches:
@@ -471,6 +480,8 @@ class FlowcellLane:
         '''
         Returns a fastq filename that matches SCGPM naming convention.
         Does not actually rename files.
+
+        DEV: Look in gbsc_utils/illumina/fastq_file_name.py;
         '''
 
         elements = fastq_filename.split('_')
