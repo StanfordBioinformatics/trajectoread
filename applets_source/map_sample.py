@@ -79,7 +79,7 @@ def run_bwa_mem_single(fastq_file, genome_fasta_file, genome_index_file, mark_du
     subprocess.check_call("tar xzvf genome.tar.gz", shell=True)
     num_cores = str(cpu_count())
 
-    run_cmd("bwa mem -t " + num_cores + " genome.fa.gz sample.fastq.gz > sample0.sam", logger)
+    run_cmd("bwa-0.7.7 mem -t " + num_cores + " genome.fa.gz sample.fastq.gz > sample0.sam", logger)
     run_cmd("java -jar /CleanSam.jar INPUT=sample0.sam OUTPUT=sample1.bam", logger)
     run_cmd("samtools sort -@ " + num_cores + " sample1.bam sample", logger)
 
@@ -104,7 +104,7 @@ def run_bwa_mem_paired(fastq_file, fastq_file2, genome_fasta_file, genome_index_
     subprocess.check_call("tar xzvf genome.tar.gz", shell=True)
     num_cores = str(cpu_count())
 
-    run_cmd("bwa mem -t " + num_cores + " genome.fa.gz sample.fastq.gz sample_2.fastq.gz > sample0.sam", logger)
+    run_cmd("bwa-0.7.7 mem -t " + num_cores + " genome.fa.gz sample.fastq.gz sample_2.fastq.gz > sample0.sam", logger)
     run_cmd("java -jar /CleanSam.jar INPUT=sample0.sam OUTPUT=sample1.bam", logger)
     run_cmd("samtools sort -@ " + num_cores + " sample1.bam sample", logger)
 
