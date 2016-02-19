@@ -1,5 +1,5 @@
 {
-    "date_created": "2016-1-25",
+    "date_created": "2016-2-16",
     "lims": {
         "url": "https://uhts.stanford.edu",
         "token": "9af4cc6d83fbfd793fe4"
@@ -15,33 +15,35 @@
                 "dxid": "file-BpYF4pQ0p6fzg88xxjy26f3F", 
                 "program": "bedtools",
                 "compression": "none", 
-                "used_by": "", 
+                "used_by": [""], 
                 "version": "2.19.0"
             }
         }
     }, 
     "bwa": {
         "current": "0.7.7", 
-        "dxid": "file-Bk5gqZj0J0qjv3fx858Z8Z9b", 
-        "filename": "bwa-0.7.7",
+        "dxid": "file-Bq1p6gj0p6fj84Vk40vzz0Z4", 
+        "filename": "bwa-0.7.7.tar",
         "versions": {
             "0.6.2": {
                 "OS": "Ubuntu-12.04", 
-                "filename": "bwa-0.6.2", 
-                "dxid": "",
+                "filename": "bwa-0.6.2.tar", 
+                "dxid": "file-Bq1p8100p6fxzBZj2GvjzvbF",
                 "program": "bwa", 
-                "compression": "none",
-                "used_by": "", 
-                "version": "0.6.2"
+                "compression": "tar",
+                "used_by": ["map_sample"], 
+                "version": "0.6.2",
+                "dir": "/usr/bin"
             }, 
             "0.7.7": {
                 "OS": "Ubuntu-12.04", 
-                "filename": "bwa-0.7.7", 
-                "dxid": "file-Bk5gqZj0J0qjv3fx858Z8Z9b",
+                "filename": "bwa-0.7.7.tar", 
+                "dxid": "file-Bq1p6gj0p6fj84Vk40vzz0Z4",
                 "program": "bwa",
-                "compression": "none", 
-                "used_by": "", 
-                "version": "0.7.7"
+                "compression": "tar", 
+                "used_by": ["map_sample"], 
+                "version": "0.7.7",
+                "dir": "/usr/bin"
             }
         }
     }, 
@@ -56,23 +58,23 @@
                 "dxid": "file-BpPFgy00p6fgffjx0Ggjk84Q",
                 "program": "fastqc",
                 "compression": "tar", 
-                "used_by": "", 
+                "used_by": ["qc_sample"], 
                 "version": "0.10.1"
             }
         }
     }, 
     "pdf_reports": {
         "current": "1.0", 
-        "dxid": "file-BpYBbyQ0p6fkQFPzp4y8jPbf", 
+        "dxid": "file-Bq3Zz700p6fbPppJk961gZ9Y", 
         "filename": "pdf_reports-1.0.tar",
         "versions": {
             "1.0": {
                 "OS": "Ubuntu-12.04", 
                 "filename": "pdf_reports-1.0.tar", 
-                "dxid": "file-BpYBbyQ0p6fkQFPzp4y8jPbf",
+                "dxid": "file-Bq3Zz700p6fbPppJk961gZ9Y",
                 "program": "pdf_reports", 
                 "compression": "tar",
-                "used_by": "", 
+                "used_by": ["qc_controller"], 
                 "version": "1.0"
             }
         }
@@ -88,24 +90,25 @@
                 "dxid": "file-Bk5j9k80J0qb6vzGvb3v57VK",
                 "program": "picard_tools", 
                 "compression": "tar",
-                "used_by": "", 
+                "used_by": ["map_sample", "qc_sample"],
                 "version": "1.107"
             }
         }
     }, 
     "samtools": {
         "current": "0.1.19", 
-        "dxid": "file-Bk5gpKQ0J0qbkB200b48k9Xy", 
-        "filename": "samtools-0.1.19",
+        "dxid": "file-Bq1z68Q0p6fzzq1qkbX5Zqk7", 
+        "filename": "samtools-0.1.19.tar",
         "versions": {
             "0.1.19": {
                 "OS": "Ubuntu-12.04", 
-                "filename": "samtools-0.1.19", 
-                "dxid": "file-Bk5gpKQ0J0qbkB200b48k9Xy",
+                "filename": "samtools-0.1.19.tar", 
+                "dxid": "file-Bq1z68Q0p6fzzq1qkbX5Zqk7",
                 "program": "samtools",
-                "compression": "none", 
-                "used_by": "", 
-                "version": "0.1.19"
+                "compression": "tar", 
+                "used_by": ["map_sample"], 
+                "version": "0.1.19",
+                "dir": "usr/bin"
             }
         }
     },
@@ -120,7 +123,7 @@
                 "dxid": "file-Bkv3Ppj0p6fybVzq5xKg9p80",
                 "program": "bcl2fastq",
                 "compression": "tar",
-                "used_by": "",
+                "used_by": ["bcl2fastq"],
                 "version": "2.17.1.14"
             }
         }
@@ -136,7 +139,7 @@
                 "dxid": "file-BfzyzJ805zbxbyqbyjxgJ1pG",
                 "program": "bcl2fastq",
                 "compression": "targz",
-                "used_by": "",
+                "used_by": ["bcl2fastq"],
                 "version": "1.8.4"
             }
         }

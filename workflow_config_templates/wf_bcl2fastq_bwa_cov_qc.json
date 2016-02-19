@@ -1,0 +1,170 @@
+{
+    "applets": {
+        "bcl2fastq": {
+            "dxid": "applet-Bq3fJ8j0ZgQ79068vJ61F3j6", 
+            "external_rscs": [
+                {
+                    "name": "bcl2fastq", 
+                    "version": "1.8.4"
+                }, 
+                {
+                    "name": "bcl2fastq2", 
+                    "version": "2.17.1.14"
+                }
+            ], 
+            "internal_rscs": {
+                "python_packages": [
+                    "scgpm_lims"
+                ], 
+                "scripts": [
+                    "create_sample_sheet.py", 
+                    "calculate_use_bases_mask.py"
+                ]
+            }
+        }, 
+        "bwa_controller": {
+            "dxid": "applet-Bq3fJB00ZgQ5PppJk961gZbY", 
+            "external_rscs": [], 
+            "internal_rscs": {}
+        }, 
+        "map_sample": {
+            "dxid": "applet-Bq3fJ780ZgQ79068vJ61F3j4", 
+            "external_rscs": [
+                {
+                    "name": "bwa", 
+                    "version": "0.6.2"
+                }, 
+                {
+                    "name": "bwa", 
+                    "version": "0.7.7"
+                }, 
+                {
+                    "name": "picard_tools", 
+                    "version": "1.107"
+                }, 
+                {
+                    "name": "samtools", 
+                    "version": "0.1.19"
+                }
+            ], 
+            "internal_rscs": {}
+        }, 
+        "qc_controller": {
+            "dxid": "applet-Bq3fJB00ZgQGZBF0bV60gVyy", 
+            "external_rscs": [
+                {
+                    "name": "pdf_reports", 
+                    "version": "1.0"
+                }
+            ], 
+            "internal_rscs": {}
+        }, 
+        "qc_sample": {
+            "dxid": "applet-Bq3fJB00ZgQG2yG6jJ62JF16", 
+            "external_rscs": [
+                {
+                    "name": "picard_tools", 
+                    "version": "1.107"
+                }, 
+                {
+                    "name": "fastqc", 
+                    "version": "0.10.1"
+                }
+            ], 
+            "internal_rscs": {
+                "c_programs": [
+                    "bwa_mismatches", 
+                    "collect_uniqueness_metrics"
+                ]
+            }
+        },
+        "compute_sample_coverage":{
+            "dxid": "",
+            "external_rscs": [
+                {
+                    "name": "bedtools",
+                    "version": "2.19.0"
+                }
+            ],
+            "internal_rscs": {}
+        }
+    }, 
+    "date_created": "2016-02-19", 
+    "dx_OS": "Ubuntu-12.04", 
+    "edit_version": 4, 
+    "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
+    "stages": {
+        "0": {
+            "dxid": "stage-Bq3fJB80ZgQ4ZjFYf96BpQqv", 
+            "executable": "bcl2fastq", 
+            "folder": "stage0_bcl2fastq", 
+            "input": {
+                "lane_data_tar": "", 
+                "metadata_tar": "", 
+                "output_folder": "", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {}, 
+            "name": "Demultiplex and bcl2fastq", 
+            "output": [
+                "fastqs"
+            ]
+        }, 
+        "1": {
+            "dxid": "stage-Bq3fJB80ZgQ6yG8fp5607fKy", 
+            "executable": "bwa_controller", 
+            "folder": "stage1_bwa", 
+            "input": {
+                "applet_build_version": "2016-02-19_d529124", 
+                "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {
+                "fastqs": {
+                    "field": "outputField", 
+                    "name": "fastqs", 
+                    "stage": "0"
+                }
+            }, 
+            "name": "bwa", 
+            "output": [
+                "bams", 
+                "bais"
+            ]
+        }, 
+        {
+        "2": {
+            "dxid": "",
+            "executable": "coverage_controller",
+            "folder": "stage2_coverage",
+            "input": {
+            }
+        },
+        }
+        "3": {
+            "dxid": "stage-Bq3fJBQ0ZgQ2Yp0kg566VYpX", 
+            "executable": "qc_controller", 
+            "folder": "stage2_qc", 
+            "input": {
+                "applet_build_version": "2016-02-19_d529124", 
+                "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
+                "record_dxid": ""
+            }, 
+            "linked_input": {
+                "bams": {
+                    "field": "outputField", 
+                    "name": "bams", 
+                    "stage": "1"
+                }, 
+                "fastqs": {
+                    "field": "outputField", 
+                    "name": "fastqs", 
+                    "stage": "0"
+                }
+            }
+        }
+    }, 
+    "workflow_dxid": "workflow-Bq3fJB80ZgQ4ZjFYf96BpQqp", 
+    "workflow_project_dxid": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
+    "workflow_title": "WF_bcl2fastq_bwa_qc"
+}

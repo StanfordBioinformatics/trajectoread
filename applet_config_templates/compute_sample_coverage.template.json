@@ -1,0 +1,66 @@
+{
+  "name": "compute_sample_coverage",
+  "title": "Compute sample coverage",
+  "summary": "Compute a sample coverage track from a BAM file",
+  "description": "This app computes a coverage track from a collection of mappings given in a BAM file. The bedtools genomecov command is used to compute the coverage values, which are output in a file in the bedGraph format. Additional metadata, such as a sample name and a set of properties, may optionally be provided in the input.",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "categories": [],
+  "inputSpec": [
+    {
+      "name": "bam_file",
+      "label": "BAM file",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*.bam"]
+    },
+    {
+      "name": "genome_file",
+      "label": "Genome file",
+      "class": "file",
+      "optional": false,
+      "patterns": ["genome.fai"]
+    },
+    {
+      "name": "sample_name",
+      "label": "Sample name",
+      "class": "string",
+      "optional": true,
+      "default": "sample"
+    },
+    {
+      "name": "properties",
+      "label": "Properties",
+      "class": "hash",
+      "optional": true,
+      "default": {}
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "coverage_file",
+      "label": "Coverage file",
+      "class": "file"
+    },
+    {
+      "name": "tools_used",
+      "label": "JSON file with tools and command lines used in this module.",
+      "class": "file"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "python2.7",
+    "file": "src/compute_sample_coverage.py",
+    "bundledDepends": [{"name": "bedtools-2.19.0.tar", "id": {"$dnanexus_link": "file-BpYF4pQ0p6fzg88xxjy26f3F"}}],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    }
+  },
+	"access": {
+    "allProjects": "VIEW",
+    "network": ["*"]
+  },
+  "authorizedUsers": []
+}
