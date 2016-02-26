@@ -48,7 +48,7 @@
     {
       "name": "coverage_tracks",
       "label": "Coverage tracks",
-      "class": "array:file"
+      "class": "array:record"
     },
     {
       "name": "mappings_tables",
