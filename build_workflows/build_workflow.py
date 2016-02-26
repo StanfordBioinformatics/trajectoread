@@ -344,7 +344,7 @@ class Applet:
             with open(out_path, 'w') as OUT:
                 json.dump(config_attributes, OUT, sort_keys=True, indent=4)
         else:
-            print 'Notice: No internal resources uploaded for applet %s' % self.name
+            print 'Info: No internal resources uploaded for applet %s' % self.name
 
     ## Private functions
     def _make_new_dir(self, directory):
@@ -555,7 +555,7 @@ def main():
 
     #### Build all applets listed in workflow ####
     for applet_name in workflow_config.applets:
-        print 'Building %s applet' % applet_name
+        print 'Info: Building %s applet' % applet_name
         applet = Applet(name=applet_name, 
                         project_dxid=workflow_config.project_dxid,
                         repo_dirs=trajectoread_dirs
