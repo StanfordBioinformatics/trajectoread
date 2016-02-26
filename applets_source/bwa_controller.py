@@ -36,11 +36,14 @@ class FlowcellLane:
         self.project_dxid = self.details['laneProject']
         self.mapping_reference = self.details['mappingReference']
         self.lane_index = self.details['lane']
+        self.run_name = self.details['run']
         
         # Parse library name ("DL_set2_rep1 rcvd 1/4/16")
         library_label = self.details['library']
         library_elements = library_label.split()
-        self.library_name = library_elements[0]
+        library_name = library_elements[0]
+        self.library_name = library_name.replace('_','-')
+        self.run_date = self.run_name.split('_')[0]
 
         # Get record properties
         self.properties = self.dashboard_record.get_properties()    
@@ -312,7 +315,7 @@ def main(record_dxid, applet_project, applet_build_version, fastqs, output_folde
                                    'mapping_reference': lane.mapping_reference
                                   }
         print 'Initiating map sample job'
-        sample_name = 'SCGPM_%s_%s_L%d' % (lane.library_name, lane.flowcell_id, int(lane.lane_index))
+        sample_name = 'SCGPM_%s_%s_%s_%s' % (lane.run_date, lane.library_name, lane.flowcell_id, barcode)
         map_sample_job = dxpy.new_dxjob(fn_input={
                                                   "project_dxid": lane.project_dxid,
                                                   "output_folder": output_folder,

@@ -190,9 +190,9 @@ class FlowcellLane:
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.library_name, 
-                                                                        self.flowcell_id, 
-                                                                        self.run_date, 
+                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.run_date,
+                                                                        self.library_name, 
+                                                                        self.flowcell_id,  
                                                                         barcode, 
                                                                         int(read_index)
                                                                        )
@@ -222,12 +222,12 @@ class FlowcellLane:
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.library_name, 
-                                                                         self.flowcell_id, 
-                                                                         self.run_date, 
-                                                                         barcode, 
-                                                                         int(read_index)
-                                                                        )
+                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.run_date,
+                                                                        self.library_name, 
+                                                                        self.flowcell_id,    
+                                                                        barcode, 
+                                                                        int(read_index)
+                                                                       )
                     properties = {'barcode': barcode,
                                   'read': str(read_index),
                                   'run_date': self.run_date
@@ -250,12 +250,12 @@ class FlowcellLane:
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.library_name, 
-                                                                         self.flowcell_id, 
-                                                                         self.run_date, 
-                                                                         barcode, 
-                                                                         int(read_index)
-                                                                        )
+                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.run_date
+                                                                        self.library_name, 
+                                                                        self.flowcell_id, 
+                                                                        barcode, 
+                                                                        int(read_index)
+                                                                       )
                     properties = {'barcode': barcode,
                                   'read': str(read_index),
                                   'run_date': self.run_date
