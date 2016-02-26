@@ -204,7 +204,25 @@ class Applet:
         # List of dictionaries: [{'filename':<filename>, 'dxid':<dxid>}, {...}, ...]
 
         ## Find applet code
-        code_basename = self.name + '.py'
+        ## DEV: Change this to dynamically search for files with prefix matching name
+        matching_files = []
+        for file in os.listdir(repo_dirs['applets_source']):
+            if file.startswith(self.name):
+                #print file
+                matching_files.append(file)
+            else:
+                pass
+        if len(matching_files) == 1:
+            code_basename = matching_files[0]
+            print 'Info: Found source file for %s: %s' % (self.name, code_basename)
+        elif len(matching_files) == 0:
+            print 'Error: Could not find source file for %s' % self.name
+            sys.exit()
+        elif len(matching_files) > 1: 
+            print 'Error: Found multiple source files for %s' % self.name
+            print matching_files
+            sys.exit()
+        #code_basename = self.name + '.py'
         self.code_path = os.path.join(repo_dirs['applets_source'], code_basename)
         ## Find applet configuration file
         config_basename = self.name + '.template.json'
@@ -506,7 +524,6 @@ def parse_args():
 def main():
 
     args = parse_args()
-    config_json = args.config_json
 
     ## DEV: Create new object to handle all directory listings
     ## DEV: dir_list = DirectoryListing(home_)
@@ -521,9 +538,10 @@ def main():
     trajectoread_dirs['applets'] = os.path.join(trajectoread_dirs['home'], 'applets')
 
     #### Configure DNAnexus project ####
-    workflow_config_basename = config_json
+    workflow_config_basename = args.config_json
     workflow_config_path = os.path.join(trajectoread_dirs['workflow_config_templates'], 
                                         workflow_config_basename)
+    #workflow_config_path = args.config_json
     workflow_config = WorkflowConfig(workflow_config_path, 
                                      trajectoread_dirs['workflow_config_templates']
                                     )
@@ -535,6 +553,7 @@ def main():
     external_rsc_manager = ExternalRscsManager(workflow_config.external_rscs_dxid, 
                                                trajectoread_dirs['external_rscs'])
 
+    #### Build all applets listed in workflow ####
     for applet_name in workflow_config.applets:
         print 'Building %s applet' % applet_name
         applet = Applet(name=applet_name, 
@@ -557,6 +576,8 @@ def main():
         existing workflow with missing applets.
         - Current solution is just to rebuild everything everytime
     '''
+
+    #### Initialize workflow ####
     workflow_config.initialize_workflow()
     for stage_index in range(0, len(workflow_config.stages)):
         print 'Setting executable for stage %d' % stage_index
