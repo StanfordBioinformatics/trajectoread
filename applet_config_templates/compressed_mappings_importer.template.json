@@ -1,0 +1,60 @@
+{
+  "name": "compressed_mappings_importer",
+  "title": "BAM Importer to Reference Compressed Mappings",
+  "summary": "Imports a BAM file as a compact representation for viewing in the genome browser",
+  "description": "Imports a BAM file into a gtable in a special representation designed for viewing the genome browser. This gtable includes a minimal amount of information necessary for viewing in the genome browser (e.g., read quality scores are omitted), and uses reference-based compression to reduce storage and data transfer requirements even further.",
+  "tags": ["Import"],
+  "dxapi": "1.0.0",
+  "inputSpec": [
+    {
+      "name": "bam",
+      "label": "BAM File",
+      "class": "file",
+      "help": "The BAM file you would like to import for visualization.",
+      "patterns": ["*.bam"],
+      "optional": false
+    },
+    {
+      "name": "reference_file",
+      "label": "Reference File",
+      "class": "file",
+      "help": "A gzip-compressed fasta file corresponding to the reference sequence that the BAM was mapped against",
+      "patterns": ["*.fa.gz", "*.fasta.gz"],
+      "optional": false
+    },
+    {
+      "name": "genome",
+      "label": "DNAnexus Imported Genome",
+      "class": "record",
+      "type": "ContigSet",
+      "help": "A DNAnexus Genome object that you want to use to visualize the BAM against",
+      "optional": false
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "reference_compressed_mappings",
+      "label": "Reference Compressed Mappings Table",
+      "class": "gtable",
+      "type": "ReferenceCompressedBAM"
+    }
+  ],
+  "runSpec": {
+    "execDepends": [
+      {"name": "pypy"}
+    ],
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem1_ssd1_x8"
+      }
+    },
+    "bundledDepends": [],
+    "file": "src/compressed_mappings_importer.sh",
+    "interpreter": "bash"
+  },
+  "access": {
+    "project": "CONTRIBUTE",
+    "allProjects": "CONTRIBUTE",
+    "network": ["*"]
+  } 
+}

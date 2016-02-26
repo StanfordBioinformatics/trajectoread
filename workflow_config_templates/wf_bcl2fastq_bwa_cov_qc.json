@@ -1,7 +1,7 @@
 {
     "applets": {
         "bcl2fastq": {
-            "dxid": "applet-Bq3fJ8j0ZgQ79068vJ61F3j6", 
+            "dxid": "applet-Bq7kp400J7P8Gv0328KF4vqZ", 
             "external_rscs": [
                 {
                     "name": "bcl2fastq", 
@@ -23,12 +23,60 @@
             }
         }, 
         "bwa_controller": {
-            "dxid": "applet-Bq3fJB00ZgQ5PppJk961gZbY", 
+            "dxid": "applet-Bq7kp6Q0J7P365gz38K98bv8", 
+            "external_rscs": [], 
+            "internal_rscs": {}
+        }, 
+        "compressed_mappings_importer": {
+            "dxid": "applet-Bq7kp7Q0J7P50bjK18KGXZ7p", 
+            "external_rscs": [
+                {
+                    "name": "samtools", 
+                    "version": "0.1.19"
+                }, 
+                {
+                    "name": "bedtools", 
+                    "version": "2.19.0"
+                }
+            ], 
+            "internal_rscs": {
+                "c_programs": [
+                    "parseSam"
+                ], 
+                "scripts": [
+                    "extractChromosomes.py", 
+                    "makeTable.py", 
+                    "checkProcessor.py"
+                ]
+            }
+        }, 
+        "compute_sample_coverage": {
+            "dxid": "applet-Bq7kp680J7PJ2Y4xxZJXBFKX", 
+            "external_rscs": [
+                {
+                    "name": "bedtools", 
+                    "version": "2.19.0"
+                }
+            ], 
+            "internal_rscs": {}
+        }, 
+        "generate_qc_report": {
+            "dxid": "applet-Bq7kp680J7PJ2Y4xxZJXBFKZ", 
+            "external_rscs": [
+                {
+                    "name": "pdf_reports", 
+                    "version": "1.0"
+                }
+            ], 
+            "internal_rscs": {}
+        }, 
+        "igv_controller": {
+            "dxid": "applet-Bq7kp4Q0J7P43vx4yGJQXFyk", 
             "external_rscs": [], 
             "internal_rscs": {}
         }, 
         "map_sample": {
-            "dxid": "applet-Bq3fJ780ZgQ79068vJ61F3j4", 
+            "dxid": "applet-Bq7kp300J7P496FB48KJ4k22", 
             "external_rscs": [
                 {
                     "name": "bwa", 
@@ -50,7 +98,7 @@
             "internal_rscs": {}
         }, 
         "qc_controller": {
-            "dxid": "applet-Bq3fJB00ZgQGZBF0bV60gVyy", 
+            "dxid": "applet-Bq7kp7j0J7P365gz38K98bvB", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -60,7 +108,7 @@
             "internal_rscs": {}
         }, 
         "qc_sample": {
-            "dxid": "applet-Bq3fJB00ZgQG2yG6jJ62JF16", 
+            "dxid": "applet-Bq7kp600J7P50bjK18KGXZ7j", 
             "external_rscs": [
                 {
                     "name": "picard_tools", 
@@ -77,25 +125,16 @@
                     "collect_uniqueness_metrics"
                 ]
             }
-        },
-        "compute_sample_coverage":{
-            "dxid": "",
-            "external_rscs": [
-                {
-                    "name": "bedtools",
-                    "version": "2.19.0"
-                }
-            ],
-            "internal_rscs": {}
         }
     }, 
-    "date_created": "2016-02-19", 
+    "apps": {}, 
+    "date_created": "2016-02-25", 
     "dx_OS": "Ubuntu-12.04", 
-    "edit_version": 4, 
+    "edit_version": 7, 
     "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
     "stages": {
         "0": {
-            "dxid": "stage-Bq3fJB80ZgQ4ZjFYf96BpQqv", 
+            "dxid": "stage-Bq7kp800J7P8Gv0328KF4vqf", 
             "executable": "bcl2fastq", 
             "folder": "stage0_bcl2fastq", 
             "input": {
@@ -111,12 +150,12 @@
             ]
         }, 
         "1": {
-            "dxid": "stage-Bq3fJB80ZgQ6yG8fp5607fKy", 
+            "dxid": "stage-Bq7kp800J7P496FB48KJ4k2G", 
             "executable": "bwa_controller", 
             "folder": "stage1_bwa", 
             "input": {
-                "applet_build_version": "2016-02-19_d529124", 
-                "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
+                "applet_build_version": "2016-02-25_8132632", 
+                "applet_project": "project-Bq7kQYj0J7PPFQv8V0B5pfFb", 
                 "record_dxid": ""
             }, 
             "linked_input": {
@@ -130,24 +169,25 @@
             "output": [
                 "bams", 
                 "bais"
-            ]
+            ], 
+            "type": "applet"
         }, 
-        {
         "2": {
-            "dxid": "",
-            "executable": "coverage_controller",
-            "folder": "stage2_coverage",
-            "input": {
-            }
-        },
-        }
+            "dxid": "stage-Bq7kp880J7P8Gv0328KF4vqg", 
+            "executable": "igv_controller", 
+            "folder": "stage2_IGV", 
+            "input": {}, 
+            "linked_input": {}, 
+            "output": [], 
+            "type": "applet"
+        }, 
         "3": {
-            "dxid": "stage-Bq3fJBQ0ZgQ2Yp0kg566VYpX", 
+            "dxid": "stage-Bq7kp880J7P496FB48KJ4k2J", 
             "executable": "qc_controller", 
-            "folder": "stage2_qc", 
+            "folder": "stage3_qc", 
             "input": {
-                "applet_build_version": "2016-02-19_d529124", 
-                "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
+                "applet_build_version": "2016-02-25_8132632", 
+                "applet_project": "project-Bq7kQYj0J7PPFQv8V0B5pfFb", 
                 "record_dxid": ""
             }, 
             "linked_input": {
@@ -161,10 +201,46 @@
                     "name": "fastqs", 
                     "stage": "0"
                 }
-            }
+            }, 
+            "type": "applet"
+        }, 
+        "4": {
+            "dxid": "stage-Bq7kp8Q0J7PJ2Y4xxZJXBFKf", 
+            "executable": "generate_qc_report", 
+            "folder": "stage4_qc_report", 
+            "input": {
+                "record_dxid": ""
+            }, 
+            "linked_input": {
+                "fastqs": {
+                    "executable": "bcl2fastq", 
+                    "field": "outputField", 
+                    "name": "fastqs", 
+                    "stage": "0"
+                }, 
+                "mismatch_metrics": {
+                    "executable": "qc_controller", 
+                    "field": "outputField", 
+                    "name": "mismatch_metrics", 
+                    "stage": "3"
+                }, 
+                "qc_stats_jsons": {
+                    "executable": "qc_controller", 
+                    "field": "outputField", 
+                    "name": "qc_stats_jsons", 
+                    "stage": "3"
+                }, 
+                "tools_used": {
+                    "executable": "qc_controller", 
+                    "field": "outputField", 
+                    "name": "tools_used", 
+                    "stage": "3"
+                }
+            }, 
+            "name": "Generate QC Report"
         }
     }, 
-    "workflow_dxid": "workflow-Bq3fJB80ZgQ4ZjFYf96BpQqp", 
-    "workflow_project_dxid": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
-    "workflow_title": "WF_bcl2fastq_bwa_qc"
+    "workflow_dxid": "workflow-Bq7kp7j0J7P496FB48KJ4k2B", 
+    "workflow_project_dxid": "project-Bq7kQYj0J7PPFQv8V0B5pfFb", 
+    "workflow_title": "WF_bcl2fastq_bwa_cov_qc"
 }

@@ -1,0 +1,79 @@
+{
+  "name": "igv_controller",
+  "title": "Generate IGV files",
+  "summary": "Generate IGV Files",
+  "description": "Generate IGV Files.",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "categories": [],
+  "inputSpec": [
+    {
+      "name": "bams",
+      "label": "BAM files",
+      "class": "array:file",
+      "optional": false
+    },
+    {
+      "name": "record_dxid",
+      "label": "Record dxid",
+      "class": "string",
+      "optional": false
+    },
+    {
+      "name": "applet_build_version",
+      "label": "Applet build version",
+      "class": "string",
+      "optional": false
+    },
+    {
+      "name": "applet_project",
+      "label": "Applet project dxid",
+      "class": "string",
+      "optional": false
+    },
+    {
+      "name": "properties",
+      "label": "Properties",
+      "class": "hash",
+      "optional": true,
+      "default": {}
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "coverage_files",
+      "label": "Coverage files",
+      "class": "array:file"
+    },
+    {
+      "name": "coverage_tracks",
+      "label": "Coverage tracks",
+      "class": "array:file"
+    },
+    {
+      "name": "mappings_tables",
+      "label": "Reference Compressed Mappings Tables",
+      "class": "array:gtable"
+    },
+    {
+      "name": "tools_used",
+      "label": "JSON file with tools and command lines used in this module.",
+      "class": "array:file"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "python2.7",
+    "file": "src/igv_controller.py",
+    "bundledDepends": [],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    }
+  },
+	"access": {
+    "allProjects": "VIEW",
+    "network": ["*"]
+  },
+  "authorizedUsers": []
+}

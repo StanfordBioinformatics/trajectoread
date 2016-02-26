@@ -51,7 +51,7 @@
   "runSpec": {
     "interpreter": "python2.7",
     "file": "src/compute_sample_coverage.py",
-    "bundledDepends": [{"name": "bedtools-2.19.0.tar", "id": {"$dnanexus_link": "file-BpYF4pQ0p6fzg88xxjy26f3F"}}],
+    "bundledDepends": [],
     "systemRequirements": {
       "*": {
         "instanceType": "mem1_ssd1_x4"
