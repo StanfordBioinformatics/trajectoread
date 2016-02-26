@@ -1,7 +1,7 @@
 {
     "applets": {
         "bcl2fastq": {
-            "dxid": "applet-Bq7kp400J7P8Gv0328KF4vqZ", 
+            "dxid": "applet-Bq7p8P80J7P496FB48KJ4k2p", 
             "external_rscs": [
                 {
                     "name": "bcl2fastq", 
@@ -23,12 +23,12 @@
             }
         }, 
         "bwa_controller": {
-            "dxid": "applet-Bq7kp6Q0J7P365gz38K98bv8", 
+            "dxid": "applet-Bq7p8Qj0J7P4qjFyz8JpxFKb", 
             "external_rscs": [], 
             "internal_rscs": {}
         }, 
         "compressed_mappings_importer": {
-            "dxid": "applet-Bq7kp7Q0J7P50bjK18KGXZ7p", 
+            "dxid": "applet-Bq7p8Yj0J7P43vx4yGJQXFzV", 
             "external_rscs": [
                 {
                     "name": "samtools", 
@@ -51,7 +51,7 @@
             }
         }, 
         "compute_sample_coverage": {
-            "dxid": "applet-Bq7kp680J7PJ2Y4xxZJXBFKX", 
+            "dxid": "applet-Bq7p8QQ0J7P4qjFyz8JpxFKY", 
             "external_rscs": [
                 {
                     "name": "bedtools", 
@@ -61,7 +61,7 @@
             "internal_rscs": {}
         }, 
         "generate_qc_report": {
-            "dxid": "applet-Bq7kp680J7PJ2Y4xxZJXBFKZ", 
+            "dxid": "applet-Bq7p8Qj0J7P50bjK18KGXZ8y", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -71,12 +71,12 @@
             "internal_rscs": {}
         }, 
         "igv_controller": {
-            "dxid": "applet-Bq7kp4Q0J7P43vx4yGJQXFyk", 
+            "dxid": "applet-Bq7p8PQ0J7P1FFGB08K11jp2", 
             "external_rscs": [], 
             "internal_rscs": {}
         }, 
         "map_sample": {
-            "dxid": "applet-Bq7kp300J7P496FB48KJ4k22", 
+            "dxid": "applet-Bq7p8K80J7P50bjK18KGXZ8p", 
             "external_rscs": [
                 {
                     "name": "bwa", 
@@ -98,7 +98,7 @@
             "internal_rscs": {}
         }, 
         "qc_controller": {
-            "dxid": "applet-Bq7kp7j0J7P365gz38K98bvB", 
+            "dxid": "applet-Bq7p8Yj0J7P4qjFyz8JpxFKg", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -108,7 +108,7 @@
             "internal_rscs": {}
         }, 
         "qc_sample": {
-            "dxid": "applet-Bq7kp600J7P50bjK18KGXZ7j", 
+            "dxid": "applet-Bq7p8QQ0J7P50bjK18KGXZ8v", 
             "external_rscs": [
                 {
                     "name": "picard_tools", 
@@ -134,7 +134,7 @@
     "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
     "stages": {
         "0": {
-            "dxid": "stage-Bq7kp800J7P8Gv0328KF4vqf", 
+            "dxid": "stage-Bq7p8Z00J7P8Gv0328KF4vyK", 
             "executable": "bcl2fastq", 
             "folder": "stage0_bcl2fastq", 
             "input": {
@@ -150,11 +150,11 @@
             ]
         }, 
         "1": {
-            "dxid": "stage-Bq7kp800J7P496FB48KJ4k2G", 
+            "dxid": "stage-Bq7p8Z80J7P365gz38K98bvx", 
             "executable": "bwa_controller", 
             "folder": "stage1_bwa", 
             "input": {
-                "applet_build_version": "2016-02-25_8132632", 
+                "applet_build_version": "2016-02-25_257f4c3", 
                 "applet_project": "project-Bq7kQYj0J7PPFQv8V0B5pfFb", 
                 "record_dxid": ""
             }, 
@@ -173,7 +173,7 @@
             "type": "applet"
         }, 
         "2": {
-            "dxid": "stage-Bq7kp880J7P8Gv0328KF4vqg", 
+            "dxid": "stage-Bq7p8Z80J7PJ2Y4xxZJXBFPV", 
             "executable": "igv_controller", 
             "folder": "stage2_IGV", 
             "input": {}, 
@@ -182,11 +182,11 @@
             "type": "applet"
         }, 
         "3": {
-            "dxid": "stage-Bq7kp880J7P496FB48KJ4k2J", 
+            "dxid": "stage-Bq7p8ZQ0J7P50bjK18KGXZ90", 
             "executable": "qc_controller", 
             "folder": "stage3_qc", 
             "input": {
-                "applet_build_version": "2016-02-25_8132632", 
+                "applet_build_version": "2016-02-25_257f4c3", 
                 "applet_project": "project-Bq7kQYj0J7PPFQv8V0B5pfFb", 
                 "record_dxid": ""
             }, 
@@ -205,7 +205,7 @@
             "type": "applet"
         }, 
         "4": {
-            "dxid": "stage-Bq7kp8Q0J7PJ2Y4xxZJXBFKf", 
+            "dxid": "stage-Bq7p8ZQ0J7P4qjFyz8JpxFKk", 
             "executable": "generate_qc_report", 
             "folder": "stage4_qc_report", 
             "input": {
@@ -240,7 +240,7 @@
             "name": "Generate QC Report"
         }
     }, 
-    "workflow_dxid": "workflow-Bq7kp7j0J7P496FB48KJ4k2B", 
+    "workflow_dxid": "workflow-Bq7p8Z00J7P1FFGB08K11jp4", 
     "workflow_project_dxid": "project-Bq7kQYj0J7PPFQv8V0B5pfFb", 
     "workflow_title": "WF_bcl2fastq_bwa_cov_qc"
 }
