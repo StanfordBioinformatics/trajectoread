@@ -226,8 +226,9 @@ def create_tools_used_json_file(tools_used):
     return {'tools_used_json_file': tools_used_json_file}
 
 @dxpy.entry_point("main")
-def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_dxid, output_folder, mark_duplicates=False, fastq_files2=None,
-         sample_name=None, properties=None):
+def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_dxid, 
+         output_folder, mark_duplicates=False, fastq_files2=None, sample_name=None, 
+         properties=None):
     """Spawn subjobs to map each of the FASTQ files (and their pairs,
     if provided) and merge the BAM files into a single BAM file, which
     is output."""

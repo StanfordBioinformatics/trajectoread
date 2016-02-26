@@ -31,13 +31,23 @@ class FlowcellLane:
         self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
                                               project = self.dashboard_project_dxid)
         
+        # Get record details
         self.details = self.dashboard_record.get_details()
         self.project_dxid = self.details['laneProject']
+        self.mapping_reference = self.details['mappingReference']
+        self.lane_index = self.details['lane']
+        
+        # Parse library name ("DL_set2_rep1 rcvd 1/4/16")
+        library_label = self.details['library']
+        library_elements = library_label.split()
+        self.library_name = library_elements[0]
 
+        # Get record properties
         self.properties = self.dashboard_record.get_properties()    
         self.mapper = self.properties['mapper']
         self.reference_genome_dxid = self.properties['reference_genome_dxid']
         self.reference_index_dxid = self.properties['reference_index_dxid']
+        self.flowcell_id = self.properties['flowcell_id']
 
         self.fastq_dxids = fastqs
         #self.samples_dicts = None
@@ -208,7 +218,8 @@ def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file, 
                     "genome_index_file": dxpy.dxlink(genome_index_file),
                     "mapper": mapper,
                     "sample_name": sample_name,
-                    "mark_duplicates": mark_duplicates
+                    "mark_duplicates": mark_duplicates,
+                    "properties": properties
                    }
     map_sample_job = mapper_applet.run(mapper_input)
     mapper_output = {
@@ -294,27 +305,14 @@ def main(record_dxid, applet_project, applet_build_version, fastqs, output_folde
 
         print("fastq_files: {}".format(fastq_files))
         print("fastq_files2: {}".format(fastq_files2))
-        
-        ''' My old code
-        fastq_dict = lane.samples_dicts[barcode]
-        # Add fastq files to mapper app input dict
-        if len(fastq_dict) == 0:
-            print 'Error: No fastq files listed for sample %s' % sample
-            sys.exit()
-        elif len(fastq_dict) == 1:
-            fastq_files = [dxpy.dxlink(fastq_dict[1])]
-            fastq_files2 = None
-            print fastq_files
-        elif len(fastq_dict) == 2:
-            fastq_files = [dxpy.dxlink(fastq_dict[1])]
-            fastq_files2 = [dxpy.dxlink(fastq_dict[2])]
-            print fastq_files, fastq_files2
-        else:
-            print 'Error: More than 2 fastq files passed for mapping sample %s' % sample
-            sys.exit()
-        '''
 
+        mapped_files_properties = {
+                                   'barcode': barcode, 
+                                   'mapper': lane.mapper,
+                                   'mapping_reference': lane.mapping_reference
+                                  }
         print 'Initiating map sample job'
+        sample_name = 'SCGPM_%s_%s_L%d' % (lane.library_name, lane.flowcell_id, int(lane.lane_index))
         map_sample_job = dxpy.new_dxjob(fn_input={
                                                   "project_dxid": lane.project_dxid,
                                                   "output_folder": output_folder,
@@ -323,10 +321,11 @@ def main(record_dxid, applet_project, applet_build_version, fastqs, output_folde
                                                   "genome_fasta_file": lane.reference_genome_dxid,
                                                   "genome_index_file": lane.reference_index_dxid,
                                                   "mapper": lane.mapper,
-                                                  "sample_name": barcode,
+                                                  "sample_name": sample_name,
                                                   "mark_duplicates": mark_duplicates,
                                                   "applet_project": applet_project,
-                                                  "applet_build_version": applet_build_version
+                                                  "applet_build_version": applet_build_version,
+                                                  "properties": mapped_files_properties
                                                  }, 
                                         fn_name="run_map_sample"
                                        ) 
