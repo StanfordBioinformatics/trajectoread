@@ -15,7 +15,7 @@
                 "dxid": "file-BpYF4pQ0p6fzg88xxjy26f3F", 
                 "program": "bedtools",
                 "compression": "none", 
-                "used_by": [""], 
+                "used_by": ["compressed_mappings_importer", "compute_sample_coverage"], 
                 "version": "2.19.0"
             }
         }
@@ -106,7 +106,7 @@
                 "dxid": "file-Bq1z68Q0p6fzzq1qkbX5Zqk7",
                 "program": "samtools",
                 "compression": "tar", 
-                "used_by": ["map_sample"], 
+                "used_by": ["map_sample", "compressed_mappings_importer"], 
                 "version": "0.1.19",
                 "dir": "usr/bin"
             }
@@ -142,32 +142,6 @@
                 "used_by": ["bcl2fastq"],
                 "version": "1.8.4"
             }
-        }
-    },
-    "workflow": {
-        "WF_bcl2fastq_bwa_qc": {
-            "project_dxid": "project-Bpbqf3Q0kjGzjj52zxbGzXpv",
-            "current": "2016-02-01_990de97",
-            "object_dxid": "workflow-Bpk8b3j0kjGf0ff9405KfBBQ",
-            "versions": {
-                "2016-02-01_990de97": {
-                    "object_dxid": ""
-                },
-                "2016-01-29_cf4316d": {
-                    "object_dxid": ""
-                }
-            }
-        },
-        "WF_bcl2fastq_qc": {
-            "project_dxid": "",
-            "current": "2016-02-01_990de97",
-            "object_dxid": "",
-            "versions": {
-                "2016-02-01_990de97": {
-                    "object_dxid": ""
-                }
-            }
-
         }
     }
 }

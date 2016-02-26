@@ -35,6 +35,18 @@
 		"calculate_use_bases_mask.py": {
 			"local_path": "scripts/calculate_use_bases_mask.py",
 			"dnanexus_location": "$home"
+		},
+		"extractChromosomes.py": {
+			"local_path": "scripts/extractChromosomes.py",
+			"dnanexus_location": "$root"
+		},
+		"makeTable.py": {
+			"local_path": "scripts/makeTable.py",
+			"dnanexus_location": "$root"
+		},
+		"checkProcessor.py": {
+			"local_path": "scripts/checkProcessor.py",
+			"dnanexus_location": "$root"
 		}
 	},
 	"c_programs": {
@@ -44,6 +56,10 @@
 		},
 		"collect_uniqueness_metrics": {
 			"local_path": "c_programs/collect_uniqueness_metrics",
+			"dnanexus_location": "$root"
+		},
+		"parseSam": {
+			"local_path": "c_programs/parseSam",
 			"dnanexus_location": "$root"
 		}
 	}
