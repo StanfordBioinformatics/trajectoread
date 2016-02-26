@@ -100,7 +100,7 @@
     ],
     "systemRequirements": {
       "*": {
-        "instanceType": "mem1_ssd2_x4"
+        "instanceType": "mem1_ssd2_x8"
       }
     }
   },

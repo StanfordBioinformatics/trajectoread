@@ -38,12 +38,6 @@
       "optional": true
     },
     {
-      "name": "interop_tar",
-      "label": "InterOp tarball",
-      "class": "file",
-      "patterns": ["*.InterOp.tar", "*.InterOp.tar.gz"]
-    },
-    {
       "name": "applet_project",
       "label": "Project where qc_sample applet is",
       "class": "string",
@@ -64,45 +58,27 @@
   ],
   "outputSpec": [
     {
-      "name": "merged_fastq_files",
-      "label": "Merged FASTQ files",
+      "name": "fastqc_reports",
+      "label": "fastqc_reports",
       "class": "array:file",
-      "optional": true
+      "optional": false
     },
     {
-      "name": "bam_files",
-      "label": "BAM files",
+      "name": "qc_stats_jsons",
+      "label": "QC data in JSON format",
       "class": "array:file",
-      "optional": true
+      "optional": false
     },
     {
-      "name": "qc_report_files",
-      "label": "QC report files",
+      "name": "tools_used",
+      "label": "JSON files with tools and command lines used.",
       "class": "array:file",
-      "optional": true
+      "optional": false
     },
     {
-      "name": "qc_pdf_report",
-      "label": "QC report pdf",
-      "class": "file",
-      "optional": true
-    },
-    {
-      "name": "coverage_files",
-      "label": "Coverage files",
+      "name": "alignment_summary_metrics",
+      "label": "alignment_summary_metrics",
       "class": "array:file",
-      "optional": true
-    },
-    {
-      "name": "mappings_tables",
-      "label": "Mappings tables",
-      "class": "array:gtable",
-      "optional": true
-    },
-    {
-      "name": "coverage_tracks",
-      "label": "Coverage tracks",
-      "class": "array:record",
       "optional": true
     },
     {
@@ -112,47 +88,8 @@
       "optional": true
     },
     {
-      "name": "qc_json_files",
-      "label": "QC data in JSON format",
-      "class": "array:file",
-      "optional": true
-    },
-    {
-      "name": "tools_used",
-      "label": "JSON files with tools and command lines used.",
-      "class": "array:file",
-      "optional": true
-    },
-    {
-      "name": "run_details_json",
-      "label": "run_details_json",
-      "class": "file"
-    },
-    {
-      "name": "barcodes_json",
-      "label": "barcodes_json",
-      "class": "file"
-    },
-    {
-      "name": "sample_stats_json",
-      "label": "sample_stats_json",
-      "class": "file"
-    },
-    {
       "name": "insert_size_metrics",
       "label": "insert_size_metrics",
-      "class": "array:file",
-      "optional": true
-    },
-    {
-      "name": "alignment_summary_metrics",
-      "label": "alignment_summary_metrics",
-      "class": "array:file",
-      "optional": true
-    },
-    {
-      "name": "fastqc_reports",
-      "label": "fastqc_reports",
       "class": "array:file",
       "optional": true
     }
