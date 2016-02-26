@@ -374,9 +374,9 @@ def main(fastq_files, sample_name, output_project, output_folder, properties=Non
         # Run Collect Uniqueness Metrics
         uniqueness_input = {
                             "bam_file": bam_file, 
-                            "aligner": aligner,
-                            "output_project": output_project,
-                            "output_folder": output_folder
+                            "aligner": aligner
+                            #"output_project": output_project,
+                            #"output_folder": output_folder
                            }
         uniqueness_job = dxpy.new_dxjob(uniqueness_input, "collect_uniqueness_metrics")
         json_outputs += [uniqueness_job.get_output_ref("json_uniqueness_metrics")]
