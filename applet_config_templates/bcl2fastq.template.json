@@ -96,7 +96,14 @@
     {
       "name": "fastqs",
       "label": "Fastq files",
-      "class": "array:file"
+      "class": "array:file",
+      "optional": false
+    },
+    {
+      "name": "tools_used",
+      "label": "Tools used",
+      "class": "file",
+      "optional": false
     }
   ],
   "runSpec": {
