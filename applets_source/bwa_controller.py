@@ -37,6 +37,9 @@ class FlowcellLane:
         self.mapping_reference = self.details['mappingReference']
         self.lane_index = self.details['lane']
         self.run_name = self.details['run']
+        self.run_date = self.run_name.split('_')[0]
+        #self.library_id = self.details['library_id']
+        #self.lane_id = self.details['lane_id']
         
         # Parse library name ("DL_set2_rep1 rcvd 1/4/16")
         library_label = self.details['library']
@@ -51,6 +54,8 @@ class FlowcellLane:
         self.reference_genome_dxid = self.properties['reference_genome_dxid']
         self.reference_index_dxid = self.properties['reference_index_dxid']
         self.flowcell_id = self.properties['flowcell_id']
+        self.library_id = self.properties['library_id']
+        self.lane_id = self.properties['lane_id']
 
         self.fastq_dxids = fastqs
         #self.samples_dicts = None
@@ -226,7 +231,8 @@ def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file, 
                    }
     map_sample_job = mapper_applet.run(mapper_input)
     mapper_output = {
-        "bam": {"job": map_sample_job.get_id(), "field": "bam_file"},
+        "bam": {"job": map_sample_job.get_id(), "field": "bam"},
+        "bai": {"job": map_sample_job.get_id(), "field": "bai"},
         "tools_used": {"job": map_sample_job.get_id(), "field": "tools_used"}
     }
     return mapper_output
@@ -285,9 +291,15 @@ def test_mapping():
 @dxpy.entry_point("main")
 def main(record_dxid, applet_project, applet_build_version, fastqs, output_folder, dashboard_project_id=None, mark_duplicates=False):
 
-    output = {"bams": [], "tools_used": []}
-    lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, 
-                        dashboard_project_dxid=dashboard_project_id)
+    output = {
+              "bams": [],
+              "bais": [], 
+              "tools_used": []
+             }
+             
+    lane = FlowcellLane(record_dxid = record_dxid, 
+                        fastqs = fastqs, 
+                        dashboard_project_dxid = dashboard_project_id)
     
     fastq_files = [dxpy.DXFile(item) for item in fastqs]
     sample_dict = group_files_by_barcode(fastq_files)
@@ -311,6 +323,9 @@ def main(record_dxid, applet_project, applet_build_version, fastqs, output_folde
 
         mapped_files_properties = {
                                    'barcode': barcode, 
+                                   'run_date': lane.run_date,
+                                   'library_id': lane.library_id,
+                                   'lane_id': lane.lane_id,
                                    'mapper': lane.mapper,
                                    'mapping_reference': lane.mapping_reference
                                   }
@@ -333,7 +348,7 @@ def main(record_dxid, applet_project, applet_build_version, fastqs, output_folde
                                         fn_name="run_map_sample"
                                        ) 
         output["bams"].append({"job": map_sample_job.get_id(), "field": "bam"})
-        #output["bais"].append({"job": map_sample_job.get_id(), "field": "BAI"})
+        output["bais"].append({"job": map_sample_job.get_id(), "field": "bai"})
         output["tools_used"].append({"job": map_sample_job.get_id(), "field": "tools_used"})
     return output
 

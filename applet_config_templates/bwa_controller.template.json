@@ -55,6 +55,12 @@
   "outputSpec": [
     {
       "name": "bams",
+      "label": "BAM files",
+      "class": "array:file"
+    },
+    {
+      "name": "bais",
+      "label": "BAI files",
       "class": "array:file"
     },
     {

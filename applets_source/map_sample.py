@@ -43,6 +43,9 @@ def postprocess(project_dxid, output_folder, bam_files, sample_name=None, proper
 
     run_cmd(cmd_array, logger, shell=False)
 
+    index_cmd = 'samtools index sample.bam'
+    run_cmd(index_cmd, logger)
+
     merged_bam_file = dxpy.upload_local_file(filename = "sample.bam", 
                                              name = sample_name + ".bam", 
                                              properties = properties,
@@ -51,8 +54,19 @@ def postprocess(project_dxid, output_folder, bam_files, sample_name=None, proper
                                              parents = True
                                             )
 
-    return { "bam_file": dxpy.dxlink(merged_bam_file),
-             "tools_used": logger }
+    merged_bai_file = dxpy.upload_local_file(filename = "sample.bam.bai", 
+                                             name = sample_name + ".bai", 
+                                             properties = properties,
+                                             project = project_dxid,
+                                             folder = output_folder,
+                                             parents = True
+                                            )
+
+    return {
+            "bam": dxpy.dxlink(merged_bam_file),
+            "bai": dxpy.dxlink(merged_bai_file),
+            "tools_used": logger 
+           }
 
 def remove_ext(filename):
     """Removes all extensions from a filename. E.g., if filename is
@@ -197,16 +211,34 @@ def process(project_dxid, output_folder, fastq_file, genome_fasta_file, genome_i
 
     run_samtools_calmd(logger)
 
+    ''' From bwa_mem_fastq_read_mapper bash source:
+    bwa mem -t `nproc` "$genome_file" $input $opts | samtools view -u -S - | samtools sort -m 256M -@ `nproc` - output
+    samtools index output.bam
+    '''
+    index_cmd = 'samtools index sample.bam'
+    run_cmd(index_cmd, logger)
+
     bam_file = dxpy.upload_local_file(filename = "sample.bam", 
-                                      name = sample_name+".bam", 
+                                      name = sample_name + ".bam", 
                                       properties = properties,
                                       project = project_dxid,
                                       folder = output_folder,
                                       parents = True
                                      )
 
-    return { "bam_file": dxpy.dxlink(bam_file),
-             "tools_used": logger }
+    bai_file = dxpy.upload_local_file(filename = "sample.bam.bai", 
+                                      name = sample_name + ".bai", 
+                                      properties = properties,
+                                      project = project_dxid,
+                                      folder = output_folder,
+                                      parents = True
+                                     )
+
+    return { 
+            "bam": dxpy.dxlink(bam_file),
+            "bai": dxpy.dxlink(bai_file),
+            "tools_used": logger 
+           }
 
 @dxpy.entry_point('create_tools_used_json_file')
 def create_tools_used_json_file(tools_used):
@@ -256,7 +288,7 @@ def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_dxid
     if len(fastq_files) > 1:
         postprocess_input = { "project_dxid": project_dxid,
                               "output_folder": output_folder,
-                              "bam_files": [subjob.get_output_ref("bam_file") for subjob in subjobs],
+                              "bam_files": [subjob.get_output_ref("bam") for subjob in subjobs],
                               "sample_name": sample_name, 
                               "properties": properties 
                             }
@@ -266,12 +298,18 @@ def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_dxid
         tools_used_job = dxpy.new_dxjob(tools_used_input, "create_tools_used_json_file")
 
         # TODO Fix output to correctly grab logger info.
-        return { "bam_file": postprocess_job.get_output_ref("bam_file"),
-                 "tools_used": tools_used_job.get_output_ref("tools_used_json_file")}
+        return {
+                "bam": postprocess_job.get_output_ref("bam"),
+                "bai": postprocess_job.get_output_ref("bai"),
+                "tools_used": tools_used_job.get_output_ref("tools_used_json_file")
+               }
     else:
         tools_used_input = {'tools_used': [job.get_output_ref('tools_used') for job in subjobs]}
         tools_used_job = dxpy.new_dxjob(tools_used_input, "create_tools_used_json_file")
-        return { "bam_file": subjobs[0].get_output_ref("bam_file"),
-                 "tools_used": tools_used_job.get_output_ref("tools_used_json_file") }
+        return {
+                "bam": subjobs[0].get_output_ref("bam"),
+                "bai": subjobs[0].get_output_ref("bai"),
+                "tools_used": tools_used_job.get_output_ref("tools_used_json_file")
+               }
 
 dxpy.run()

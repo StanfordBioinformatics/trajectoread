@@ -79,8 +79,13 @@
   ],
   "outputSpec": [
     {
-      "name": "bam_file",
+      "name": "bam",
       "label": "BAM file",
+      "class": "file"
+    },
+    {
+      "name": "bai",
+      "label": "BAI file",
       "class": "file"
     },
     {
