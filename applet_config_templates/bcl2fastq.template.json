@@ -100,6 +100,12 @@
       "optional": false
     },
     {
+      "name": "lane_html",
+      "lable": "Lane html file",
+      "class": "file",
+      "optional": true
+    },
+    {
       "name": "tools_used",
       "label": "Tools used",
       "class": "file",

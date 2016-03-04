@@ -303,7 +303,12 @@ class FlowcellLane:
         print 'Uploaded fastq files:'
         for dxlink in fastq_files:
             print dxlink
-        return(fastq_files)
+
+        output = {
+                  'fastqs': fastq_files,
+                  'lane_html': dxpy.dxlink(lane_html_file)
+                 }
+        return(output)
 
     def create_sample_sheet(self, output_folder):
         '''
@@ -728,7 +733,7 @@ def main(**applet_input):
                        )
     
     print 'Uploading fastq files back to DNAnexus'
-    fastq_files = lane.upload_result_files(params.output_folder)        # returns DXLink objects
+    upload_output = lane.upload_result_files(params.output_folder)        # returns DXLink objects
     #print EMPTY_DEBUG_VARIABLE
 
     # Create tools used file
@@ -743,7 +748,8 @@ def main(**applet_input):
                           )
 
     output = {}
-    output['fastqs'] = fastq_files
+    output['fastqs'] = upload_output['fastqs']
+    output['lane_html'] = upload_output['lane_html']
     output['tools_used'] = dxpy.dxlink(tools_used_id)
 
     print 'Output'
