@@ -132,17 +132,35 @@ class WorkflowConfig:
                 stage_input[name] = self.project_dxid
 
         linked_inputs = self.stages[stage_index]['linked_input']
-        for name in linked_inputs:
-            linked_input = linked_inputs[name]
-            field_type = linked_input['field']
-            field_name = linked_input['name']
-            input_stage_index = linked_input['stage']
-            input_stage_dxid = self.stages[input_stage_index]['dxid']
-            stage_input[field_name] = {'$dnanexus_link': {
-                                                          'stage': input_stage_dxid,
-                                                          field_type: field_name
-                                                         }
-                                      }
+        ## DEV: Change linked input from dict to LIST of dicts. 
+        ##      If length of linked_input == 1 stage_input = dict (as is)
+        ##      Elif length of linked_input > 1 stage_input = list
+        ##          append input of dicts
+        for field_name in linked_inputs:
+            linked_input = linked_inputs[field_name]
+            if type(linked_input) is dict:
+                field_type = linked_input['field']
+                input_stage_index = linked_input['stage']
+                input_stage_dxid = self.stages[input_stage_index]['dxid']
+                stage_input[field_name] = {'$dnanexus_link': {
+                                                              'stage': input_stage_dxid,
+                                                              field_type: field_name
+                                                             }
+                                          }
+            elif type(linked_input) is list:
+                stage_input[field_name] = []
+                for list_input in linked_input:
+                    #pdb.set_trace()
+                    field_type = list_input['field']
+                    input_stage_index = list_input['stage']
+                    input_stage_dxid = self.stages[input_stage_index]['dxid']
+                    stage_input[field_name].append({'$dnanexus_link': {
+                                                                  'stage': input_stage_dxid,
+                                                                  field_type: field_name
+                                                                 }
+                                                    })
+            #print 'Info: Stage %d field %s input:' % (int(stage_index), field_name)
+            #print stage_input
         self.edit_version = self.object.describe()['editVersion']
         self.object.update_stage(stage = stage_index,
                                  edit_version = self.edit_version,
@@ -491,7 +509,7 @@ class InternalRscsManager:
             applet.add_rsc(local_path, dnanexus_path)
 
     def _add_python_package(self, applet, rsc_type, name):
-        print 'Adding python package %s to applet' % name
+        print 'Info: Adding python package %s to applet' % name
         package_files = self.config[rsc_type][name]["all_files"]
         for file in package_files:
             file_local_path = self._get_local_path(rsc_type, name) + '/' + file
@@ -504,7 +522,7 @@ class InternalRscsManager:
         if (os.path.exists(full_path)):
             return full_path
         else:
-            print 'Could not find internal rsc path:' + full_path
+            print 'Error: Could not find internal rsc path:' + full_path
             sys.exit()
 
     def _get_dnanexus_path(self, rsc_type, name):
@@ -580,11 +598,11 @@ def main():
     #### Initialize workflow ####
     workflow_config.initialize_workflow()
     for stage_index in range(0, len(workflow_config.stages)):
-        print 'Setting executable for stage %d' % stage_index
+        print 'Info: Setting executable for stage %d' % stage_index
         workflow_config.set_stage_executable(str(stage_index))
 
     for stage_index in range(0, len(workflow_config.stages)):
-        print 'Setting inputs for stage %d' % stage_index
+        print 'Info: Setting inputs for stage %d' % stage_index
         workflow_config.set_stage_inputs(str(stage_index))
 
     workflow_config.update_config_file()

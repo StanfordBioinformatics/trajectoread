@@ -41,7 +41,8 @@
   ],
   "runSpec": {
     "execDepends": [
-      {"name": "pypy"}
+      {"name": "pypy"},
+      {"name": "psutil", "package_manager": "pip"}
     ],
     "systemRequirements": {
       "main": {

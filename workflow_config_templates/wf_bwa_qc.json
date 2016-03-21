@@ -1,34 +1,12 @@
 {
     "applets": {
-        "bcl2fastq": {
-            "dxid": "applet-BqYY6680ZgQ9FBb1Xv8vKpx4", 
-            "external_rscs": [
-                {
-                    "name": "bcl2fastq", 
-                    "version": "1.8.4"
-                }, 
-                {
-                    "name": "bcl2fastq2", 
-                    "version": "2.17.1.14"
-                }
-            ], 
-            "internal_rscs": {
-                "python_packages": [
-                    "scgpm_lims"
-                ], 
-                "scripts": [
-                    "create_sample_sheet.py", 
-                    "calculate_use_bases_mask.py"
-                ]
-            }
-        }, 
         "bwa_controller": {
-            "dxid": "applet-BqYY69Q0ZgQJ7Y3jYZ8yyJ9j", 
+            "dxid": "applet-Bqf48300zYp8BQP3j9Z5p9QQ", 
             "external_rscs": [], 
             "internal_rscs": {}
         }, 
         "generate_qc_report": {
-            "dxid": "applet-BqYY69Q0ZgQJfZQXkQ8jkYb1", 
+            "dxid": "applet-Bqf48380zYp6qx6JYQvZxy46", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -38,7 +16,7 @@
             "internal_rscs": {}
         }, 
         "map_sample": {
-            "dxid": "applet-BqYY64j0ZgQKGFXVfQ8kfzF5", 
+            "dxid": "applet-Bqf48300zYpPY8GYq5Z6JY43", 
             "external_rscs": [
                 {
                     "name": "bwa", 
@@ -60,7 +38,7 @@
             "internal_rscs": {}
         }, 
         "qc_controller": {
-            "dxid": "applet-BqYY69j0ZgQJfZQXkQ8jkYb3", 
+            "dxid": "applet-Bqf48380zYpP5xX6z5Z14qF9", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -70,7 +48,7 @@
             "internal_rscs": {}
         }, 
         "qc_sample": {
-            "dxid": "applet-BqYY6980ZgQ1xyFfZQ8v3VY8", 
+            "dxid": "applet-Bqf485Q0zYp8BQP3j9Z5p9QX", 
             "external_rscs": [
                 {
                     "name": "picard_tools", 
@@ -89,44 +67,21 @@
             }
         }
     }, 
-    "date_created": "2016-03-14", 
+    "date_created": "2016-03-18", 
     "dx_OS": "Ubuntu-12.04", 
-    "edit_version": 6, 
+    "edit_version": 5, 
     "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
     "stages": {
         "0": {
-            "dxid": "stage-BqYY6B00ZgQGqVB4gQ8xfq2b", 
-            "executable": "bcl2fastq", 
-            "folder": "stage0_bcl2fastq", 
+            "dxid": "stage-Bqf485j0zYp8BQP3j9Z5p9QZ", 
+            "executable": "bwa_controller", 
+            "folder": "stage0_bwa", 
             "input": {
-                "lane_data_tar": "", 
-                "metadata_tar": "", 
-                "output_folder": "", 
+                "applet_build_version": "2016-03-18_e338beb", 
+                "applet_project": "project-Bqf482j0zYpJFfx6x9ZBK97J", 
                 "record_dxid": ""
             }, 
             "linked_input": {}, 
-            "name": "Demultiplex and bcl2fastq", 
-            "output": [
-                "fastqs", 
-                "tools_used"
-            ]
-        }, 
-        "1": {
-            "dxid": "stage-BqYY6B00ZgQ1xyFfZQ8v3VYG", 
-            "executable": "bwa_controller", 
-            "folder": "stage1_bwa", 
-            "input": {
-                "applet_build_version": "2016-03-14_e338beb", 
-                "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
-                "record_dxid": ""
-            }, 
-            "linked_input": {
-                "fastqs": {
-                    "field": "outputField", 
-                    "name": "fastqs", 
-                    "stage": "0"
-                }
-            }, 
             "name": "bwa", 
             "output": [
                 "bams", 
@@ -134,23 +89,23 @@
                 "tools_used"
             ]
         }, 
-        "2": {
-            "dxid": "stage-BqYY6B80ZgQKGFXVfQ8kfzF9", 
+        "1": {
+            "dxid": "stage-Bqf48600zYpK1871y5Z4J2j7", 
             "executable": "qc_controller", 
-            "folder": "stage2_qc", 
+            "folder": "stage1_qc", 
             "input": {
-                "applet_build_version": "2016-03-14_e338beb", 
-                "applet_project": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
+                "applet_build_version": "2016-03-18_e338beb", 
+                "applet_project": "project-Bqf482j0zYpJFfx6x9ZBK97J", 
                 "record_dxid": ""
             }, 
             "linked_input": {
                 "bams": {
                     "field": "outputField", 
                     "name": "bams", 
-                    "stage": "1"
+                    "stage": "0"
                 }, 
                 "fastqs": {
-                    "field": "outputField", 
+                    "field": "inputField", 
                     "name": "fastqs", 
                     "stage": "0"
                 }
@@ -165,28 +120,28 @@
                 "insert_size_metrics"
             ]
         }, 
-        "3": {
-            "dxid": "stage-BqYY6B80ZgQJ7Y3jYZ8yyJ9p", 
+        "2": {
+            "dxid": "stage-Bqf48600zYpGJK1Qv5Z6yvQG", 
             "executable": "generate_qc_report", 
-            "folder": "stage3_qc_report", 
+            "folder": "stage2_qc_report", 
             "input": {
                 "record_dxid": ""
             }, 
             "linked_input": {
                 "fastqs": {
-                    "field": "outputField", 
+                    "field": "inputField", 
                     "name": "fastqs", 
                     "stage": "0"
                 }, 
                 "mismatch_metrics": {
                     "field": "outputField", 
                     "name": "mismatch_metrics", 
-                    "stage": "2"
+                    "stage": "1"
                 }, 
                 "qc_stats_jsons": {
                     "field": "outputField", 
                     "name": "qc_stats_jsons", 
-                    "stage": "2"
+                    "stage": "1"
                 }, 
                 "tools_used": [
                     {
@@ -198,18 +153,13 @@
                         "field": "outputField", 
                         "name": "tools_used", 
                         "stage": "1"
-                    }, 
-                    {
-                        "field": "outputField", 
-                        "name": "tools_used", 
-                        "stage": "2"
                     }
                 ]
             }, 
             "name": "Generate QC Report"
         }
     }, 
-    "workflow_dxid": "workflow-BqYY69j0ZgQ1jk0YbQ8Qkqb5", 
-    "workflow_project_dxid": "project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f", 
-    "workflow_title": "WF_bcl2fastq_bwa_qc"
+    "workflow_dxid": "workflow-Bqf485j0zYpPY8GYq5Z6JY45", 
+    "workflow_project_dxid": "project-Bqf482j0zYpJFfx6x9ZBK97J", 
+    "workflow_title": "WF_bwa_qc"
 }

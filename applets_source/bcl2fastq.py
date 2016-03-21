@@ -121,6 +121,7 @@ class FlowcellLane:
         self.rta_version = self.properties['rta_version']
         self.library_id = self.properties['library_id']
         self.lane_id = self.properties['lane_id']
+        self.seq_instrument = self.properties['seq_instrument']
 
         self.lane_project = dxpy.DXProject(dxid = self.lane_project_dxid)
         self.home = os.getcwd()
@@ -188,9 +189,11 @@ class FlowcellLane:
         self.lane_barcode = self.get_lane_barcode()
         report_html_file = 'Unaligned_L%d/Reports/html/%s/all/all/all/lane.html' % (self.lane_index, self.lane_barcode)
         properties = {
-                      'run_date': self.run_date,
-                      'library_id': self.library_id,
-                      'lane_id': self.lane_id
+                      'run_date':   str(self.run_date),
+                      'run_name':   str(self.run_name),
+                      'library_id': str(self.library_id),
+                      'lane_id':    str(self.lane_id),
+                      'lane_index': str(self.lane_index)
                      }
         lane_html_name = 'SCGPM_%s_%s_%s_L%d.lane.html' % (self.run_date,
                                                            self.library_name, 

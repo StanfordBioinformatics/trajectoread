@@ -23,7 +23,7 @@ def get_app_title():
     return title
 
 @dxpy.entry_point('main')
-def main(bam_file, genome_file, sample_name=None, properties=None):
+def main(bam_file, genome_file, output_project, output_folder, sample_name=None, properties=None):
     """Download the BAM file, run bedtools, upload the coverage file."""
     logger = []
 
@@ -36,7 +36,13 @@ def main(bam_file, genome_file, sample_name=None, properties=None):
     cmd = "./bedtools genomecov -ibam sample.bam -g genome.fai -bg -trackline > sample.bedGraph"
     run_cmd(cmd, logger)
 
-    coverage_file = dxpy.upload_local_file("sample.bedGraph", name=sample_name+".bedGraph", properties=properties)
+    coverage_file = dxpy.upload_local_file(filename = "sample.bedGraph", 
+                                           name = sample_name + ".bedGraph",
+                                           project = output_project,
+                                           folder = output_folder,
+                                           parents = True, 
+                                           properties = properties
+                                          )
 
     tools_used = {'name': get_app_title(),
                   'commands': logger}
@@ -46,6 +52,7 @@ def main(bam_file, genome_file, sample_name=None, properties=None):
     tools_used_json_file = dxpy.upload_local_file(fn)
 
     return { "coverage_file": dxpy.dxlink(coverage_file),
-             "tools_used": tools_used_json_file}
+             "tools_used": tools_used_json_file
+           }
 
 dxpy.run()

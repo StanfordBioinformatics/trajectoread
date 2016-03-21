@@ -70,6 +70,17 @@ class FlowcellLane:
                                                            'properties': properties
                                                           }
                                           )
+    def update_properties(self, properties):
+        if isinstance(properties, dict):
+            dxpy.api.record_set_properties(object_id = self.dashboard_record_dxid, 
+                                           input_params = {
+                                                           'project': self.dashboard_project_dxid,
+                                                           'properties': properties
+                                                          }
+                                          )
+        else:
+            print 'Error: input is not of type dict; record properties not updated'
+            print properties
 
 def download_file(file_dxid):
     """
@@ -153,7 +164,7 @@ def group_files_by_barcode(barcoded_files):
 
 @dxpy.entry_point("main")
 def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop_tar, 
-         mismatch_metrics=None, paired_end=True, mark_duplicates=False, 
+         mismatch_metrics=[], paired_end=True, mark_duplicates=False, 
          dashboard_project_dxid=None):
 
     lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, interop_tar=interop_tar, 
@@ -187,7 +198,8 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
     output_project = lane.project_dxid
 
     # Download and prepare necessary files
-    if mismatch_metrics != None:
+    #if mismatch_metrics != None:
+    if len(mismatch_metrics) > 0:
         mismatch_stats_files = [download_file(mismatch_file) for mismatch_file in mismatch_metrics]
     
     interop_file = download_file(interop_tar)
@@ -212,7 +224,8 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
     # Now actually make the call to create the pdf.
     qc_report_file = run_details['run_name'].replace(' ', '_') + '_qc_report.pdf'
     cmd = 'python /create_pdf_reports.py '
-    if mismatch_metrics != None:
+    #if mismatch_metrics != None:
+    if len(mismatch_metrics) > 0:
         cmd += '--mismatch_files {0} '.format(' '.join(mismatch_stats_files))
     else:
         cmd += '--basic '
@@ -258,5 +271,11 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
     output['barcodes_json'] = dxpy.dxlink(barcodes_json_fid)
     output['sample_stats_json'] = dxpy.dxlink(sample_stats_json_fid)  
 
-    lane.update_status('ready')
+    #lane.update_status('ready')
+    properties = {
+                  'status': 'ready',
+                  'qcReportID': '%s:%s' % (qc_pdf_report.project, qc_pdf_report.id),
+                  'analysis_finished': 'true'
+                 }
+    lane.update_properties(properties)
     return output

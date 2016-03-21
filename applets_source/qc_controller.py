@@ -236,7 +236,7 @@ def group_files_by_read(fastq_files):
     Returns  : dict.
     """
 
-    print("Grouping Fastq files by read number")
+    #print("Grouping Fastq files by read number")
     fastq_dxfiles = [dxpy.DXFile(item) for item in fastq_files]
     read_dict = {}
 
@@ -414,11 +414,11 @@ def generate_qc_pdf_report(**job_inputs):
            }
 
 @dxpy.entry_point("main")
-def main(record_dxid, applet_project, applet_build_version, output_folder, fastqs=None, bams=None, bais=None, dashboard_project_dxid=None):
+def main(record_dxid, applet_project, applet_build_version, output_folder, fastqs=None, bams=None, dashboard_project_dxid=None):
 
     applet_folder = '/builds/%s' % applet_build_version
     lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, bams=bams, 
-                        bais=bais, dashboard_project_dxid=dashboard_project_dxid)
+                        dashboard_project_dxid=dashboard_project_dxid)
 
     output = {
               "alignment_summary_metrics": [], 
@@ -429,8 +429,11 @@ def main(record_dxid, applet_project, applet_build_version, output_folder, fastq
               "tools_used": []
              }
 
+    print "Grouping fastq files by barcode"
     fastq_dict = group_files_by_barcode(fastqs)
-    bam_dict = group_files_by_barcode(bams)
+    if bams != None:
+        print "Grouping bam files by barcode"
+        bam_dict = group_files_by_barcode(bams)
     
     jobs = []
     for barcode in fastq_dict:
@@ -490,53 +493,6 @@ def main(record_dxid, applet_project, applet_build_version, output_folder, fastq
 
     return output
 
-    '''
-    # Now handle the generation of the QC PDF report.
-    run_details = {'run_name': lane.run_name,
-                'flow_cell': lane.flowcell_id, #should be the same for all fq files
-                'lane': lane.lane_index,
-                'library': lane.library_name,
-                'operator': lane.operator,
-                'genome_name': lane.reference_genome,
-                'lab_name': lane.lab_name,
-                'mapper': lane.mapper}     # DEV: change this to be 'aligner' in 'create_pdf_reports.py' for consistency
-
-    # test data
-    #output = {'alignment_summary_metrics': [{u'$dnanexus_link': u'file-BpPvQK00Bz3x94FXjQ5bq2G5'}],
-    #            'fastqc_reports': [{u'$dnanexus_link': u'file-BpPvQ400Bz3z1qqFxvYjKpj2'}, 
-    #                                {u'$dnanexus_link': u'file-BpPvQ680Bz3qjK1jbxK1vP7v'}],
-    #            'insert_size_metrics': [{u'$dnanexus_link': u'file-BpPvQ100Bz3kQVyQKQy2Z9jV'}],
-    #            'mismatch_metrics': [{u'$dnanexus_link': u'file-BpPvPPj0Bz3qXffFGv8f9xBX'}],
-    #            'qc_json_files': [{u'$dnanexus_link': u'file-BpPvX900Bz3Y43B48Zy10vb8'}],
-    #            'tools_used': [{u'$dnanexus_link': u'file-BpPvXfj0Bz3x94FXjQ5bq3gg'}]
-    #            }
-    qc_pdf_report_input = {
-                            'output_folder': output_folder,
-                            'output_project': lane.project_dxid,
-                            'samples_stats_json_files': qc_job_output['qc_json_files'],
-                            'dashboard_record_id': lane.dashboard_record_dxid,
-                            'run_details': run_details,
-                            'barcodes': fastq_dict.keys(),
-                            'mark_duplicates': False,
-                            'interop_file': lane.interop_dxid,
-                            'tools_used': qc_job_output['tools_used'],
-                            'paired_end': True
-                          }
-    if lane.reference_genome and lane.mapper:
-        qc_pdf_report_input['mismatch_metrics'] = qc_job_output['mismatch_metrics']
-
-    # Spawn QC PDF Report job
-    qc_pdf_report_job = dxpy.new_dxjob(fn_input=qc_pdf_report_input, fn_name="generate_qc_pdf_report")
-
-    output = {}
-    output["qc_pdf_report"] = qc_pdf_report_job.get_output_ref("qc_pdf_report")
-    output["run_details_json"] = qc_pdf_report_job.get_output_ref("run_details_json")
-    output["barcodes_json"] = qc_pdf_report_job.get_output_ref("barcodes_json")
-    output["sample_stats_json"] = qc_pdf_report_job.get_output_ref("sample_stats_json")    
-
-    lane.update_status('ready')
-    return output
-    '''
 
 dxpy.run()
 

@@ -210,7 +210,10 @@ def merge_mismatch_metrics(mismatch_metrics_files):
     with open(MISMATCH_PER_CYCLE_STATS_FN, 'w') as fh:
         fh.write('mmfraction mmcount\n')
         for v in metrics['metrics']:
-            fh.write('{0} {1}\n'.format(float(v)/metrics['total_counts'], v))
+            if metrics['total_counts'] == 0:
+              fh.write('{0} {1}\n'.format(float(0), v))
+            else:
+              fh.write('{0} {1}\n'.format(float(v)/metrics['total_counts'], v))
 
     return MISMATCH_PER_CYCLE_STATS_FN
 

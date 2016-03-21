@@ -32,12 +32,6 @@
       "optional": true
     },
     {
-      "name": "bais",
-      "label": "BAI files",
-      "class": "array:file",
-      "optional": true
-    },
-    {
       "name": "applet_project",
       "label": "Project where qc_sample applet is",
       "class": "string",

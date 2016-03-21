@@ -32,6 +32,12 @@
       "optional": false
     },
     {
+      "name": "output_folder",
+      "label": "Stage output folder",
+      "class": "string",
+      "optional": false
+    },
+    {
       "name": "properties",
       "label": "Properties",
       "class": "hash",
@@ -72,7 +78,7 @@
     }
   },
 	"access": {
-    "allProjects": "VIEW",
+    "allProjects": "ADMINISTER",
     "network": ["*"]
   },
   "authorizedUsers": []
