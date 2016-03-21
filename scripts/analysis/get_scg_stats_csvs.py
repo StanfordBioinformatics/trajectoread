@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import os
+import re
 import glob
+import shutil
 import argparse
 
 def get_scg_stats_csvs(scg_pub_dir, scg_mapping_stats_dir, year, month):
@@ -16,7 +18,7 @@ def get_scg_stats_csvs(scg_pub_dir, scg_mapping_stats_dir, year, month):
         for stats_file in stats_files:
             path_elements = stats_file.split('/')
             basename = path_elements[-1]
-            match = re.search(r'([\w_]+_L(\d)_stats.csv)', basename)
+            match = re.search(r'([\w_-]+)_L(\d)_stats.csv', basename)
             if match:
                 run_name = match.group(1)
                 lane_index = int(match.group(2))
