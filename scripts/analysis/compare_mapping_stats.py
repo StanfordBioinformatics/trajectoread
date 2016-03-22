@@ -6,6 +6,7 @@ import sys
 import pdb
 import glob
 import dxpy
+import json
 import numpy
 import shutil
 import fnmatch
@@ -18,57 +19,80 @@ import fnmatch
 
 lanes = {}
 
-def parse_sample_stats_json(json_file):
+def parse_dx_stats_json(json_file):
+    with open(json_file, 'r') as JSON:
+        data = json.load(JSON)
+ 
+    post_filter_reads = 0
+    mapped_pf_reads_1 =  0
+    mapped_pf_reads_2 = 0
+    unique_pf_reads_1 = 0
+    unique_pf_reads_2 = 0
+    insert_size_list = []
 
-def parse_scg_stats_csv(csv_file):
-    elements = csv_file.split('.')
-    lane_name = elements[0]
+    for sample in data:
+        #pdb.set_trace()
+        if len(sample) == 1:
+            # No mapping stats
+            post_filter_reads = 'NA'
+            mapped_pf_reads_1 = 'NA'
+            mapped_pf_reads_2 = 'NA'
+            unique_pf_reads_1 = 'NA'
+            unique_pf_reads_2 = 'NA'
+            mean_insert_size = 'NA'
+            break
+        
+        post_filter_reads += int(sample['Pair']['Post-Filter Reads'])
+        mapped_pf_reads_1 += int(sample['Read 1']['Mapped PF Reads'])
+        mapped_pf_reads_2 += int(sample['Read 2']['Mapped PF Reads'])
+        for category in sample['Read 1']['Unique']:
+            unique_pf_reads_1 += sample['Read 1']['Unique'][category]
+        for category in sample['Read 2']['Unique']:
+            unique_pf_reads_2 += sample['Read 2']['Unique'][category]
+        insert_size_list.append(int(sample['Mean Insert Size']))
+    mean_insert_size = numpy.mean(insert_size_list)
+       
+    lane_metrics = {
+                    'post_filter_reads': post_filter_reads,
+                    'mapped_pf_reads_1': mapped_pf_reads_1,
+                    'mapped_pf_reads_2': mapped_pf_reads_2,
+                    'unique_pf_reads_1': unique_pf_reads_1,
+                    'unique_pf_reads_2': unique_pf_reads_2,
+                    'mean_insert_size': mean_insert_size
+                   }
+    return lane_metrics
+  
 
-    with open csv_file as CSV:
+def parse_sample_stats_csv(csv_path):
+    lane_metrics = {}
+    with open(csv_path, 'r') as CSV:
         for line in CSV:
-            post_filter_match = re.search(r'Post-Filter Reads,"([\d,]+)",', line)
-            failed_reads_match = re.search(r'Failed Reads,"([\d,]+)",', line)
-            mapped_pf_reads_1_match = re.search(r'Mapped PF Reads (Read 1),"([\d,]+)",')
-            mapped_pf_reads_2_match = re.search(r'Mapped PF Reads (Read 2),"([\d,]+)",')
-            unique_pf_reads_1_match = re.search(r'Uniquely-Mapped PF Reads (Read 1),"([\d,]+)",')
-            unique_pf_reads_2_match = re.search(r'Uniquely-Mapped PF Reads (Read 2),"([\d,]+)",')
-            insert_size_match = re.search(r'Insert Size,([\d,]+),')
+            post_filter_match = re.search(r'Post-Filter Reads,"([\d,]+)"', line)
+            failed_reads_match = re.search(r'Failed Reads,\"([\d,]+)\"', line)
+            mapped_pf_reads_1_match = re.search(r'Mapped PF Reads \(Read 1\),\"([\d,]+)\"', line)
+            mapped_pf_reads_2_match = re.search(r'Mapped PF Reads \(Read 2\),\"([\d,]+)\"', line)
+            unique_pf_reads_1_match = re.search(r'Uniquely-Mapped PF Reads \(Read 1\),\"([\d,]+)\"', line)
+            unique_pf_reads_2_match = re.search(r'Uniquely-Mapped PF Reads \(Read 2\),\"([\d,]+)\"', line)
+            insert_size_match = re.search(r'Insert Size,([\d,]+)', line)
 
-            lane_metrics = {}
             if post_filter_match:
-                lane_metrics['post_filter'] = post_filter_match.group(1)
-            if failed_reads_match:
-                lane_metrics['failed_reads_match'] = failed_reads_match.group(1)
-            if mapped_pf_reads_1_match:
-                lane_metrics['mapped_pf_reads_1'] = mapped_pf_reads_1_match.group(1)
-            if mapped_pf_reads_2_match:
-                lane_metrics['mapped_pf_reads_2'] = mapped_pf_reads_2_match.group(1)
-            if unique_pf_reads_1_match:
-                lane_metrics['unique_pf_reads_1'] = unique_pf_reads_1_match.group(1)
-            if uniuqe_pf_reads_2_match:
-                lane_metrics['unique_pf_reads_2'] = unique_pf_reads_2_match.group(1)
-            if insert_size_match:
-                lane_metrics['insert_size'] = insert_size_match.group(1)
-            return lane_metrics
+                lane_metrics['post_filter'] = int(post_filter_match.group(1).replace(',',''))
+            elif failed_reads_match:
+                lane_metrics['failed_reads_match'] = int(failed_reads_match.group(1).replace(',',''))
+            elif mapped_pf_reads_1_match:
+                lane_metrics['mapped_pf_reads_1'] = int(mapped_pf_reads_1_match.group(1).replace(',',''))
+            elif mapped_pf_reads_2_match:
+                lane_metrics['mapped_pf_reads_2'] = int(mapped_pf_reads_2_match.group(1).replace(',',''))
+            elif unique_pf_reads_1_match:
+                lane_metrics['unique_pf_reads_1'] = int(unique_pf_reads_1_match.group(1).replace(',',''))
+            elif unique_pf_reads_2_match:
+                lane_metrics['unique_pf_reads_2'] = int(unique_pf_reads_2_match.group(1).replace(',',''))
+            elif insert_size_match:
+                lane_metrics['insert_size'] = int(insert_size_match.group(1).replace(',',''))
+    print lane_metrics
+    return lane_metrics
 
-
-def get_scg_stats_csvs(scg_pub_dir):
-    print 'Info: Getting SCG runs info'
-    scg_runs = next(os.walk(scg_pub_dir))[1]
-    for run_name in scg_runs:
-        run_path = '%s/%s' % (scg_runs_dir, run_name)
-
-        statscsv_gen = glob.iglob('%s/%s_L*_stats.csv' % (run_path, run_name))
-
-        stats_csv_files = list(stats_htm_gen)
-
-        for stats_file in stats_files:
-            elements = stats_file.split('/')
-            stats_name = '%s_%s.stats.csv' % (elements[0], elements[1])
-            stats_path = os.path.join(scg_mapping_stats_dir, stats_name)
-            shutil.copy(stats_file, stats_path)
-
-def get_dx_sample_stats_jsons(output_dir):
+def get_dx_stats_jsons(output_dir):
 
     sample_stats_json_gen = dxpy.find_data_objects(name="sample_stats.json", name_mode="exact")
 
@@ -80,20 +104,44 @@ def get_dx_sample_stats_jsons(output_dir):
         dxproject = dxpy.DXProject(dxid=dxfile.project)
         project_name = dxproject.name
         project_elements = project_name.split('_')
+        print project_elements
 
-        run_name = '_'.join(name_elements[:-1])
-        lane_index_match = re.search(r'L(\d)', name_elements[-1])
-        lane_index = int(lane_index_match.group(1))
+        run_name = '_'.join(project_elements[:-1])
+        lane_index_match = re.search(r'L(\d)', project_elements[-1])
+        if lane_index_match:
+            lane_index = int(lane_index_match.group(1))
 
-        filename = '%s.sample_stats.json' % project_name
-        filepath = os.path.join(output_dir, filename)
+            filename = '%s.sample_stats.json' % project_name
+            filepath = os.path.join(output_dir, filename)
 
-        # 4. Download dx files locally
-        print 'Info: Downloading run %s lane %d' % (run_name, lane_index)
-        dxpy.download_dxfile(dxid = file_id['id'], 
-                             project = file_id['project'], 
-                             filename = filepath
-                            )
+            # 4. Download dx files locally
+            print 'Info: Downloading run %s lane %d' % (run_name, lane_index)
+            dxpy.download_dxfile(dxid = file_id['id'], 
+                                 project = file_id['project'], 
+                                 filename = filepath
+                                )
+        else:
+            print 'Skipping %s' % run_name
+
+def parse_dx_stats(stats_json_dir, lane_metrics):
+    for file in os.listdir(stats_json_dir):
+        match = re.search(r'.*.sample_stats.json', file)
+        if match:
+            elements = file.split('.')
+            lane_name = elements[0]
+            json_path = os.path.join(stats_json_dir, file)
+            print 'Info: Getting dx mapping stats for %s' % file
+            lane_metrics['dx'][lane_name] = parse_dx_stats_json(json_file=json_path)
+
+def parse_scg_stats(stats_csv_dir, lane_metrics):
+    for file in os.listdir(stats_csv_dir):
+        match = re.search(r'.*.stats.csv', file)
+        if match:
+            elements = file.split('.')
+            lane_name = elements[0]
+            lane_path = os.path.join(scg_csv_dir, file)
+            print 'Info: Getting mapping stats for %s' % file
+            lane_metrics['scg'][lane_name] = parse_scg_stats_csv(csv_path=lane_path)
 
 def main():
 
@@ -102,8 +150,8 @@ def main():
     scg_2016_pub_dir = '/srv/gsfs0/projects/gbsc/SeqCenter/Illumina/PublishedResults/2016'
 
     # Get files
-    get_dx_sample_stats_jsons(output_dir = dx_mapping_stats_dir)
-    get_scg_stats_csvs(scg_pub_dir = scg_2016_pub_dir)
+    #get_dx_stats_jsons(output_dir = dx_mapping_stats_dir)
+    #get_scg_stats_csvs(scg_pub_dir = scg_2016_pub_dir)
 
     ## CSV stats
     # Total Reads
@@ -129,20 +177,11 @@ def main():
                     'scg': {}
                    }
 
-    # Parse files
-    for file in scg_mapping_stats_dir:
-        match = re.search('(\w+_L\d).stats.csv', file)
-        if match:
-            lane_name = match.group(1)
-            lane_metrics['scg'][lane_name] = parse_sample_scg_stats_csv(csv_file=file)
+    # Parse SCG stats.csv files
+    # parse_scg_stats(scg_mapping_stats_dir, lane_metrics)
+    parse_dx_stats(dx_mapping_stats_dir, lane_metrics)
 
-
+    pdb.set_trace()
     
-
-
-
-
-
-
 if __name__ == '__main__':
     main()
