@@ -134,8 +134,11 @@ def collect_alignment_summary_metrics(bam_file, genome_fasta_file, output_projec
     genome_fasta_file = dxpy.DXFile(genome_fasta_file)
     dxpy.download_dxfile(genome_fasta_file.get_id(), "genome.fa.gz")
 
-    cmd = ("java -jar /CollectAlignmentSummaryMetrics.jar VALIDATION_STRINGENCY=LENIENT " +
-           "INPUT=sample.bam OUTPUT=sample.alignment_summary_metrics REFERENCE_SEQUENCE=genome.fa.gz")
+    cmd = ("java -jar /CollectAlignmentSummaryMetrics.jar " +
+           "VALIDATION_STRINGENCY=LENIENT " +
+           "INPUT=sample.bam " +
+           "OUTPUT=sample.alignment_summary_metrics " +
+           "REFERENCE_SEQUENCE=genome.fa.gz")
     run_cmd(cmd, logger)
 
     asm_file = dxpy.upload_local_file("sample.alignment_summary_metrics",
@@ -163,9 +166,12 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
     genome_fasta_file = dxpy.DXFile(genome_fasta_file)
     dxpy.download_dxfile(genome_fasta_file.get_id(), "genome.fa.gz")
 
-    cmd = ("java -jar /CollectInsertSizeMetrics.jar VALIDATION_STRINGENCY=LENIENT " +
+    cmd = ("java -jar /CollectInsertSizeMetrics.jar " +
+           "VALIDATION_STRINGENCY=LENIENT " +
            "INPUT=sample.bam REFERENCE_SEQUENCE=genome.fa.gz " +
-           "OUTPUT=sample.insert_size_metrics HISTOGRAM_FILE=sample.insert_size_histogram")
+           "OUTPUT=sample.insert_size_metrics " +
+           "HISTOGRAM_FILE=sample.insert_size_histogram" +
+           "MINIMUM_PCT=0.1")
     run_cmd(cmd, logger)
 
     json_info = extract_json_from_ism("sample.insert_size_metrics")
@@ -175,16 +181,19 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
     subprocess.check_call(cmd, shell=True)
 
     ism_file = dxpy.upload_local_file("sample_insert_size_metrics.tar.gz",
-                                      name = sample_name+"_insert_size_metrics.tar.gz", 
+                                      name = sample_name + "_insert_size_metrics.tar.gz", 
                                       properties = properties,
                                       project = output_project,
                                       folder = output_folder,
                                       parents = True
                                      )
 
-    return {"insert_size_metrics": dxpy.dxlink(ism_file),
+    print MAKE_DIE_VARIABLE
+    return {
+            "insert_size_metrics": dxpy.dxlink(ism_file),
             "json_insert_size_metrics": json_info,
-            "tools_used": logger}
+            "tools_used": logger
+           }
 
 @dxpy.entry_point('collect_uniqueness_metrics')
 def collect_uniqueness_metrics(bam_file, aligner):
