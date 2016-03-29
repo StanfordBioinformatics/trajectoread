@@ -45,7 +45,8 @@ class FlowcellLane:
         library_label = self.details['library']
         library_elements = library_label.split()
         library_name = library_elements[0]
-        self.library_name = library_name.replace('_','-')
+        library_name = library_name.replace('_','-')
+        self.library_name = library_name.replace('.','-')
         self.run_date = self.run_name.split('_')[0]
 
         # Get record properties
