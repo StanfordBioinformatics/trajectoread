@@ -514,7 +514,7 @@ class IlluminaIntensities
     @corrected_int_max_cycle = 0
     eof = false
     while !eof do
-      record = readb(ios, record_len, 'S12F6')
+      record = readb(ios, record_len, 'S7L5')
       break if record.nil?
       lane = record[0]
       tile = record[1]
@@ -534,11 +534,6 @@ class IlluminaIntensities
       if @corrected_int[lane][cycle][tile].nil?
         @corrected_int[lane][cycle][tile] = {
           :tile_cnt => 0,
-          # No longer included in v3
-          # :a_int => 0,
-          # :c_int => 0,
-          # :g_int => 0,
-          # :t_int => 0,
           :a_called_int => 0,
           :c_called_int => 0,
           :g_called_int => 0,
@@ -548,25 +543,19 @@ class IlluminaIntensities
           :c_calls => 0,
           :g_calls => 0,
           :t_calls => 0,
-          # :snr => 0.0
         }
       end
       # Only last of multiple records for lane/tile/cycle will be used.
       @corrected_int[lane][cycle][tile][:tile_cnt] += 1
-      # @corrected_int[lane][cycle][tile][:a_int] = record[4]
-      # @corrected_int[lane][cycle][tile][:c_int] = record[5]
-      # @corrected_int[lane][cycle][tile][:g_int] = record[6]
-      # @corrected_int[lane][cycle][tile][:t_int] = record[7]
-      @corrected_int[lane][cycle][tile][:a_called_int] = record[4]
-      @corrected_int[lane][cycle][tile][:c_called_int] = record[5]
-      @corrected_int[lane][cycle][tile][:g_called_int] = record[6]
-      @corrected_int[lane][cycle][tile][:t_called_int] = record[7]
-      @corrected_int[lane][cycle][tile][:n_calls] = record[8]
-      @corrected_int[lane][cycle][tile][:a_calls] = record[9]
-      @corrected_int[lane][cycle][tile][:c_calls] = record[10]
-      @corrected_int[lane][cycle][tile][:g_calls] = record[11]
-      @corrected_int[lane][cycle][tile][:t_calls] = record[12]
-      # @corrected_int[lane][cycle][tile][:snr] = record[17]
+      @corrected_int[lane][cycle][tile][:a_called_int] = record[3]
+      @corrected_int[lane][cycle][tile][:c_called_int] = record[4]
+      @corrected_int[lane][cycle][tile][:g_called_int] = record[5]
+      @corrected_int[lane][cycle][tile][:t_called_int] = record[6]
+      @corrected_int[lane][cycle][tile][:n_calls] = record[7]
+      @corrected_int[lane][cycle][tile][:a_calls] = record[8]
+      @corrected_int[lane][cycle][tile][:c_calls] = record[9]
+      @corrected_int[lane][cycle][tile][:g_calls] = record[10]
+      @corrected_int[lane][cycle][tile][:t_calls] = record[11]
     end
     puts "Found #{cycle} cycles." if @verbose
 
@@ -578,10 +567,6 @@ class IlluminaIntensities
         data.keys().each do |tile|
           if data[:a_int_sum].nil?
             data.merge!({
-              # :a_int_sum => 0,
-              # :c_int_sum => 0,
-              # :g_int_sum => 0,
-              # :t_int_sum => 0,
               :a_called_int_sum => 0,
               :c_called_int_sum => 0,
               :g_called_int_sum => 0,
@@ -591,13 +576,8 @@ class IlluminaIntensities
               :c_calls => 0,
               :g_calls => 0,
               :t_calls => 0,
-              # :snr_sum => 0.0
             })
           end
-          # data[:a_int_sum] += data[tile][:a_int]
-          # data[:c_int_sum] += data[tile][:c_int]
-          # data[:g_int_sum] += data[tile][:g_int]
-          # data[:t_int_sum] += data[tile][:t_int]
           data[:a_called_int_sum] += data[tile][:a_called_int]
           data[:c_called_int_sum] += data[tile][:c_called_int]
           data[:g_called_int_sum] += data[tile][:t_called_int]
@@ -607,20 +587,12 @@ class IlluminaIntensities
           data[:c_calls] += data[tile][:c_calls]
           data[:g_calls] += data[tile][:g_calls]
           data[:t_calls] += data[tile][:t_calls]
-          # data[:snr_sum] += data[tile][:snr]
           tile_cnt += 1
         end
-
-        # data[:a_int] = data[:a_int_sum] / tile_cnt
-        # data[:c_int] = data[:c_int_sum] / tile_cnt
-        # data[:g_int] = data[:g_int_sum] / tile_cnt
-        # data[:t_int] = data[:t_int_sum] / tile_cnt
         data[:a_called_int] = data[:a_called_int_sum] / tile_cnt
         data[:c_called_int] = data[:c_called_int_sum] / tile_cnt
         data[:g_called_int] = data[:g_called_int_sum] / tile_cnt
         data[:t_called_int] = data[:t_called_int_sum] / tile_cnt
-        # data[:snr_avg] = data[:snr_sum] / tile_cnt
-
       end
     end
   end
