@@ -1,5 +1,4 @@
 #!/usr/bin/env Rscript
-
 #
 # Make a fixed-width summary plot of a set of quality scores.
 #
@@ -10,6 +9,7 @@
 #   read.starts=c(n1,n2,...) first cycle of each read not including the first
 # Note that filenames and other strings must be quoted!
 #
+## Updated 3/29/2016; pbilling. Added qvalues if/else for HiSeq 4000 data
 
 datafile <- NULL
 plotfile <- NULL
@@ -35,7 +35,14 @@ data <- read.table(datafile, header=TRUE)
 #png(file=plotfile, width=800, height=500, res=72)
 pdf(file=plotfile, width=8, height=5)
 counts <- round(data * 1000 / (rowSums(data)+1))  # +1 is pseudocount to prevent denominator from being zero.
-qvalues <- c(1:ncol(data))
+if (ncol(data)==7){
+  # RTA 2.7.3 (HiSeq 4000) data
+  # http://www.illumina.com/documents/products/whitepapers/whitepaper_datacompression.pdf
+  # Warning: illumina may change these bin values
+  qvalues <- c(6,14,22,27,32,37,40) # Values based on median of bin qualities 
+} else {
+  qvalues <- c(1:ncol(data))
+}
 find_quantiles <- function(x) {quantile(rep(qvalues, x), c(1:3)/4)}
 quantiles <- apply(counts, 1, find_quantiles)
 par(mai=c(1.0,1.0,0.25,0.25))
