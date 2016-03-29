@@ -489,8 +489,14 @@ def main(record_dxid, applet_project, applet_build_version, output_folder, fastq
             if lane.mapper != None:
                 output["mismatch_metrics"].append({"job": qc_job.get_id(), "field": "mismatch_metrics"})
             if fastq_files2 != None:
-                output["insert_size_metrics"].append({"job": qc_job.get_id(), "field": "insert_size_metrics"})
-
+                try:
+                    output["insert_size_metrics"].append({"job": qc_job.get_id(), "field": "insert_size_metrics"})
+                except:
+                    error = 'Error: Could not get insert size metrics for %s. ' % barcode
+                    error += 'Check distribution of FR vs RF orientation reads in sample. '
+                    error += 'May need to increase MINIMUM_PCT option.'
+                    print error
+                
     return output
 
 
