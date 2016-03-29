@@ -6,7 +6,6 @@ project into a new project and transferring the project to the
 specified user.
 
 Dependencies:
--Expects the script maindrill_send.py to be in the system path. 
 -Expects the lims package to be in the system path. 
 """
 import re
@@ -15,18 +14,17 @@ import dxpy
 import datetime
 import subprocess
 from scgpm_lims import Connection,RunInfo
-from pipeline_utils import conf, app_utils
 
-my_auth = app_utils.getSecurityAuth(conf.dashboardContributeToken) #use this for setting any properties/details on a dashboard record
+#my_auth = app_utils.getSecurityAuth(conf.dashboardContributeToken) #use this for setting any properties/details on a dashboard record
+token = "kKEI8Hb3g6k3gUqjD6ZrP9hoiTIUkNV7"
+auth = dxpy.DXHTTPOAuth2({"auth_token_type": "Bearer", "auth_token": token})
 
 class FlowcellLane:
 
 	def __init__(self, project_dxid, record_dxid, dashboard_project_dxid, dx_user_id, 
 				 user_first_name, user_last_name, user_email, viewers, release_note):
 		# This is lane level stuff. Most of this info will be stored in dxrecord.
-		self.record = dxpy.DXRecord(dxid=record_dxid, project=dashboard_record_dxid)
-		self.properties = self.record.get_properties()
-		self.details = self.record.get_details()
+		self.record = dxpy.DXRecord(dxid=record_dxid, project=dashboard_project_dxid)
 
 		self.project_dxid = project_dxid
 		self.dx_user_id = dx_user_id
@@ -36,12 +34,22 @@ class FlowcellLane:
 		self.viewers = viewers
 		self.release_note = release_note
 
-		self.parse_record_details()
-		self.parse_record_properties()
-
+		self.properties = None
+		self.details = None
 		self.sponsored_datetime = None
 		self.release_project_dxid = None
 		self.clone_project_dxid = None
+
+		try:
+			self.properties = self.record.get_properties()
+			self.details = self.record.get_details()
+
+			self.parse_record_details()
+			self.parse_record_properties()
+		except:
+			warning = 'Warning: Could not get record details and/or properties. '
+			warning += 'May not be record associated with this project.'
+			print warning
 
 	def parse_record_details(self):
 		
@@ -66,6 +74,7 @@ class FlowcellLane:
 		sponsored_milli_datetime = (sponsored_datetime - epoch).total_seconds() * 1000
 		self.sponsored_datetime = sponsored_milli_datetime
 
+		print 'Info: Sponsoring project %s for %d days' % (self.project_dxid, int(days))
 		dx_sponsorship_input = {'sponsoredUntil': self.sponsored_datetime}
 		dxpy.api.project_update_sponsorship(self.project_dxid, dx_sponsorship_input)
 		# Specifying null (or any time in the past) terminates the sponsorship effective immediately.
@@ -74,14 +83,15 @@ class FlowcellLane:
 	def update_project_description(self, text):
 		dxpy.api.project_update(self.release_project_dxid, {"description": text})
 
-	def clone_project(self, dest_project_name):
-		dest_dx_project = dxpy.api.project_new({"name": dest_project_name}) #returns a dict with the sole key being 'id'
-		dest_project_dxid = dest_dx_project["id"]
-		print 'Created project %s: %s' % (dest_project_name, dest_project_dxid)
+	def clone_project(self, clone_project_name):
+		clone_dx_project = dxpy.api.project_new({"name": clone_project_name}) #returns a dict with the sole key being 'id'
+		self.clone_project_dxid = clone_dx_project["id"]
+		print 'Created project %s: %s' % (clone_project_name, self.clone_project_dxid)
 
-		print 'Cloning root folder from %s into %s' % (self.project_dxid, dest_project_dxid)
+		print 'Cloning root folder from %s into %s' % (self.project_dxid, 
+													   self.clone_project_dxid)
 		dxpy.api.project_clone(self.project_dxid, {"folders": ["/"], 
-												   "project": dest_project_dxid, 
+												   "project": self.clone_project_dxid, 
 												   "destination": "/"
 												  })
 
@@ -95,60 +105,89 @@ class FlowcellLane:
 class User:
 
 	def __init__(self, record_dxid, dashboard_project_dxid, dx_user_id, first_name, 
-				 last_name, user_email):
+				 last_name, email, sunet_id):
 
 		self.dx_user_id = dx_user_id
 		self.email = email
 		self.sunet_id = sunet_id
 		self.first_name = first_name
 		self.last_name = last_name
+		self.record_dxid = record_dxid
+		self.dashboard_project_dxid = dashboard_project_dxid
 
 		# DEV: A user should not have lane record attributes.
 		self.dx_record = None
 		self.details = None
 		self.properties = None
 
+		if not self.email:
+			print 'Error: No email address provided. Required to transfer to user'
+			sys.exit()
 		if not self.dx_user_id:
-			self.create_dx_user_id(record_dxid, dashboard_project_dxid)
+			self.create_dx_user_id()
 			self.set_lims_dx_user_id(self.email, self.dx_user_id)
 
-	def create_dx_user_id(self, record_dxid, dashboard_project_dxid):
-		self.dx_record = dxpy.DXRecord(dxid=record_dxid, project=dashboard_project_dxid)
+	def get_record_properties_details():
+		## DEV: Use this to get record details if creating user_id fails
+		self.dx_record = dxpy.DXRecord(dxid=self.record_dxid, 
+									   project=self.dashboard_project_dxid)
 		self.details = dx_record['details']
 		self.properties = dx_record['properties']
-		
-		# Propose new DX User ID based on user SUNet or email
+
 		try:
 			self.sunet_id = details['sunet_id']
-			dx_user_id = self.sunet_id
-			self.email = details['email']
 		except:
+			print "Warning: Could not get user SUNet ID from record"
+		try:
+			self.email = details['email']
+		except: 
+			print "Error: Could not get user email from record"
+
+	def create_dx_user_id(self):
+
+		if self.sunet_id and self.email:
+			# Try generating user ID using SUNet ID
+			try: 
+				dx_user_id = self.sunet_id
+				legal_dx_user_id = self.legalize_dx_user_id(dx_user_id)
+				self.dx_user_id = self.ensure_new_user(self.email,
+												   )
+			except NameError:
+				dx_user_id = self.email.split("@")[0]
+				legal_dx_user_id = self.legalize_dx_user_id(dx_user_id)
+		elif self.email:
+			# Try generating user ID using email
 			print 'Warning: Could not get SUNet ID for user. Trying email address.'
 			try:
-				self.email = details['email']
 				dx_user_id = self.email.split("@")[0]
+				legal_dx_user_id = self.legalize_dx_user_id(dx_user_id)
 			except:
 				print 'Error: Could not get SUNet ID nor email for user.' 
 				print 'Cannot transfer project.'
 				print 'Check details in project record.'
 				print 'Record: %s, Project: %s' % (record_dxid, dashboard_project_dxid)
 				sys.exit()
+		else:
+			# Go get the record.
+			self.get_record_properties_details()
+			self.create_dx_user_id()
 
-		if not self.recipient_first_name or not self.recipient_last_name:
+		if not self.first_name or not self.last_name:
+			# Get user name information
 			self.user = self.details['user']
 			user_elements = self.user.split()
-			self.user_first_name = user_elements[0]
-			self.user_last_name = user_elements[1]
+			self.first_name = user_elements[0]
+			self.last_name = user_elements[1]
 
-		legal_dx_user_id = self.legalize_dx_user_id(dx_user_id)
-		if not legal_dx_user_id:
-			raise Exception("Can't create a DNAnexus username from the string {un}".format(un=dx_user_id))
-
-		self.dx_user_id = self.ensure_new_user(self.email, 
-											   legal_dx_user_id, 
-											   first_name, 
-											   last_name
+		# Create DX User ID
+		self.dx_user_id = self.ensure_new_user(email = self.email, 
+											   dx_user_id = legal_dx_user_id, 
+											   first_name = self.first_name, 
+											   last_name = self.last_name
 											  )
+		#except EmailTakenError:
+		#	print 'Warning: DNAnexus user already associated with email.' 
+		#	print 'Using email %s to transfer project to user' % self.email
 
 	def legalize_dx_user_id(self, proposed_dx_user_id):
 		"""
@@ -168,7 +207,7 @@ class User:
 		reg = re.compile(r'[^\w\.]')
 		dx_user_id = reg.sub("", proposed_dx_user_id)
 		if len(dx_user_id) < 3 or len(dx_user_id) > 255 or not re.match(r'\w',dx_user_id):
-			return None
+			raise NameError('Cannot create a DNAnexus username from the string %s' % dx_user_id)
 		else:
 			return dx_user_id
 
@@ -182,7 +221,7 @@ class User:
 	               last_name      - str. Last name of the user. Required if not first_name.
 		Returns  : str.
 		"""
-		print("*** Checking if there exists a user account associated with email '%s'..." % email)
+		print("Info: Checking for existing account associated with email: %s" % email)
 		index = 1 
 		while True:
 			try:
@@ -192,7 +231,9 @@ class User:
 								 'first': first_name, 
 								 'last': last_name
 								}
-				dxpy.DXHTTPRequest(dxpy.get_auth_server_name() + "/user/new", new_user_info, prepend_srv=False)
+				print 'Info: New user information:'
+				print new_user_info
+				dxpy.DXHTTPRequest('https://auth.dnanexus.com' + '/user/new', new_user_info, prepend_srv=False)
 				print("DX User ID available; created under username '%s'.\n" % username)
 				break
 			except dxpy.exceptions.DXAPIError as e:
@@ -201,7 +242,10 @@ class User:
 					dx_user_id = dx_user_id + str(index)
 					continue
 				elif e.name == "EmailTakenError":
-					print("Error: User email %s already associated with DNAnexus account.\n" % (email))
+					print "Warning: Email '%s' already associated with DNAnexus account." % email
+					print 'Info: Transferring project to user with email %s' % email
+					#raise EmailTakenError("Error: User email %s already associated with DNAnexus account.\n" % (email))
+					dx_user_id = None
 					break
 				else:
 					raise e
@@ -231,12 +275,15 @@ class User:
 
 @dxpy.entry_point('main')
 def main(project_dxid, record_dxid=None, dx_user_id=None, user_first_name=None, 
-		 user_last_name=None, user_email=None, viewers=None, days=30,
-		 release_note=None, dashboard_project_dxid='project-BY82j6Q0jJxgg986V16FQzjx'):
+		 user_last_name=None, user_email=None, user_sunet_id=None, viewers=None, 
+		 days=30, release_note=None, dashboard_project_dxid='project-BY82j6Q0jJxgg986V16FQzjx'):
 
-	user = User(lane.record, dx_user_id, user_first_name, user_last_name, user_email)
+	print 'Info: Creating lane object associated with project: %s' % project_dxid
 	lane = FlowcellLane(project_dxid, record_dxid, dashboard_project_dxid, dx_user_id, 
 						user_first_name, user_last_name, user_email, viewers, release_note)
+	print 'Info: Creating user object associated with email: %s' % user_email
+	user = User(record_dxid, dashboard_project_dxid, dx_user_id, user_first_name, 
+				user_last_name, user_email, user_sunet_id)
 
 	lane.sponsor_project(days=days)
 	if release_note:
@@ -246,8 +293,6 @@ def main(project_dxid, record_dxid=None, dx_user_id=None, user_first_name=None,
 	dx_project = dxpy.DXProject(dxid=lane.project_dxid)
 	release_project_name = '%s_release' % dx_project.name
 	lane.clone_project(release_project_name)
-	lane.transfer_clone_project
+	lane.transfer_clone_project(user.email)
 
 dxpy.run()
-main(project_dxid="project-BjgB8Q80G7320ZJxK8pfyx8J", dx_user_id=None, user_first_name="Paul", user_last_name="Billing-Ross", user_email="billingross@gmail.com", viewers=None, release_note=None)
-	
