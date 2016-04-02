@@ -1,0 +1,86 @@
+{
+  "name": "release_lane",
+  "title": "Release Lane",
+  "summary": "Release a lane to a customer",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "categories": [],
+  "inputSpec": [
+		{
+			"name": "project_dxid",
+			"label": "Project DXID of the project to transfer to user.",
+			"help":  "The DXID of the project to be cloned and transferred to the 'recipient'.",
+			"class": "string",
+			"optional": false
+		},
+    {
+      "name": "user_first_name",
+      "label": "Recipient first name",
+      "help": "First name of the user to whom the project should be transferred. Should be of the form user-xxxx; e.g., user-jdale.",
+      "class": "string",
+      "optional": true
+    },
+		{
+      "name": "user_last_name",
+      "label": "Recipient last name",
+      "help": "Last name of the user to whom the project should be transferred. Should be of the form user-xxxx; e.g., user-jdale.",
+      "class": "string",
+      "optional": true
+    },
+		{
+      "name": "dx_user_id",
+      "label": "DNAnexus User ID",
+      "help": "DNAnexus user ID of the user to whom the project should be transferred. Should be of the form user-xxxx; e.g., user-jdale.",
+      "class": "string",
+      "optional": true
+    },
+    {
+      "name": "user_email",
+      "label": "Recipient email",
+      "help": "Email of project recipient.",
+      "class": "string",
+      "optional": true
+    },
+    {
+      "name": "viewers",
+      "label": "Viewers",
+      "help": "List of IDs of users who should receive VIEW access to the project upon transfer. Should be a comma-separated list; e.g.: 'user-bob,user-alice'",
+      "class": "array:string",
+      "optional": true,
+      "default": []
+    },
+    {
+      "name": "release_note",
+      "label": "Release note",
+      "help": "Extra notes that will be stored in the description field of the transferred project.",
+      "class": "string",
+      "optional": true
+    },
+    {
+      "name": "days",
+      "label": "Number of sponsored days",
+      "help": "Specifies number of days project will be sponsored by SCGPM, during which time people can retrive data without incurring fee",
+      "class": "int",
+      "default": 30,
+      "optional": true
+    }
+  ],
+  "outputSpec": [],
+  "runSpec": {
+    "interpreter": "python2.7",
+    "file": "src/release_lane.py",
+		"bundledDepends": [],
+    "systemRequirements": {
+      "*": {
+            "instanceType": "mem1_ssd1_x2"
+      }
+    }
+  },
+  "access": {
+    "project": "ADMINISTER",
+    "allProjects": "ADMINISTER",
+    "projectCreation": true,
+    "network": ["*"]
+  }, 
+  "authorizedUsers": []
+}
