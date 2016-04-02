@@ -170,7 +170,7 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
            "VALIDATION_STRINGENCY=LENIENT " +
            "INPUT=sample.bam REFERENCE_SEQUENCE=genome.fa.gz " +
            "OUTPUT=sample.insert_size_metrics " +
-           "HISTOGRAM_FILE=sample.insert_size_histogram" +
+           "HISTOGRAM_FILE=sample.insert_size_histogram " +
            "MINIMUM_PCT=0.1")
     run_cmd(cmd, logger)
 
