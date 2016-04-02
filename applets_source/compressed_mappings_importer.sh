@@ -86,10 +86,14 @@ main() {
 	
 	if [ -n "$restrict_file" ]
 	then
+        echo "Restrict file"
 	    samtools view -b input.bam $line > $line.bam
 	    intersectBed -sorted -abam $line.bam -b locations."$base_extension" > $line.subset.bam
-	    samtools fillmd -e $line.subset.bam ref.fa | pypy /parseSam $table &
+        echo "parseSam"
+        samtools fillmd -e $line.subset.bam ref.fa | pypy /parseSam $table &
 	else  
+        echo "Not restrict file"
+        echo "parseSam"
 	    samtools view -b -F 1 input.bam $line | samtools fillmd -e - ref.fa | pypy /parseSam $table &
 	    samtools view -b -f 80 input.bam $line | samtools fillmd -e - ref.fa | pypy /parseSam $table &
 	    samtools view -b -f 64 -F 16 input.bam $line | samtools fillmd -e - ref.fa | pypy /parseSam $table &

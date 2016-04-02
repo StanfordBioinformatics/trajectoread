@@ -13,6 +13,7 @@ class FlowcellLane:
 
         self.details = self.dashboard_record.get_details()
         self.mapping_reference = self.details['mappingReference']
+        self.project = self.details['laneProject']
 
 class Genome:
 
@@ -68,7 +69,7 @@ def group_files_by_barcode(barcoded_files):
     return sample_dict
 
 @dxpy.entry_point("main")
-def main(bams, record_dxid, applet_build_version, applet_project, properties=None):
+def main(bams, record_dxid, applet_build_version, applet_project, output_folder, properties=None):
 
     lane = FlowcellLane(record_dxid=record_dxid)
     ref_genome = Genome(name=lane.mapping_reference)
@@ -92,6 +93,8 @@ def main(bams, record_dxid, applet_build_version, applet_project, properties=Non
                      'bam_file': bam_file,
                      'genome_file': ref_genome.fai,
                      'sample_name': sample,
+                     'output_project': lane.project,
+                     'output_folder': output_folder,
                      'properties': properties 
                     }
         applet_id = dxpy.find_one_data_object(classname = 'applet',
@@ -108,16 +111,24 @@ def main(bams, record_dxid, applet_build_version, applet_project, properties=Non
         #output["coverage_file"] = cov_job.get_output_ref("coverage_file")
         output['coverage_files'].append(cov_job.get_output_ref('coverage_file'))
 
+        '''
+        ## DEV: WIG importer DOES NOT WORK. Trying "Mappings Coverage Track Generator"
+        ##      as alternative
         ## Import the coverage track as a Wiggle/TrackSpec object
         cov_import_input = {
                             'file': cov_job.get_output_ref('coverage_file'),
                             'reference_genome': ref_genome.object,
                             'output_name': sample + ' coverage',
+                            'output_project': lane.project,
+                            'output_folder': output_folder,
                             'properties': properties 
                            }
         cov_import_job = dxpy.DXApp(name="wig_importer").run(cov_import_input)
         #output["coverage_track"] = cov_import_job.get_output_ref("wiggle")
-        output['coverage_tracks'].append(cov_import_job.get_output_ref('wiggle'))
+        output['coverage_tracks'].append(cov_import_job.get_output_ref('wiggle')) 
+        '''
+
+               
 
         ## Import mappings for visualization
         bam_import_input = {

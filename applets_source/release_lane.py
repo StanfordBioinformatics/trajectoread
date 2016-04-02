@@ -234,7 +234,7 @@ class User:
 				print 'Info: New user information:'
 				print new_user_info
 				dxpy.DXHTTPRequest('https://auth.dnanexus.com' + '/user/new', new_user_info, prepend_srv=False)
-				print("DX User ID available; created under username '%s'.\n" % username)
+				print("DX User ID available; created under username '%s'.\n" % dx_user_id)
 				break
 			except dxpy.exceptions.DXAPIError as e:
 				if e.name == "UsernameTakenError":
