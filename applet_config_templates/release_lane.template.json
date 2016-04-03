@@ -63,6 +63,21 @@
       "class": "int",
       "default": 30,
       "optional": true
+    },
+    {
+      "name": "lims_url",
+      "label": "LIMS URL",
+      "help": "URL of LIMS used to update user DNAnexus ID",
+      "class": "string",
+      "default": "https://uhts.stanford.edu",
+      "optional": true
+    },
+    {
+      "name": "lims_token",
+      "label": "LIMS Token",
+      "help": "Authorization token for accessing LIMS",
+      "class": "string",
+      "optional": true
     }
   ],
   "outputSpec": [],

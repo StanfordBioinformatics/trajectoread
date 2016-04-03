@@ -21,8 +21,9 @@ auth = dxpy.DXHTTPOAuth2({"auth_token_type": "Bearer", "auth_token": token})
 
 class FlowcellLane:
 
-	def __init__(self, project_dxid, record_dxid, dashboard_project_dxid, dx_user_id, 
-				 user_first_name, user_last_name, user_email, viewers, release_note):
+	def __init__(self, project_dxid, record_dxid, dashboard_project_dxid, 
+				 dx_user_id, user_first_name, user_last_name, user_email, 
+				 viewers, release_note):
 		# This is lane level stuff. Most of this info will be stored in dxrecord.
 		self.record = dxpy.DXRecord(dxid=record_dxid, project=dashboard_project_dxid)
 
@@ -39,6 +40,9 @@ class FlowcellLane:
 		self.sponsored_datetime = None
 		self.release_project_dxid = None
 		self.clone_project_dxid = None
+
+		self.lane_index = None
+		self.run_name = None
 
 		try:
 			self.properties = self.record.get_properties()
@@ -65,6 +69,9 @@ class FlowcellLane:
 
 		if not self.user_email:
 			self.user_email = self.details['email']
+
+		self.lane_index = int(self.details['lane'])
+		self.run_name = self.details['run']
 
 	def sponsor_project(self, days):
 		current_datetime = datetime.datetime.utcnow()
@@ -102,10 +109,66 @@ class FlowcellLane:
 		except:
 			print 'Error: Could not transfer project %s to user email: %s' % (self.clone_project_dxid, email)
 
+	def update_run_in_lims(self, lims_url, lims_token):
+
+		# Only update LIMS on last lane of run (=8 or MiSeq)
+		match_spenser = re.search('SPENSER', self.run_name)
+		match_M04199 = re.search('M04199', self.run_name)
+		if not int(self.lane_index) == 8 and not match_spenser and not match_M04199:
+			print 'Info: Skipping LIMS update'
+			return None
+
+		# Get LIMS info
+		if not lims_url or not lims_token:
+			try:
+				lims_url = self.properties['lims_url']
+				lims_token = self.properties['lims_token']
+			except:
+				warning = 'Warning: Could not add DX User ID to LIMS; could not get '
+				warning += 'LIMS URL/token information from DXRecord properties.'
+				print warning
+				return None
+
+		# Establish connection to LIMS
+		try:
+			conn = Connection(lims_url=lims_url,lims_token=lims_token)
+		except:
+			warning = 'Warning: Could not establish connection to LIMS with...\n' 
+			warning += 'LIMS URL: %s\n' % lims_url
+			warning += 'LIMS Token: %s\n' % lims_token
+			warning += 'Run status will not be updated in LIMS'
+			print warning
+			return None 
+		
+		# Mark "Finished" flag on Solexa Pipeline Run
+		try:
+			pipeline_runs = conn.indexpipelineruns(self.run_name)
+			for run_id in pipeline_runs.keys():
+				param_dict = {'finished': True}
+				conn.updatepipelinerun(run_id, param_dict)
+		except:
+			warning = 'Warning: Could not update LIMS pipeline run info.'
+			print warning
+
+		# Mark Analysis/Notification/DNAnexus Done as True for Solexa run
+		try:
+			solexa_runs = conn.indexsolexaruns(self.run_name)
+			for run_id in solexa_runs.keys():
+				param_dict = {'analysis_done': True,
+							  'notification_done': True,
+							  'dna_nexus_done': True
+							  }
+				conn.updatesolexarun(run_id, param_dict)
+		except:
+			warning = 'Warning: Could not update LIMS solexa run info.'
+			print warning
+			print self.run_name
+			print param_dict
+
 class User:
 
 	def __init__(self, record_dxid, dashboard_project_dxid, dx_user_id, first_name, 
-				 last_name, email, sunet_id):
+				 last_name, email, sunet_id, lims_url, lims_token):
 
 		self.dx_user_id = dx_user_id
 		self.email = email
@@ -125,7 +188,10 @@ class User:
 			sys.exit()
 		if not self.dx_user_id:
 			self.create_dx_user_id()
-			self.set_lims_dx_user_id(self.email, self.dx_user_id)
+			self.set_lims_dx_user_id(self.email, 
+									 self.dx_user_id, 
+									 lims_url, 
+									 lims_token)
 
 	def get_record_properties_details():
 		## DEV: Use this to get record details if creating user_id fails
@@ -251,39 +317,51 @@ class User:
 					raise e
 		return dx_user_id
 
-	def set_lims_dx_user_id(self, email, dx_user_id):
+	def set_lims_dx_user_id(self, email, dx_user_id, lims_url, lims_token):
 		"""
 		Function : Updates/sets the dnanexus_userid attribute of a Person record in UHTS.
 		Args     : personid - The ID of a UHTS. Person record.
 							  attributeDict - dict. Keys are Person attribute names
 		Returns  : A JSON hash of the person specified by personid as it exists in the database after the record update(s).
 		"""
+		if not lims_url or not lims_token:
+			try:
+				lims_url = self.properties['lims_url']
+				lims_token = self.properties['lims_token']
+			except:
+				warning = 'Warning: Could not add DX User ID to LIMS; could not get '
+				warning += 'LIMS URL/token information from DXRecord properties.'
+				print warning
+				return None
 
 		try:
-			lims_url = self.properties['lims_url']
-			lims_token = self.properties['lims_token']
+			conn = Connection(lims_url=lims_url,lims_token=lims_token)
+			user_attributes = conn.get_person_attributes_by_email(email=email)
+			user_id = user_attributes['id']
+			json = conn.update_person(personid = user_id,
+							attributeDict = {"dnanexus_userid": dx_user_id})
+			info = 'Info: LIMS updated with DNAnexus ID: %s ' % json['dnanexus_userid']
+			info += 'for user: %s %s' % (json['first_name'], json['last_name'])	
+			print info
+			return json
 		except:
-			warning = 'Warning: Could not add DX User ID to LIMS; could not get '
-			warning += 'LIMS URL/token information from DXRecord properties.'
-			return None
-
-		conn = Connection(lims_url=lims_url,lims_token=lims_token)
-		user_attributes = conn.get_person_attributes_by_email(email=email)
-		user_id = user_attributes['id']
-		jsonResult = conn.update_person(personid=user_id,attributeDict={"dnanexus_userid": dx_user_id})	
-		return jsonResult
+			warning = 'Warning: Could not update LIMS user info for '
+			warning += '%s %s ' % (json['first_name'], json['last_name'])
+			warning += 'with DNAnexus user id: %s' % json['dnanexus_userid']
+			print warning
 
 @dxpy.entry_point('main')
 def main(project_dxid, record_dxid=None, dx_user_id=None, user_first_name=None, 
 		 user_last_name=None, user_email=None, user_sunet_id=None, viewers=None, 
-		 days=30, release_note=None, dashboard_project_dxid='project-BY82j6Q0jJxgg986V16FQzjx'):
+		 days=30, release_note=None, lims_url=None, lims_token=None,
+		 dashboard_project_dxid='project-BY82j6Q0jJxgg986V16FQzjx'):
 
 	print 'Info: Creating lane object associated with project: %s' % project_dxid
 	lane = FlowcellLane(project_dxid, record_dxid, dashboard_project_dxid, dx_user_id, 
 						user_first_name, user_last_name, user_email, viewers, release_note)
 	print 'Info: Creating user object associated with email: %s' % user_email
 	user = User(record_dxid, dashboard_project_dxid, dx_user_id, user_first_name, 
-				user_last_name, user_email, user_sunet_id)
+				user_last_name, user_email, user_sunet_id, lims_url, lims_token)
 
 	lane.sponsor_project(days=days)
 	if release_note:
@@ -294,5 +372,6 @@ def main(project_dxid, record_dxid=None, dx_user_id=None, user_first_name=None,
 	release_project_name = '%s_release' % dx_project.name
 	lane.clone_project(release_project_name)
 	lane.transfer_clone_project(user.email)
+	lane.update_run_in_lims(lims_url, lims_token)
 
 dxpy.run()
