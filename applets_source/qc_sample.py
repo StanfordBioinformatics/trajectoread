@@ -102,12 +102,12 @@ def extract_json_from_ism(fname):
         col_names = reader.next()
         col_names = dict([(name, i) for i, name in enumerate(col_names)])
         data = reader.next()
-        output['Median Insert Size'] = int(data[col_names['MEDIAN_INSERT_SIZE']])
+        output['Median Insert Size'] = int(float(data[col_names['MEDIAN_INSERT_SIZE']]))
         output['Mean Insert Size'] = float(data[col_names['MEAN_INSERT_SIZE']])
-        output['Median Absolute Deviation'] = int(data[col_names['MEDIAN_ABSOLUTE_DEVIATION']])
+        output['Median Absolute Deviation'] = int(float(data[col_names['MEDIAN_ABSOLUTE_DEVIATION']]))
         output['Standard Deviation'] = float(data[col_names['STANDARD_DEVIATION']])
-        output['Minimum Insert Size'] = int(data[col_names['MIN_INSERT_SIZE']])
-        output['Maximum Insert Size'] = int(data[col_names['MAX_INSERT_SIZE']])
+        output['Minimum Insert Size'] = int(float(data[col_names['MIN_INSERT_SIZE']]))
+        output['Maximum Insert Size'] = int(float(data[col_names['MAX_INSERT_SIZE']]))
 
         # Now sum each observation in the insert size histogram. This will
         # be used later to calculate the average overall insert size across
@@ -171,29 +171,37 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
            "INPUT=sample.bam REFERENCE_SEQUENCE=genome.fa.gz " +
            "OUTPUT=sample.insert_size_metrics " +
            "HISTOGRAM_FILE=sample.insert_size_histogram " +
-           "MINIMUM_PCT=0.1")
+           "MINIMUM_PCT=0.4")
     run_cmd(cmd, logger)
 
     json_info = extract_json_from_ism("sample.insert_size_metrics")
 
-    cmd = ("tar czvf sample_insert_size_metrics.tar.gz " +
-           "sample.insert_size_metrics sample.insert_size_histogram")
-    subprocess.check_call(cmd, shell=True)
+    try:
+        cmd = ("tar czvf sample_insert_size_metrics.tar.gz " +
+               "sample.insert_size_metrics sample.insert_size_histogram")
+        subprocess.check_call(cmd, shell=True)
 
-    ism_file = dxpy.upload_local_file("sample_insert_size_metrics.tar.gz",
-                                      name = sample_name + "_insert_size_metrics.tar.gz", 
-                                      properties = properties,
-                                      project = output_project,
-                                      folder = output_folder,
-                                      parents = True
-                                     )
+        ism_file = dxpy.upload_local_file("sample_insert_size_metrics.tar.gz",
+                                          name = sample_name + "_insert_size_metrics.tar.gz", 
+                                          properties = properties,
+                                          project = output_project,
+                                          folder = output_folder,
+                                          parents = True
+                                         )
 
-    print MAKE_DIE_VARIABLE
-    return {
-            "insert_size_metrics": dxpy.dxlink(ism_file),
-            "json_insert_size_metrics": json_info,
-            "tools_used": logger
-           }
+        return {
+                "insert_size_metrics": dxpy.dxlink(ism_file),
+                "json_insert_size_metrics": json_info,
+                "tools_used": logger
+               }
+    except:
+        print 'Could not generate sample_insert_size_metrics.tar.gz'
+        print 'Possibly large number of RF read pairs.'
+        return {
+                "insert_size_metrics": None,
+                "json_insert_size_metrics": None,
+                "tools_used": None
+               }
 
 @dxpy.entry_point('collect_uniqueness_metrics')
 def collect_uniqueness_metrics(bam_file, aligner):
