@@ -24,7 +24,7 @@
       "label": "FASTQ files (read 1)",
       "class": "array:file",
       "optional": false,
-      "patterns": ["*.fq.gz", "*.fastq.gz"]
+      "patterns": ["*.fq.gz", "*.fastq.gz", "*.fastq"]
     },
     {
       "name": "genome_fasta_file",

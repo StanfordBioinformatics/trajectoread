@@ -9,7 +9,7 @@
   "inputSpec": [
     { 
       "name": "record_dxid",
-      "label": "Lane Record DXID",
+      "label": "Lane record dxid",
       "class": "string",
       "optional": false
     },
@@ -23,12 +23,14 @@
       "name": "fastqs",
       "label": "Fastq files",
       "class": "array:file",
+      "patterns": ["*fastq.gz", "*.fastq", "*.fq.gz"],
       "optional": false
     },
     {
       "name": "bams",
       "label": "BAM files",
       "class": "array:file",
+      "patterns": ["*.bam"],
       "optional": true
     },
     {

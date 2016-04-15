@@ -12,7 +12,7 @@
       "label": "FASTQ files",
       "class": "array:file",
       "optional": false,
-      "patterns": ["*.fastq.gz", "*.fq.gz"]
+      "patterns": ["*.fastq.gz", "*.fq.gz", "*.fastq"]
     },
     {
       "name": "bam_file",
@@ -40,7 +40,7 @@
       "label": "FASTQ files (read 2)",
       "class": "array:file",
       "optional": true,
-      "patterns": ["*.fq.gz", "*.fastq.gz"]
+      "patterns": ["*.fq.gz", "*.fastq.gz", "*.fastq"]
     },
     {
       "name": "sample_name",

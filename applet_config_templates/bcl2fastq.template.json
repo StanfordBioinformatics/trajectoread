@@ -5,13 +5,20 @@
   "dxapi": "1.0.0",
   "version": "0.1.0",
   "inputSpec": [
-		{
-			"name": "record_dxid",
-			"label": "DNAnexus ID of the sequencing lane DXRecord.",
-			"help": "The DNAnexus ID of the sequencing lane DXRecord.",
-			"class": "string",
-			"optional": false
-		},
+	{
+    	"name": "record_dxid",
+    	"label": "Lane record dxid",
+    	"help": "The DNAnexus ID of the sequencing lane DXRecord.",
+    	"class": "string",
+    	"optional": false
+	},
+    {
+      "name": "dashboard_project_dxid",
+      "label": "Dashboard project dxid",
+      "help": "SCGPM Dashboard Data",
+      "class": "string",
+      "optional": true
+    },
     {
       "name": "lane_data_tar",
       "label": "Lane tar file",
@@ -31,13 +38,6 @@
       "label": "Output folder",
       "class": "string",
       "optional": false
-    },
-    {
-      "name": "dashboard_project_dxid",
-      "label": "Dashboard records project DXid",
-      "help": "SCGPM Dashboard Data",
-      "class": "string",
-      "optional": true
     },
     {
       "name": "test_mode",

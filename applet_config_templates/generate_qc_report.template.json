@@ -9,9 +9,15 @@
   "inputSpec": [
     { 
       "name": "record_dxid",
-      "label": "Lane Record DXID",
+      "label": "Lane record dxid",
       "class": "string",
       "optional": false
+    },
+    {
+      "name": "dashboard_project_dxid",
+      "label": "Dashboard Project dxid",
+      "class": "string",
+      "optional": true
     },
     {
       "name": "output_folder",
@@ -23,18 +29,21 @@
       "name": "qc_stats_jsons",
       "label": "Sample QC stats JSONs",
       "class": "array:file",
+      "patterns": ["*stats.json"],
       "optional": false
     },
     {
       "name": "tools_used",
       "label": "Tools used",
       "class": "array:file",
+      "patterns": ["*tools_used.json"],
       "optional": false
     },
     {
       "name": "fastqs",
       "label": "Fastq files",
       "class": "array:file",
+      "patterns": ["*fastq.gz", "*.fastq"],
       "optional": false
     },
     {
@@ -48,6 +57,7 @@
       "name": "mismatch_metrics",
       "label": "Mismatch metrics",
       "class": "array:file",
+      "patterns": ["*.mm_stats"],
       "optional": true
     },
     {
@@ -60,12 +70,6 @@
       "name": "mark_duplicates",
       "label": "Mark Duplicates",
       "class": "boolean",
-      "optional": true
-    },
-    {
-      "name": "dashboard_project_dxid",
-      "label": "Dashboard Project dxid",
-      "class": "string",
       "optional": true
     }
   ],
