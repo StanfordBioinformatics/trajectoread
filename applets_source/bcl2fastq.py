@@ -105,22 +105,24 @@ class FlowcellLane:
         self.run_name = self.details['run']
         self.run_date = self.run_name.split('_')[0]
         self.lane_index = int(self.details['lane'])
-        #self.library_id = self.details['library_id']
-        #self.lane_id = self.details['lane_id']
+        self.library_id = self.details['library_id']
+        self.lane_id = self.details['lane_id']
 
         # Parse library name ("DL_set2_rep1 rcvd 1/4/16")
         library_label = self.details['library']
-        library_elements = library_label.split()
-        library_name = library_elements[0]
-        library_name = library_name.replace('_','-')
-        self.library_name = library_name.replace('.','-')
+        elements = library_label.split('rcvd')
+        library_name = elements[0].rstrip()
+        library_name = library_name.replace(' ', '-')
+        library_name = library_name.replace('_', '-')
+        library_name = library_name.replace('.', '-')
+        self.library_name = library_name
 
         # Properties
         self.lims_url = self.properties['lims_url']
         self.lims_token = self.properties['lims_token']
         self.rta_version = self.properties['rta_version']
-        self.library_id = self.properties['library_id']
-        self.lane_id = self.properties['lane_id']
+        #self.library_id = self.properties['library_id']
+        #self.lane_id = self.properties['lane_id']
         self.seq_instrument = self.properties['seq_instrument']
 
         self.lane_project = dxpy.DXProject(dxid = self.lane_project_dxid)
@@ -183,6 +185,8 @@ class FlowcellLane:
         '''
         
         fastq_files = []
+        fastqs_subfolder = output_folder + '/fastqs'
+        misc_subfolder = output_folder + '/miscellany'
         lane_dir = self.home + '/Unaligned_L' + str(self.lane_index)
 
         # Upload lane.html file
@@ -193,7 +197,8 @@ class FlowcellLane:
                       'run_name':   str(self.run_name),
                       'library_id': str(self.library_id),
                       'lane_id':    str(self.lane_id),
-                      'lane_index': str(self.lane_index)
+                      'lane_index': str(self.lane_index),
+                      'library_name': str(self.library_name)
                      }
         lane_html_name = 'SCGPM_%s_%s_%s_L%d.lane.html' % (self.run_date,
                                                            self.library_name, 
@@ -204,7 +209,7 @@ class FlowcellLane:
                                                 name =  lane_html_name,
                                                 properties = properties, 
                                                 project = self.lane_project_dxid, 
-                                                folder = output_folder, 
+                                                folder = misc_subfolder, 
                                                 parents = True
                                                )
 
@@ -236,7 +241,8 @@ class FlowcellLane:
                                   'read': str(read),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
-                                  'lane_id': self.lane_id
+                                  'lane_id': self.lane_id,
+                                  'library_name': str(self.library_name)
                                  }
 
                     if not os.path.isfile(fastq_name_v2):
@@ -244,7 +250,7 @@ class FlowcellLane:
                     fastq_file = dxpy.upload_local_file(filename = fastq_name_v2, 
                                                         properties = properties, 
                                                         project = self.lane_project_dxid, 
-                                                        folder = output_folder, 
+                                                        folder = fastqs_subfolder, 
                                                         parents = True)
                     fastq_files.append(dxpy.dxlink(fastq_file))
         
@@ -270,7 +276,8 @@ class FlowcellLane:
                                   'read': str(read_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
-                                  'lane_id': self.lane_id
+                                  'lane_id': self.lane_id,
+                                  'library_name': str(self.library_name)
                                  }
 
                     if not os.path.isfile(fastq_name_v2):
@@ -278,7 +285,7 @@ class FlowcellLane:
                     fastq_file = dxpy.upload_local_file(filename = fastq_name_v2, 
                                                         properties = properties, 
                                                         project = self.lane_project_dxid, 
-                                                        folder = output_folder, 
+                                                        folder = fastqs_subfolder, 
                                                         parents = True)
                     fastq_files.append(dxpy.dxlink(fastq_file))
 
@@ -300,7 +307,8 @@ class FlowcellLane:
                                   'read': str(read_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
-                                  'lane_id': self.lane_id
+                                  'lane_id': self.lane_id,
+                                  'library_name': str(self.library_name)
                                  }
 
                     if not os.path.isfile(fastq_name_v2):
@@ -308,7 +316,7 @@ class FlowcellLane:
                     fastq_file = dxpy.upload_local_file(filename = fastq_name_v2, 
                                                         properties = properties, 
                                                         project = self.lane_project_dxid, 
-                                                        folder = output_folder, 
+                                                        folder = fastqs_subfolder, 
                                                         parents = True)
                     fastq_files.append(dxpy.dxlink(fastq_file))
         else:
@@ -326,18 +334,19 @@ class FlowcellLane:
         return(output)
 
     def create_sample_sheet(self, output_folder):
-        '''
-        create_sample_sheet.py -r ${seq_run_name}
-            -t ${UHTS_LIMS_TOKEN}   9af4cc6d83fbfd793fe4
-            -u ${UHTS_LIMS_URL}     https://uhts.stanford.edu
-            -b 2
-            -l ${SGE_TASK_ID}
+        ''' Description:
         '''
 
-        ## Create samplesheet
-        ## DEV: break up 'command' using +=
-        command = 'python create_sample_sheet.py -r %s -t %s -u %s -b %d -l %s' % (self.run_name, self.lims_token, self.lims_url, self.bcl2fastq_version, self.lane_index)
+        misc_subfolder = output_folder + '/miscellany'
+        
+        command = 'python create_sample_sheet.py -r %s ' % self.run_name
+        command += '-t %s ' % self.lims_token
+        command += '-u %s ' % self.lims_url
+        command += '-b %d ' % int(self.bcl2fastq_version)
+        command += '-l %d' % int(self.lane_index)
+        
         stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
+        
         self.sample_sheet = '%s_L%d_samplesheet.csv' % (self.run_name, self.lane_index)
         stdout_elements = stdout.split()
         self.sample_sheet = stdout_elements[1]
@@ -348,7 +357,7 @@ class FlowcellLane:
         dxpy.upload_local_file(filename = self.sample_sheet, 
                                properties = None, 
                                project = self.lane_project_dxid, 
-                               folder = output_folder, 
+                               folder = misc_subfolder, 
                                parents = True
                               )
         return self.sample_sheet
@@ -396,15 +405,14 @@ class FlowcellLane:
         gbsc_utils.createSubprocess(cmd=command)
         '''
         
-        ## DEV: remove
+        misc_subfolder = output_folder + '/miscellany'
         run_info_file = 'RunInfo.xml'
-        
-        # TEST LINK - remove for production
-        #dxpy.download_dxfile(dxid='file-Bkv0yBQ0gq319q3bfx5B9Bzj', filename=run_info_file, project=self.lane_project_dxid) # HiSeq 4000
-        #dxpy.download_dxfile(dxid='file-Bp5Q2x804f6Q7Xz4KjZQ2PK1', filename=run_info_file, project=self.lane_project_dxid)  # HiSeq 2000
 
-        command = 'python calculate_use_bases_mask.py %s %s %s %d' % (
-            run_info_file, self.sample_sheet, self.lane_index, self.bcl2fastq_version)
+        command = 'python calculate_use_bases_mask.py %s ' % run_info_file
+        command += '%s ' % self.sample_sheet
+        command += '%d ' % int(self.lane_index)
+        command += '%d' % int(self.bcl2fastq_version)
+
         stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
         self.use_bases_mask = stdout
         print 'This is use_bases_mask value: %s' % self.use_bases_mask
@@ -415,7 +423,7 @@ class FlowcellLane:
         dxpy.upload_local_file(filename = use_bases_mask_file, 
                                properties = None, 
                                project = self.lane_project_dxid, 
-                               folder = output_folder, 
+                               folder = misc_subfolder, 
                                parents = True)
         return self.use_bases_mask
 
@@ -763,10 +771,11 @@ def main(**applet_input):
     tools_used_file = 'bcl2fastq_tools_used.json'
     with open(tools_used_file, 'w') as TOOLS:
         TOOLS.write(json.dumps(tools_used_dict))
+    misc_subfolder = params.output_folder + '/miscellany'
     tools_used_id = dxpy.upload_local_file(filename = tools_used_file, 
                            properties = None, 
                            project = lane.lane_project_dxid, 
-                           folder = params.output_folder, 
+                           folder = misc_subfolder, 
                            parents = True
                           )
 

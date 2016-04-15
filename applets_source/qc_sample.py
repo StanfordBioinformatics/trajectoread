@@ -127,6 +127,7 @@ def extract_json_from_ism(fname):
 def collect_alignment_summary_metrics(bam_file, genome_fasta_file, output_project, output_folder, sample_name=None, properties=None):
     """Run Picard CollectAlignmentSummaryMetrics"""
     logger = []
+    misc_subfolder = output_folder + '/miscellany'
 
     bam_file = dxpy.DXFile(bam_file)
     dxpy.download_dxfile(bam_file.get_id(), "sample.bam")
@@ -145,7 +146,7 @@ def collect_alignment_summary_metrics(bam_file, genome_fasta_file, output_projec
                                       name = sample_name + ".alignment_summary_metrics", 
                                       properties = properties,
                                       project = output_project,
-                                      folder = output_folder,
+                                      folder = misc_subfolder,
                                       parents = True
                                      )
     json_info = extract_json_from_asm("sample.alignment_summary_metrics")
@@ -159,6 +160,7 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
     sample_name=None, properties=None):
     """Run Picard CollectInsertSizeMetrics"""
     logger = []
+    misc_subfolder = output_folder + '/miscellany'
 
     bam_file = dxpy.DXFile(bam_file)
     dxpy.download_dxfile(bam_file.get_id(), "sample.bam")
@@ -181,11 +183,11 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
                "sample.insert_size_metrics sample.insert_size_histogram")
         subprocess.check_call(cmd, shell=True)
 
-        ism_file = dxpy.upload_local_file("sample_insert_size_metrics.tar.gz",
+        ism_file = dxpy.upload_local_file(filename = "sample_insert_size_metrics.tar.gz",
                                           name = sample_name + "_insert_size_metrics.tar.gz", 
                                           properties = properties,
                                           project = output_project,
-                                          folder = output_folder,
+                                          folder = misc_subfolder,
                                           parents = True
                                          )
 
@@ -230,6 +232,7 @@ def collect_uniqueness_metrics(bam_file, aligner):
 def run_fastqc(fastq_files, output_name, output_project, output_folder, properties=None):
     """Run FastQC"""
     logger = []
+    fastqc_subfolder = output_folder + '/fastqc_reports'
 
     fastq_files = [dxpy.DXFile(item) for item in fastq_files]
     fastq_filenames = []
@@ -254,11 +257,11 @@ def run_fastqc(fastq_files, output_name, output_project, output_folder, properti
            " uk.ac.babraham.FastQC.FastQCApplication " + (" ".join(fastq_filenames)))
     run_cmd(cmd, logger)
 
-    fastqc_report = dxpy.upload_local_file("sample_fastqc.zip", 
+    fastqc_report = dxpy.upload_local_file(filename = "sample_fastqc.zip", 
                                            name = output_name, 
                                            properties = properties,
                                            project = output_project,
-                                           folder = output_folder,
+                                           folder = fastqc_subfolder,
                                            parents = True
                                           )
 
@@ -271,6 +274,7 @@ def produce_qc_report(individual_json_outputs, sample_name, output_project, outp
     output."""
 
     output = {'Sample name': sample_name}
+    misc_subfolder = output_folder + '/miscellany'
 
     for j in individual_json_outputs:
         for k in j:
@@ -283,9 +287,9 @@ def produce_qc_report(individual_json_outputs, sample_name, output_project, outp
     with open(ofn, 'w') as output_fh:
         output_fh.write(json.dumps(output))
 
-    output_json_file = dxpy.upload_local_file(ofn,
+    output_json_file = dxpy.upload_local_file(filename = ofn,
                                               project = output_project,
-                                              folder = output_folder,
+                                              folder = misc_subfolder,
                                               parents = True
                                              )
 
@@ -294,6 +298,8 @@ def produce_qc_report(individual_json_outputs, sample_name, output_project, outp
 @dxpy.entry_point('calc_mismatch_per_cycle_stats')
 def calc_mismatch_per_cycle_stats(bam_file, aligner, output_project, output_folder):
     logger = []
+    misc_subfolder = output_folder + '/miscellany'
+
     bam_file = dxpy.DXFile(bam_file)
     bam_filename = bam_file.describe()['name']
     dxpy.download_dxfile(bam_file.get_id(), bam_filename)
@@ -305,9 +311,9 @@ def calc_mismatch_per_cycle_stats(bam_file, aligner, output_project, output_fold
     cmd = '/bwa_mismatches -o {0} -m {1} {2}'.format(ofn, ALIGNERS[aligner], bam_filename)
     run_cmd(cmd, logger)
 
-    mismatch_per_cycle_stats = dxpy.upload_local_file(ofn,
+    mismatch_per_cycle_stats = dxpy.upload_local_file(filename = ofn,
                                                       project = output_project,
-                                                      folder = output_folder,
+                                                      folder = misc_subfolder,
                                                       parents = True
                                                      )
 
@@ -316,6 +322,9 @@ def calc_mismatch_per_cycle_stats(bam_file, aligner, output_project, output_fold
 
 @dxpy.entry_point('create_tools_used_json_file')
 def create_tools_used_json_file(tools_used, output_project, output_folder):
+
+    misc_subfolder = output_folder + '/miscellany'
+
     tools_used_dict = {}
     tools_used_dict['name'] = get_app_title()
     tools_used_dict['commands'] = []
@@ -327,9 +336,9 @@ def create_tools_used_json_file(tools_used, output_project, output_folder):
     with open(fn, 'w') as fh:
         fh.write(json.dumps(tools_used_dict))
 
-    tools_used_json_file = dxpy.upload_local_file(fn,
+    tools_used_json_file = dxpy.upload_local_file(filename = fn,
                                                   project = output_project,
-                                                  folder = output_folder,
+                                                  folder = misc_subfolder,
                                                   parents = True
                                                  )
 

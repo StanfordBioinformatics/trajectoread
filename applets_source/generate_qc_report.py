@@ -36,10 +36,10 @@ class FlowcellLane:
         self.run_name = self.details['run']
         self.lane_index = self.details['lane']
         self.library_name = self.details['library']
+        self.project_dxid = self.details['laneProject']
 
         # Get relevant dashboard properties
         self.properties = self.dashboard_record.get_properties()
-        self.project_dxid = self.properties['lane_project_dxid']
         self.flowcell_id = self.properties['flowcell_id']
         self.lab_name = self.properties['lab_name']
         self.operator = 'None'     # Still need to grab this info
@@ -180,21 +180,6 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
                    'lab_name': lane.lab_name,
                    'mapper': lane.mapper}     # DEV: change this to be 'aligner' in 'create_pdf_reports.py' for consistency
 
-    '''
-    qc_pdf_report_input = {
-                            'dashboard_record_id': lane.dashboard_record_dxid,              # Applet input 3
-                            'output_folder': output_folder,                                 # Applet input 1
-                            'mark_duplicates': False,                                       # Applet input 4
-                            'interop_file': lane.interop_dxid,                              # Applet input 5
-                            'samples_stats_json_files': qc_job_output['qc_json_files'],     # Applet input 2
-                            'tools_used': qc_job_output['tools_used'],                      # Applet input 6
-                            'run_details': run_details,                                     # Gotten from record
-                            'barcodes': fastq_dict.keys(),                                  # Gotten from fastq/bam files
-                            'paired_end': True                                              # ???
-                            'output_project': lane.project_dxid,                            # Gotten from record
-                          }
-    '''
-
     output_project = lane.project_dxid
 
     # Download and prepare necessary files
@@ -203,10 +188,9 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
         mismatch_stats_files = [download_file(mismatch_file) for mismatch_file in mismatch_metrics]
     
     interop_file = download_file(interop_tar)
-
     tools_used_fn = create_tools_used_file(tools_used)
-
     sample_dict = group_files_by_barcode(fastqs)
+    
     barcodes = sample_dict.keys()
 
     # Merge the individual sample stats into one file.
@@ -222,7 +206,8 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
         fh.write(json.dumps(barcodes))
 
     # Now actually make the call to create the pdf.
-    qc_report_file = run_details['run_name'].replace(' ', '_') + '_qc_report.pdf'
+    #qc_report_file = run_details['run_name'].replace(' ', '_') + '_qc_report.pdf'
+    qc_report_file = '%s_L%d_QC_Report.pdf' % (lane.run_name, int(lane.lane_index))
     cmd = 'python /create_pdf_reports.py '
     #if mismatch_metrics != None:
     if len(mismatch_metrics) > 0:
@@ -244,6 +229,7 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
     subprocess.check_call(cmd, shell=True)
 
     # Upload files
+    misc_subfolder = output_folder + '/miscellany'
     qc_pdf_report = dxpy.upload_local_file(filename = qc_report_file, 
                                            project = output_project,
                                            folder = output_folder,
@@ -251,17 +237,17 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
                                           )
     run_details_json_fid = dxpy.upload_local_file(filename = RUN_DETAILS_JSON_FN,
                                                   project = output_project,
-                                                  folder = output_folder,
+                                                  folder = misc_subfolder,
                                                   parents = True
                                                  )
     barcodes_json_fid = dxpy.upload_local_file(filename = BARCODES_JSON_FN,
                                                project = output_project,
-                                               folder = output_folder,
+                                               folder = misc_subfolder,
                                                parents = True
                                               )
     sample_stats_json_fid = dxpy.upload_local_file(filename = SAMPLE_STATS_JSON_FN,
                                                    project = output_project,
-                                                   folder = output_folder,
+                                                   folder = misc_subfolder,
                                                    parents = True
                                                   )
 

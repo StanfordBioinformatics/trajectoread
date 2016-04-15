@@ -51,10 +51,10 @@ class FlowcellLane:
         self.run_name = self.details['run']
         self.lane_index = self.details['lane']
         self.library_name = self.details['library']
+        self.project_dxid = self.details['laneProject']
 
         # Get relevant dashboard properties
         self.properties = self.dashboard_record.get_properties()
-        self.project_dxid = self.properties['lane_project_dxid']
         self.flowcell_id = self.properties['flowcell_id']
         self.lab_name = self.properties['lab_name']
         self.operator = 'None'     # Still need to grab this info
@@ -294,7 +294,8 @@ def qc_sample(fastq_files, sample_name, applet_project, applet_folder, output_pr
     qc_sample_applet = dxpy.DXApplet(qc_sample_applet_dxid['id'])
 
     fastq_files = [dxpy.dxlink(x) for x in fastq_files]
-    fastq_files2 = [dxpy.dxlink(x) for x in fastq_files2]
+    if fastq_files2:
+        fastq_files2 = [dxpy.dxlink(x) for x in fastq_files2]
 
     qc_input = {
                 'fastq_files': fastq_files, 
@@ -302,13 +303,13 @@ def qc_sample(fastq_files, sample_name, applet_project, applet_folder, output_pr
                 'output_project': output_project,
                 'output_folder': output_folder
                }
-                
+    if fastq_files2:  
+        qc_input['fastq_files2'] = fastq_files2           
     if properties:
         qc_input['properties'] = properties
     if aligner:
         qc_input['aligner'] = aligner
         qc_input['genome_fasta_file'] = dxpy.dxlink(genome_fasta_file)
-        qc_input['fastq_files2'] = fastq_files2
         qc_input['bam_file'] = bam_file
     print 'QC Input:'
     print qc_input

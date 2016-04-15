@@ -43,11 +43,12 @@ class FlowcellLane:
         
         # Parse library name ("DL_set2_rep1 rcvd 1/4/16")
         library_label = self.details['library']
-        library_elements = library_label.split()
-        library_name = library_elements[0]
-        library_name = library_name.replace('_','-')
-        self.library_name = library_name.replace('.','-')
-        self.run_date = self.run_name.split('_')[0]
+        elements = library_label.split('rcvd')
+        library_name = elements[0].rstrip()
+        library_name = library_name.replace(' ', '-')
+        library_name = library_name.replace('_', '-')
+        library_name = library_name.replace('.', '-')
+        self.library_name = library_name
 
         # Get record properties
         self.properties = self.dashboard_record.get_properties()    
@@ -200,9 +201,9 @@ class MapperApp:
         print 'DNAnexus app name: %s, version: %s, dxid: %s' % (self.name, self.version, self.dxid)
 
 @dxpy.entry_point("run_map_sample")
-def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file, genome_index_file, mapper, 
-    applet_project, applet_build_version, fastq_files2=None, mark_duplicates=False, 
-    sample_name=None, properties=None):
+def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file, 
+    genome_index_file, mapper, applet_project, applet_build_version, 
+    fastq_files2=None, mark_duplicates=False, sample_name=None, properties=None):
     
     applet_name = 'map_sample'
     applet_folder = '/builds/%s' % applet_build_version
@@ -222,7 +223,6 @@ def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file, 
                     "project_dxid": project_dxid,
                     "output_folder": output_folder,
                     "fastq_files": fastq_files,
-                    "fastq_files2": fastq_files2,
                     "genome_fasta_file": dxpy.dxlink(genome_fasta_file),
                     "genome_index_file": dxpy.dxlink(genome_index_file),
                     "mapper": mapper,
@@ -230,6 +230,8 @@ def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file, 
                     "mark_duplicates": mark_duplicates,
                     "properties": properties
                    }
+    if fastq_files2:
+        mapper_input['fastq_files2'] = fastq_files2
     map_sample_job = mapper_applet.run(mapper_input)
     mapper_output = {
         "bam": {"job": map_sample_job.get_id(), "field": "bam"},
@@ -328,10 +330,15 @@ def main(record_dxid, applet_project, applet_build_version, fastqs, output_folde
                                    'library_id': lane.library_id,
                                    'lane_id': lane.lane_id,
                                    'mapper': lane.mapper,
-                                   'mapping_reference': lane.mapping_reference
+                                   'mapping_reference': lane.mapping_reference,
+                                   'library_name': lane.library_name
                                   }
         print 'Initiating map sample job'
-        sample_name = 'SCGPM_%s_%s_%s_%s' % (lane.run_date, lane.library_name, lane.flowcell_id, barcode)
+        sample_name = 'SCGPM_%s_%s_%s_%s' % (lane.run_date, 
+                                             lane.library_name, 
+                                             lane.flowcell_id, 
+                                             barcode
+                                            )
         map_sample_job = dxpy.new_dxjob(fn_input={
                                                   "project_dxid": lane.project_dxid,
                                                   "output_folder": output_folder,
