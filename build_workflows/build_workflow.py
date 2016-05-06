@@ -13,20 +13,91 @@ import dxpy
 import json
 import stat
 import shutil
+import logging
 import argparse
 import datetime
 import subprocess
 
 from dxpy import app_builder
 
+class WorkflowBuild:
+
+    def __init__(self):
+
+        self.logger = self.configure_logger()
+        self.args = self.parse_args()
+
+        path_list = PathList()
+        
+        # self.environment.keys = ['project', 'git_branch', 'git_commit']
+        self.environment = self.parse_environment()
+        
+    def parse_args(self):
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-c', '--config_json', dest='config_json', type=str, 
+                            help='Basename of workflow JSON configuration file')
+        args = parser.parse_args()
+        return args
+
+    def configure_logger(self):
+        ## Configure Logger object
+        logger = logging.getLogger('build_workflow')    # Create logger object
+        logger.setLevel(logging.DEBUG)
+
+        timestamp = str(datetime.datetime.now()).split()[0] # yyyy-mm-dd
+        LOG = logging.FileHandler('build_workflow_%s.log' % timestamp)
+        LOG.setLevel(logging.DEBUG)
+        
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        LOG.setFormatter(formatter)
+        
+        logger.addHandler(LOG)
+
+        return logger
+
+    def parse_environment(self):
+
+        #### Parse build_workflow.json ####            
+        with open(path_list.build_config, 'r') as CONFIG:
+            build_config = json.load(CONFIG)
+
+        #### Parse environment from GitHub tags ####
+        git_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+        git_commit = subprocess.check_output(['git', 'describe', '--always'])
+
+        git_branch_base = git_branch.split('_')[0]
+        if git_branch_base == 'master':
+            project_dxid = build_config['workflow_project_dxid']['production']
+            project_name = 'production'
+        elif git_branch_base == 'develop' or git_branch_base == 'feature':
+            project_dxid = build_config['workflow_project_dxid']['develop']
+            project_name = 'develop'
+        elif git_branch_base == 'hotfix':
+            project_dxid = build_config['workflow_project_dxid']['hotfix']
+            project_name = 'hotfix'
+        else:
+            self.logger.critical('Could not determine DXProject for branch: %s' % git_branch)
+            sys.exit()
+
+        environment = {
+                       'project': project_name,
+                       'git_branch': git_branch,
+                       'git_commit': git_commit
+                      }
+        return environment
+
+    def configure_dxproject(self):
+        # Need to update this to handle new stuff
+
 class WorkflowConfig:
 
-    def __init__(self, config_path, workflow_config_dir):
+    def __init__(self, config_path, dir_list):
         ''' Dev: Eventually only rebuild applets/workflows if the applet source
                  has changed.
         '''
         self.config_path = config_path
-        self.workflow_config_dir = workflow_config_dir
+        self.workflow_config_dir = dir_list.workflow_config_templates
         
         self.new_workflow = True    # Always building new applets/workflows, now
 
@@ -43,6 +114,7 @@ class WorkflowConfig:
         self.stages = {}
         self.applets = {}
 
+        ## Get workflow attributes - should be part of __init__ I think
         self.dx_login_check()
         self.get_workflow_attributes()
 
@@ -382,8 +454,8 @@ class Applet:
 
 class ExternalRscsManager:
 
-    def __init__(self, project_dxid, local_dir, name='external_resources.json', os="Ubuntu-12.04"):
-        self.local_dir = local_dir
+    def __init__(self, project_dxid, dir_list, name='external_resources.json', os="Ubuntu-12.04"):
+        self.local_dir = dir_list.external_rscs
         self.project_dxid = project_dxid
         self.filename = name
         self.basename = self.filename.split('.')[0]
@@ -490,8 +562,8 @@ class InternalRscsManager:
     represents a mix of dynamic static architecture.
     '''
 
-    def __init__(self, config_file, internal_rscs_path):
-        self.internal_rscs_path = internal_rscs_path
+    def __init__(self, config_file, dir_list):
+        self.internal_rscs_path = dir_list.internal_rscs
         with open(config_file, 'r') as CONFIG:
             self.config = json.load(CONFIG)
 
@@ -531,6 +603,26 @@ class InternalRscsManager:
         full_path = path + '/' + name
         return full_path
 
+class PathList:
+
+    def __init__(self):
+        self.build_workflows = os.path.dirname(os.path.abspath(__file__))
+        self.home = os.path.split(self.build_workflows)[0]
+        
+        # Specify relative directory paths. Depends on 'self.home'
+        self.external_rscs = os.path.join(self.home, 'external_resources')
+        self.applets_source = os.path.join(self.home, 'applets_source')
+        self.internal_rscs = os.path.join(self.home, 'internal_resources')
+        self.applet_templates = os.path.join(self.home, 'applet_config_templates')
+        self.workflow_config_templates = os.path.join(self.home, 'workflow_config_templates')
+        self.applets = os.path.join(self.home, 'applets')
+
+        # Specify relative file paths.
+        self.build_config = os.path.join(self.build_workflows, 'build_workflow.json')
+
+    def describe(self):
+        self.__dict__
+
 def parse_args():
 
     parser = argparse.ArgumentParser()
@@ -541,35 +633,17 @@ def parse_args():
 
 def main():
 
-    args = parse_args()
-
-    ## DEV: Create new object to handle all directory listings
-    ## DEV: dir_list = DirectoryListing(home_)
-    trajectoread_dirs = {}
-    trajectoread_dirs['build_workflows'] = os.path.dirname(os.path.abspath(__file__))
-    trajectoread_dirs['home'] = os.path.split(trajectoread_dirs['build_workflows'])[0]
-    trajectoread_dirs['external_rscs'] = os.path.join(trajectoread_dirs['home'], 'external_resources')
-    trajectoread_dirs['applets_source'] = os.path.join(trajectoread_dirs['home'], 'applets_source')
-    trajectoread_dirs['internal_rscs'] = os.path.join(trajectoread_dirs['home'], 'internal_resources')
-    trajectoread_dirs['applet_templates'] = os.path.join(trajectoread_dirs['home'], 'applet_config_templates')
-    trajectoread_dirs['workflow_config_templates'] = os.path.join(trajectoread_dirs['home'], 'workflow_config_templates')
-    trajectoread_dirs['applets'] = os.path.join(trajectoread_dirs['home'], 'applets')
-
     #### Configure DNAnexus project ####
     workflow_config_basename = args.config_json
-    workflow_config_path = os.path.join(trajectoread_dirs['workflow_config_templates'], 
+    workflow_config_path = os.path.join(dir_list.workflow_config_templates, 
                                         workflow_config_basename)
-    #workflow_config_path = args.config_json
-    workflow_config = WorkflowConfig(workflow_config_path, 
-                                     trajectoread_dirs['workflow_config_templates']
-                                    )
+    workflow_config = WorkflowConfig(workflow_config_path, dir_list)
 
     #### Create resource manager objects ####
-    internal_rscs_json = trajectoread_dirs['internal_rscs'] + '/internal_resources.json'
-    internal_rsc_manager = InternalRscsManager(internal_rscs_json, 
-                                               trajectoread_dirs['internal_rscs'])
-    external_rsc_manager = ExternalRscsManager(workflow_config.external_rscs_dxid, 
-                                               trajectoread_dirs['external_rscs'])
+    ## DEV: Eventually consolidate these into 'Resouces'
+    internal_rscs_json = dir_list.internal_rscs + '/internal_resources.json'
+    internal_rsc_manager = InternalRscsManager(internal_rscs_json, dir_list)
+    external_rsc_manager = ExternalRscsManager(workflow_config.external_rscs_dxid, dir_list)
 
     #### Build all applets listed in workflow ####
     for applet_name in workflow_config.applets:

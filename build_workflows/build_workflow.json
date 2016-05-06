@@ -1,0 +1,10 @@
+{
+    "workflow_project_dxid": {
+        "production": "project-BvfQQpj0x77XYQv2qvXy0Bfz",
+        "develop": "project-BvfQVV00fvF2504pyjXpxbPP",
+        "hotfix": "project-BvfQVx00YF3XYQv2qvXy0Bg0"
+    },
+    "resource_project_dxid": {
+        "external": "project-BkYXb580p6fv2VF8bjPYp2Qv"
+    }
+} 
