@@ -33,9 +33,9 @@ class FlowcellLane:
 
 		self.project_dxid = project_dxid
 		self.dx_user_id = dx_user_id
-		self.user_first_name = user_first_name
-		self.user_last_name = user_last_name
-		self.user_email = user_email
+		self.user_first_name = user_first_name.rstrip()
+		self.user_last_name = user_last_name.rstrip()
+		self.user_email = user_email.rstrip()
 		self.viewers = viewers
 		self.release_note = release_note
 		self.lims_url = lims_url
