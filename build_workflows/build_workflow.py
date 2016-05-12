@@ -28,9 +28,12 @@ class WorkflowBuild:
         self.args = self.parse_args()
 
         path_list = PathList()
-        
-        # self.environment.keys = ['project', 'git_branch', 'git_commit']
+         
         self.environment = self.parse_environment()
+        self.project_dxid = self.environment['project_dxid']
+        self.current_version = self.environment['git_version']
+
+
         
     def parse_args(self):
 
@@ -57,38 +60,49 @@ class WorkflowBuild:
         return logger
 
     def parse_environment(self):
+        ''' Description: First, reads in the possible build-environment 
+        configurations currently supported, from the configuration 
+        file: build_workflow.json. Then, determines the appropriate
+        environment, based on the git branch. Returns dict with current
+        build environment information.
+        '''
 
         #### Parse build_workflow.json ####            
         with open(path_list.build_config, 'r') as CONFIG:
             build_config = json.load(CONFIG)
 
-        #### Parse environment from GitHub tags ####
+        # Get the current github branch, commit, and the latest version tag        
         git_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
         git_commit = subprocess.check_output(['git', 'describe', '--always'])
+        git_version = subprocess.check_output(['git', 'describe', '--abbrev=0'])
 
         git_branch_base = git_branch.split('_')[0]
         if git_branch_base == 'master':
             project_dxid = build_config['workflow_project_dxid']['production']
-            project_name = 'production'
-        elif git_branch_base == 'develop' or git_branch_base == 'feature':
+            project_key = 'production'
+        elif git_branch_base in ['develop', 'feature', 'release']:
             project_dxid = build_config['workflow_project_dxid']['develop']
-            project_name = 'develop'
+            project_key = 'develop'
         elif git_branch_base == 'hotfix':
             project_dxid = build_config['workflow_project_dxid']['hotfix']
-            project_name = 'hotfix'
+            project_key = 'hotfix'
         else:
             self.logger.critical('Could not determine DXProject for branch: %s' % git_branch)
             sys.exit()
 
         environment = {
-                       'project': project_name,
+                       'project': project_key,
+                       'project_dxid': project_dxid,
                        'git_branch': git_branch,
-                       'git_commit': git_commit
+                       'git_commit': git_commit,
+                       'git_version': git_version
                       }
         return environment
 
     def configure_dxproject(self):
         # Need to update this to handle new stuff
+        # New stuff: organize workflows into folders by version
+
 
 class WorkflowConfig:
 
