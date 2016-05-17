@@ -35,59 +35,59 @@ class LaneAnalysis:
         self.workflow_input = None
         self.workflow_object = None
         self.record_dxid = None
-	self.dashboard_project_dxid = 'project-BY82j6Q0jJxgg986V16FQzjx'
-	
+        self.dashboard_project_dxid = 'project-BY82j6Q0jJxgg986V16FQzjx'
+    
         self.metadata_tar_dxid = None
         self.interop_tar_dxid = None
         self.lane_tar_dxid = None
 
         connection = Connection(lims_url=lims_url, lims_token=lims_token)
         self.run_info = RunInfo(conn=connection, run=run_name)
-	self.lane_info = self.run_info.get_lane(self.lane_index)
+        self.lane_info = self.run_info.get_lane(self.lane_index)
 
-	# Bcl2fastq & demultiplexing variables
-	self.barcode_mismatches = 1
+       # Bcl2fastq & demultiplexing variables
+       self.barcode_mismatches = 1
 
         # Mapping variables
-	try:
+        try:
             self.mapper = self.lane_info['mapping_requests'][0]['mapping_program']
             self.map_mismatches = self.lane_info['mapping_requests'][0]['max_mismatches']
             self.reference_genome = self.lane_info['mapping_requests'][0]['reference_sequence_name']
-	except:
-	    print 'Warning: No mapping information found for %s' % self.run_name
-	    self.mapper = None
-	    self.map_mismatches = None
-	    self.reference_genome = None
-	
-	self.reference_genome_dxid = None
+        except:
+            print 'Warning: No mapping information found for %s' % self.run_name
+            self.mapper = None
+            self.map_mismatches = None
+            self.reference_genome = None
+    
+        self.reference_genome_dxid = None
         self.reference_index_dxid = None
         if self.reference_genome:
             self.get_reference_dxids()
-	    
+        
 
     def create_dxrecord(self):
         details = self._set_record_details()
         properties = self._set_record_properties()
         
-	record_generator = dxpy.find_data_objects(classname = 'record', 
-						  name = '%s_L%d' % (self.run_name, self.lane_index),
-						  name_mode = 'exact',
-						  project = self.dashboard_project_dxid,
-						  folder = '/'
-						 )
-	records = list(record_generator)
-	if len(records) > 0:
-		self.record_dxid = records[0]['id']
-	else:
-		self.record_dxid = dxpy.api.record_new(input_params={
-                	                                "project": self.dashboard_project_dxid,
-                      	               	                "name": '%s_L%d' % (self.run_name, self.lane_index),
+    record_generator = dxpy.find_data_objects(classname = 'record', 
+                          name = '%s_L%d' % (self.run_name, self.lane_index),
+                          name_mode = 'exact',
+                          project = self.dashboard_project_dxid,
+                          folder = '/'
+                         )
+    records = list(record_generator)
+    if len(records) > 0:
+        self.record_dxid = records[0]['id']
+    else:
+        self.record_dxid = dxpy.api.record_new(input_params={
+                                                    "project": self.dashboard_project_dxid,
+                                                        "name": '%s_L%d' % (self.run_name, self.lane_index),
                                                         "types": ["SCGPMRun"],
                                                         "properties": properties,
                                                         "details": details
                                                        }
                                           )['id']
-        	dxpy.api.record_close(self.record_dxid)
+            dxpy.api.record_close(self.record_dxid)
     
     def _set_record_details(self): 
         
@@ -109,39 +109,39 @@ class LaneAnalysis:
                       'mapper': str(self.mapper),
                       'mismatches': str(self.map_mismatches),
                       'flowcell_id': str(self.run_info.data['flow_cell_id']),
-		      'lane_project_dxid': str(self.project_dxid),
+              'lane_project_dxid': str(self.project_dxid),
                       'lab_name': str(self.lane_info['lab']),
                       'lims_token': str(self.lims_token),
                       'lims_url': str(self.lims_url),
                       'rta_version': str(self.rta_version),
-		      'analysis_started': 'false',
+              'analysis_started': 'false',
                       'status': 'running_pipeline' 
-        	     }
+                 }
 
         if self.mapper:
             self.get_reference_dxids()
 
             properties['reference_genome_dxid'] = self.reference_genome_dxid
             properties['reference_index_dxid'] = self.reference_index_dxid
-	return properties
+    return properties
 
     def configure_workflow(self):
-       	self.get_lane_input_files() 
+        self.get_lane_input_files() 
         if self.reference_genome_dxid and self.reference_index_dxid:
             workflow_project_dxid = 'project-BpvKBv80ZgQJg4Y8ZQ0z3Z6f'  # 'WF_bcl2fastq_bwa_qc'
             workflow_name = 'WF_bcl2fastq_bwa_qc'
 
             self.workflow_input = {
-			      '0.output_folder': '/stage0_bcl2fastq',
-			      '0.lane_data_tar':{'$dnanexus_link': self.lane_tar_dxid}, 
+                  '0.output_folder': '/stage0_bcl2fastq',
+                  '0.lane_data_tar':{'$dnanexus_link': self.lane_tar_dxid}, 
                               '0.metadata_tar':{'$dnanexus_link': self.metadata_tar_dxid}, 
                               '0.record_dxid': self.record_dxid, 
                               '0.test_mode': self.test_mode,     # Where to get this info?
                               '0.mismatches': int(self.barcode_mismatches),
                               '1.output_folder': '/stage1_bwa',
                               '1.record_dxid': self.record_dxid,
-			      '2.output_folder': '/stage2_qc',
-			      '2.record_dxid': self.record_dxid,
+                  '2.output_folder': '/stage2_qc',
+                  '2.record_dxid': self.record_dxid,
                               '2.interop_tar': {'$dnanexus_link': self.interop_tar_dxid}
                              }
 
@@ -151,13 +151,13 @@ class LaneAnalysis:
             workflow_name = 'WF_bcl2fastq_qc'
 
             self.workflow_input = {
-			      '0.output_folder': '/stage0_bcl2fastq',
-			      '0.lane_data_tar':{'$dnanexus_link': self.lane_tar_dxid}, 
+                  '0.output_folder': '/stage0_bcl2fastq',
+                  '0.lane_data_tar':{'$dnanexus_link': self.lane_tar_dxid}, 
                               '0.metadata_tar':{'$dnanexus_link': self.metadata_tar_dxid}, 
                               '0.record_dxid': self.record_dxid, 
                               '0.test_mode': self.test_mode,
-			      '0.mismatches': int(self.barcode_mismatches),
-			      '1.output_folder': '/stage1_qc',
+                  '0.mismatches': int(self.barcode_mismatches),
+                  '1.output_folder': '/stage1_qc',
                               '1.record_dxid': self.record_dxid,
                               '1.interop_tar': {'$dnanexus_link': self.interop_tar_dxid}
                              }
@@ -226,30 +226,30 @@ class LaneAnalysis:
                                                  )['id']
 
     def run_analysis(self):
-	self.record = dxpy.DXRecord(dxid=self.record_dxid, project=self.dashboard_project_dxid)
+    self.record = dxpy.DXRecord(dxid=self.record_dxid, project=self.dashboard_project_dxid)
         properties = self.record.get_properties()
-	if not 'analysis_started' in properties.keys():
-		print 'Warning: Could not determine whether or not analysis had been started'
-		dxpy.set_workspace_id(dxid=self.project_dxid)
-		self.workflow_object = dxpy.DXWorkflow(dxid=self.workflow_dxid)
-		print 'Launching workflow %s with input: %s' % (self.workflow_object.describe()['id'], 
-								self.workflow_input)
-		self.workflow_object.run(workflow_input=self.workflow_input, 
-					 project=self.project_dxid, 
-					 folder='/')
-		self.record.set_properties({'analysis_started': 'true'})
-	elif properties['analysis_started'] == 'true':
-		print 'Info: Analysis has already been started; skipping.'
-		pass
-	elif properties['analysis_started'] == 'false':
-		dxpy.set_workspace_id(dxid=self.project_dxid)
-		self.workflow_object = dxpy.DXWorkflow(dxid=self.workflow_dxid)
-		print 'Launching workflow %s with input: %s' % (self.workflow_object.describe()['id'], 
-								self.workflow_input)
-		self.workflow_object.run(workflow_input=self.workflow_input, 
-					 project=self.project_dxid, 
-					 folder='/')
-		self.record.set_properties({'analysis_started': 'true'})
+    if not 'analysis_started' in properties.keys():
+        print 'Warning: Could not determine whether or not analysis had been started'
+        dxpy.set_workspace_id(dxid=self.project_dxid)
+        self.workflow_object = dxpy.DXWorkflow(dxid=self.workflow_dxid)
+        print 'Launching workflow %s with input: %s' % (self.workflow_object.describe()['id'], 
+                                self.workflow_input)
+        self.workflow_object.run(workflow_input=self.workflow_input, 
+                     project=self.project_dxid, 
+                     folder='/')
+        self.record.set_properties({'analysis_started': 'true'})
+    elif properties['analysis_started'] == 'true':
+        print 'Info: Analysis has already been started; skipping.'
+        pass
+    elif properties['analysis_started'] == 'false':
+        dxpy.set_workspace_id(dxid=self.project_dxid)
+        self.workflow_object = dxpy.DXWorkflow(dxid=self.workflow_dxid)
+        print 'Launching workflow %s with input: %s' % (self.workflow_object.describe()['id'], 
+                                self.workflow_input)
+        self.workflow_object.run(workflow_input=self.workflow_input, 
+                     project=self.project_dxid, 
+                     folder='/')
+        self.record.set_properties({'analysis_started': 'true'})
 
 def parse_args():
 
@@ -276,16 +276,16 @@ def main():
     args = parse_args()
     print 'Initiating analysis for %s lane %d' % (args.run_name, int(args.lane_index))
     if args.test_mode == 'True': 
-	test_mode = True
+    test_mode = True
     else:
-	test_mode = False
+    test_mode = False
 
     lane_analysis = LaneAnalysis(run_name = args.run_name, 
-				 lane_index = int(args.lane_index), 
-				 project_dxid = args.project_dxid, 
+                 lane_index = int(args.lane_index), 
+                 project_dxid = args.project_dxid, 
                                  rta_version = args.rta_version, 
-				 lims_url = args.lims_url, 
-				 lims_token = args.lims_token, 
+                 lims_url = args.lims_url, 
+                 lims_token = args.lims_token, 
                                  test_mode = test_mode)
     print 'Creating Dashboard record'
     lane_analysis.create_dxrecord()

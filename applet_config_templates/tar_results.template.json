@@ -1,0 +1,59 @@
+{
+  "name": "tar_results",
+  "title": "Tar Results",
+  "summary": "Create tar achive of result files",
+  "description": "Create archive including all fastqs, bams, fastqc reports, and the QC PDF report",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "categories": [],
+  "inputSpec": [
+    {
+      "name": "record_dxid",
+      "label": "Record dxid",
+      "class": "string",
+      "optional": true,
+    },
+    {
+      "name": "dashboard_project_dxid",
+      "label": "Dashboard project dxid",
+      "class": "string",
+      "optional": true,
+    },
+    {
+      "name": "project_dxid",
+      "label": "Project dxid",
+      "class": "string",
+      "optional": true
+    },
+    {
+      "name": "project_name",
+      "label": "Project name",
+      "class": "string",
+      "optional": true,
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "tarball",
+      "label": "Results Tarball",
+      "class": "file",
+      "optional": true
+    }
+  ],
+  "runSpec": {
+    "interpreter": "python2.7",
+    "file": "src/tar_results.py",
+    "bundledDepends": [],
+    "execDepends": [],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem2_hdd2_x1"
+      }
+    }
+  },
+  "access": {
+        "network": ["*"],
+        "allProjects": "ADMINISTER",
+        "project": "ADMINISTER"
+  }
+}

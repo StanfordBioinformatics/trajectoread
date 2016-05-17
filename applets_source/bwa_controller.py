@@ -82,9 +82,12 @@ class FlowcellLane:
         for each fastq file. Same for interop, and bam files.
         '''
         fastq_dxids = []
-        fastq_files_generator = dxpy.find_data_objects(classname='file', 
-            name='*.fastq.gz', name_mode='glob', project=self.project_dxid, 
-            folder='/')
+        fastq_files_generator = dxpy.find_data_objects(classname = 'file', 
+                                                       name = '*.fastq.gz', 
+                                                       name_mode = 'glob', 
+                                                       project = self.project_dxid, 
+                                                       folder = '/'
+                                                      )
         for fastq_dict in self.fastq_files_generator: 
             fastq_dxid = fastq_dict['id']
             fastq_dxids.append(fastq_dxid)

@@ -583,7 +583,7 @@ def main():
     args = get_args()
     pdfs_to_merge = []
 
-    cmd = 'tar -zxvf ' + args.interop
+    cmd = 'tar -xvf ' + args.interop
     run_cmd(cmd)
     if args.mismatch_files is not None:
         combined_mismatch_metrics_fn = merge_mismatch_metrics(args.mismatch_files)

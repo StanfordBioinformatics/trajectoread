@@ -112,17 +112,13 @@ class FlowcellLane:
         library_label = self.details['library']
         elements = library_label.split('rcvd')
         library_name = elements[0].rstrip()
-        library_name = library_name.replace(' ', '-')
-        library_name = library_name.replace('_', '-')
-        library_name = library_name.replace('.', '-')
-        self.library_name = library_name
+        self.library_name = re.sub(r"[^a-zA-Z0-9]+", "-", library_name)
 
         # Properties
         self.lims_url = self.properties['lims_url']
         self.lims_token = self.properties['lims_token']
         self.rta_version = self.properties['rta_version']
-        #self.library_id = self.properties['library_id']
-        #self.lane_id = self.properties['lane_id']
+        self.flowcell_id = self.properties['flowcell_id']
         self.seq_instrument = self.properties['seq_instrument']
 
         self.lane_project = dxpy.DXProject(dxid = self.lane_project_dxid)
@@ -130,7 +126,6 @@ class FlowcellLane:
 
         self.sample_sheet = None
         self.output_dir = None
-        self.flowcell_id = None
         self.bcl2fastq_version = None
         self.lane_barcode = None
 
@@ -745,8 +740,8 @@ def main(**applet_input):
     print 'Creating sample sheet\n'
     lane.create_sample_sheet(params.output_folder)
 
-    print 'Parsing sample sheet to get flowcell ID'
-    lane.get_flowcell_id()
+    #print 'Parsing sample sheet to get flowcell ID'
+    #lane.get_flowcell_id()
     
     print 'Get use bases mask\n'
     lane.get_use_bases_mask(params.output_folder)

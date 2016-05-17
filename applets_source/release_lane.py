@@ -17,6 +17,7 @@ import subprocess
 from scgpm_lims import Connection,RunInfo
 
 #my_auth = app_utils.getSecurityAuth(conf.dashboardContributeToken) #use this for setting any properties/details on a dashboard record
+## DEV: check if these are still necessary 2016-05-13
 token = "kKEI8Hb3g6k3gUqjD6ZrP9hoiTIUkNV7"
 auth = dxpy.DXHTTPOAuth2({"auth_token_type": "Bearer", "auth_token": token})
 
