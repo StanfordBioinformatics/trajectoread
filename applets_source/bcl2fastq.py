@@ -112,10 +112,7 @@ class FlowcellLane:
         library_label = self.details['library']
         elements = library_label.split('rcvd')
         library_name = elements[0].rstrip()
-        library_name = library_name.replace(' ', '-')
-        library_name = library_name.replace('_', '-')
-        library_name = library_name.replace('.', '-')
-        self.library_name = library_name
+        self.library_name = re.sub(r"[^a-zA-Z0-9]", "-", library_name)
 
         # Properties
         self.lims_url = self.properties['lims_url']
