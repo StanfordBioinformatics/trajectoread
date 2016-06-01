@@ -35,7 +35,7 @@ class FlowcellLane:
         elif project_dxid:
             # If not, just give it the project name
             self.project_dxid = project_dxid
-            self.project = dxpy.DXProject(id=self.project_dxid)
+            self.project = dxpy.DXProject(dxid=self.project_dxid)
             self.run_name = self.project.describe()['name']
             self.record = None
         else:
@@ -67,25 +67,35 @@ class FlowcellLane:
         self.run_name = self.details['run']
         self.run_date = self.run_name.split('_')[0]
 
-    def download_files_by_pattern(self, folder, name, name_mode):
+    def download_files_by_pattern(self, folder, names, name_mode):
 
-        dxlink_generator = dxpy.find_data_objects(classname = 'file',
-                                                name = name,
-                                                name_mode = name_mode, 
-                                                project = self.project_dxid,
-                                                folder = '/'
-                                               )
-        dxlink_list = list(dxlink_generator)
-        if len(file_list) > 0:
-            try:
-                os.mkdir(folder)
-            except:
-                print 'Folder %s already exists. Skipping mkdir' % folder
-            os.chdir(folder)
+        for name in names:
+            dxlink_generator = dxpy.find_data_objects(classname = 'file',
+                                                      name = name,
+                                                      name_mode = name_mode, 
+                                                      project = self.project_dxid,
+                                                      folder = '/'
+                                                     )
+            dxlink_list = list(dxlink_generator)
+            if len(dxlink_list) > 0:
+                try:
+                    os.mkdir(folder)
+                except:
+                    print 'Folder %s already exists. Skipping mkdir' % folder
+                os.chdir(folder)
 
-            for dxlink in dxlink_list:
-                dxpy.download_dxfile(dxid=dxlink['id'], project=dxlink['project'])
-            os.chdir('../')
+                for dxlink in dxlink_list:
+                    print dxlink
+                    file_handler = dxpy.get_handler(id_or_link = dxlink['id'],
+                                                    project = dxlink['project']
+                                                   )
+                    filename = file_handler.name
+                    
+                    dxpy.download_dxfile(dxid = dxlink['id'], 
+                                         filename = filename,
+                                         project = dxlink['project']
+                                        )
+                os.chdir('../')
 
     def get_tar_name(self):
 
@@ -97,6 +107,7 @@ class FlowcellLane:
                                                   )
         else:
             tar_name = '%s.tar' % self.run_name
+        return tar_name
 
 
 def run_command(cmd, returnOutput = False):
@@ -108,53 +119,24 @@ def run_command(cmd, returnOutput = False):
     else:
         subprocess.check_call(cmd, shell=True, executable='/bin/bash')
 
-def download_and_gunzip_file(input_file, skip_decompress=False, additional_pipe=None):
-    input_file = dxpy.DXFile(input_file)
-    input_filename = input_file.describe()['name']
-    ofn = input_filename
-
-    cmd = 'dx download ' + input_file.get_id() + ' -o - '
-    if input_filename.endswith('.tar.gz'):
-        ofn = 'tar_output_{0}'.format(ofn.replace('.tar.gz', ''))
-        cmd += '| tar -zxvf - '
-    elif (os.path.splitext(input_filename)[-1] == '.gz') and not skip_decompress:
-        cmd += '| gunzip '
-        ofn = os.path.splitext(ofn)[0]
-    if additional_pipe is not None:
-        cmd += '| ' + additional_pipe
-    cmd += ' > ' + ofn
-    print cmd
-    subprocess.check_call(cmd, shell=True)
-
-    return ofn
-
-def download_dx_files(dx_files, skip_decompress=False):
-    pool = multiprocessing.Pool()
-    results = []
-    for dx_file in dx_files:
-        results += [pool.apply_async(download_and_gunzip_file, args=(dx_file, skip_decompress))]
-    pool.close()
-    pool.join()
-
-    # 10 seconds is kind of ridiculous considering the value should be ready
-    # immediately, but I'd hate to get done downloading a huge file and
-    # then error out because the value took a little long to get to me.  But
-    # really, this should never happen.
-    return [r.get(timeout=10) for r in results]
-
 @dxpy.entry_point('main')
 def main(project_dxid=None, project_name=None, record_dxid=None, dashboard_project_dxid=None):
     
-    lane = FlowcellLane(project_dxid, record_dxid, dashboard_project_dxid)
     output = {}
-    
+
+    lane = FlowcellLane(project_dxid, record_dxid, dashboard_project_dxid)
+    tarball_name = lane.get_tar_name()
+
     home = os.getcwd()
-    tar_dir = os.path.join(home, 'tar_dir')
-    os.chdir(tar_dir)
+    tar_dir = tarball_name.split('.')[0]
+    tar_path = os.path.join(home, tar_dir)
+    
+    os.mkdir(tar_path)
+    os.chdir(tar_path)
 
     # Download all fastq files into subfolder 'fastqs'
     lane.download_files_by_pattern(folder = 'fastqs', 
-                                   names = ['*.fastq.gz, *.fastq'], 
+                                   names = ['*.fastq.gz', '*.fastq'], 
                                    name_mode = 'glob'
                                   )
     # Download all bam files and indexes into subfolder 'bams'
@@ -172,46 +154,14 @@ def main(project_dxid=None, project_name=None, record_dxid=None, dashboard_proje
                                    names = ['*_QC_Report.pdf'],
                                    name_mode = 'glob'
                                   )
-    tarball_name = lane.get_tar_name()
-    tar_command = 'tar zcvf %s *' % tarball_name
+    os.chdir(home)
+    
+    tar_command = 'tar -zcvf %s %s' % (tarball_name, tar_dir)
+
+    print 'Info: creating tar archive: %s' % tarball_name
     run_command(tar_command)
     output['tarball'] = dxpy.dxlink(dxpy.upload_local_file(tarball_name))
     return(output)
-
-
-@dxpy.entry_point('_main')
-def _main(**job_inputs):
-    output = {'tar_ball': []}
-
-    os.mkdir(WORK_DIR)
-    with cd(WORK_DIR):
-        # Tar individual files specified in by the key 'input_files'
-        if 'input_files' in job_inputs:
-            ofn = '{0}_files.tar.gz'.format(job_inputs['output_prefix'])
-            input_files = download_dx_files(job_inputs['input_files'])
-            cmd = 'tar zcvf {0} {1}'.format(ofn, ' '.join(input_files))
-            run_cmd(cmd)
-            output['tar_ball'] += [dxpy.dxlink(dxpy.upload_local_file(ofn))]
-            run_cmd('rm -rf *')
-
-        # Tar all files within a project folder        
-        if 'project_dir' in job_inputs:
-            ofn = '{0}_dir.tar.gz'.format(job_inputs['output_prefix'])
-            # Check that there are actually files in that directory.
-            data = dxpy.find_data_objects(classname='file',
-                                          name='*',
-                                          name_mode='glob', 
-                                          project=os.environ['DX_PROJECT_CONTEXT_ID'],
-                                          folder=job_inputs['project_dir'])
-            if len([d for d in data]) > 0:
-                cmd = 'dx download -f -r {0}:{1}'.format(os.environ['DX_PROJECT_CONTEXT_ID'], job_inputs['project_dir'])
-                run_cmd(cmd)
-                cmd = 'tar zcvf {0} *'.format(ofn)
-                run_cmd(cmd)
-                output['tar_ball'] += [dxpy.dxlink(dxpy.upload_local_file(ofn))]
-                #run_cmd('rm -rf *')
-
-    return output
 
 dxpy.run()
 

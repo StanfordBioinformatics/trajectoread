@@ -1,0 +1,18 @@
+2016-05-20 10:52:26,048 - build_applet - INFO - Applet path on DNAnexus will be: /1.0/develop
+2016-05-20 10:52:26,048 - build_applet - INFO - Creating resource managers
+2016-05-20 10:52:26,050 - build_applet - INFO - Loading applet resources config file: /Users/pbilling/Documents/GitHub/trajectoread/builders/applet_resources.json
+2016-05-20 10:52:26,056 - build_applet - INFO - Assembling applet tar_results locally
+2016-05-20 10:52:26,069 - build_applet - INFO - Adding applet resources
+2016-05-20 10:52:27,449 - build_applet - INFO - Build complete: tar_results applet id: {u'project': u'project-Bvq5y1Q0YxKg54Xf4j9fq94P', u'id': u'applet-BvzZxfj0YxKj2qxqFv1y69V7'}
+2016-05-20 15:11:07,721 - build_applet - INFO - Applet path on DNAnexus will be: /1.0/develop
+2016-05-20 15:11:07,721 - build_applet - INFO - Creating resource managers
+2016-05-20 15:11:07,722 - build_applet - INFO - Loading applet resources config file: /Users/pbilling/Documents/GitHub/trajectoread/builders/applet_resources.json
+2016-05-20 15:11:07,723 - build_applet - INFO - Assembling applet tar_results locally
+2016-05-20 15:11:07,735 - build_applet - INFO - Adding applet resources
+2016-05-20 15:11:09,095 - build_applet - INFO - Build complete: tar_results applet id: {u'project': u'project-Bvq5y1Q0YxKg54Xf4j9fq94P', u'id': u'applet-Bvzjfz00YxKyZZ5BB01g4546'}
+2016-05-20 15:14:54,166 - build_applet - INFO - Applet path on DNAnexus will be: /1.0/develop
+2016-05-20 15:14:54,167 - build_applet - INFO - Creating resource managers
+2016-05-20 15:14:54,167 - build_applet - INFO - Loading applet resources config file: /Users/pbilling/Documents/GitHub/trajectoread/builders/applet_resources.json
+2016-05-20 15:14:54,168 - build_applet - INFO - Assembling applet tar_results locally
+2016-05-20 15:14:54,180 - build_applet - INFO - Adding applet resources
+2016-05-20 15:14:55,538 - build_applet - INFO - Build complete: tar_results applet id: {u'project': u'project-Bvq5y1Q0YxKg54Xf4j9fq94P', u'id': u'applet-Bvzjjgj0YxKzq80vyZkbP38G'}

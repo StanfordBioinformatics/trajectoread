@@ -2,7 +2,7 @@
     "applets": {
         "bcl2fastq": {
             "applet_dxid": "", 
-            "dxid": "applet-BqYY61Q0KY5J7Y3jYZ8yyJ9Y", 
+            "dxid": "applet-Bx7fX600fvF5kFKqFk17BP6b", 
             "external_rscs": [
                 {
                     "name": "bcl2fastq", 
@@ -24,7 +24,7 @@
             }
         }, 
         "generate_qc_report": {
-            "dxid": "applet-BqYY61j0KY51xyFfZQ8v3VY4", 
+            "dxid": "applet-Bx7fX600fvFGqKKZK119Kyj8", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -35,7 +35,7 @@
         }, 
         "qc_controller": {
             "applet_dxid": "", 
-            "dxid": "applet-BqYY61j0KY5KGFXVfQ8kfzF3", 
+            "dxid": "applet-Bx7fX680fvF5kFKqFk17BP6g", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -46,7 +46,7 @@
         }, 
         "qc_sample": {
             "applet_dxid": "", 
-            "dxid": "applet-BqYY6000KY5Fb3QJjQ8pKP31", 
+            "dxid": "applet-Bx7fX400fvF1KyzQQx18B0fV", 
             "external_rscs": [
                 {
                     "name": "picard_tools", 
@@ -65,13 +65,13 @@
             }
         }
     }, 
-    "date_created": "2016-03-14", 
+    "date_created": "2016-06-01", 
     "dx_OS": "Ubuntu-12.04", 
     "edit_version": 4, 
     "external_rscs_dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv", 
     "stages": {
         "0": {
-            "dxid": "stage-BqYY6200KY5J7Y3jYZ8yyJ9b", 
+            "dxid": "stage-Bx7fX6j0fvFPQKGXQ1116Fxf", 
             "executable": "bcl2fastq", 
             "folder": "stage0_bcl2fastq", 
             "input": {
@@ -88,12 +88,12 @@
             ]
         }, 
         "1": {
-            "dxid": "stage-BqYY6280KY5JfZQXkQ8jkYb0", 
+            "dxid": "stage-Bx7fX780fvF5kFKqFk17BP6k", 
             "executable": "qc_controller", 
             "folder": "stage1_qc", 
             "input": {
-                "applet_build_version": "2016-03-14_e338beb", 
-                "applet_project": "project-Bpv3PZQ0KY5P9vk59kg639jf", 
+                "applet_build_version": "2016-06-01_v1.0-5-gb6d5833", 
+                "applet_project": "project-BvfQVV00fvF2504pyjXpxbPP", 
                 "record_dxid": ""
             }, 
             "linked_input": {
@@ -114,7 +114,7 @@
             ]
         }, 
         "2": {
-            "dxid": "stage-BqYY6280KY5GqVB4gQ8xfq2X", 
+            "dxid": "stage-Bx7fX800fvFGKyXqBx1JffBP", 
             "executable": "generate_qc_report", 
             "folder": "stage2_qc_report", 
             "input": {
@@ -154,7 +154,7 @@
             "name": "Generate QC Report"
         }
     }, 
-    "workflow_dxid": "workflow-BqYY6200KY51xyFfZQ8v3VY6", 
-    "workflow_project_dxid": "project-Bpv3PZQ0KY5P9vk59kg639jf", 
-    "workflow_title": "WF_bcl2fastq_qc"
+    "workflow_dxid": "workflow-Bx7fX680fvFGZX0pP118PZ4P", 
+    "workflow_project_dxid": "project-BvfQVV00fvF2504pyjXpxbPP", 
+    "workflow_name": "wf_bcl2fastq_qc"
 }

@@ -1,0 +1,111 @@
+2016-06-01 13:50:50,345 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 13:51:31,240 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 13:51:46,738 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 13:53:41,362 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 13:56:32,331 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 13:56:32,684 - build_workflow - INFO - Found source file for qc_sample: qc_sample.py
+2016-06-01 14:52:54,549 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 14:52:54,915 - build_workflow - INFO - Found source file for qc_sample: qc_sample.py
+2016-06-01 15:21:48,052 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 15:21:48,415 - build_workflow - INFO - Found source file for qc_sample: qc_sample.py
+2016-06-01 15:21:53,064 - build_workflow - INFO - Build complete: qc_sample applet id: {project-BvfQVV00fvF2504pyjXpxbPP:{u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f0000KY554PBbz8GV6yFY'}}
+2016-06-01 15:21:53,077 - build_workflow - INFO - Found source file for bcl2fastq: bcl2fastq.py
+2016-06-01 15:21:56,770 - build_workflow - INFO - Build complete: bcl2fastq applet id: {project-BvfQVV00fvF2504pyjXpxbPP:{u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f0100KY570ZFQ04JJZVGb'}}
+2016-06-01 15:21:56,784 - build_workflow - INFO - Found source file for generate_qc_report: generate_qc_report.py
+2016-06-01 15:21:56,793 - build_workflow - INFO - No internal resources uploaded for applet generate_qc_report
+2016-06-01 15:21:57,225 - build_workflow - INFO - Build complete: generate_qc_report applet id: {project-BvfQVV00fvF2504pyjXpxbPP:{u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f0180KY58KG464GJPV3G8'}}
+2016-06-01 15:21:57,239 - build_workflow - INFO - Found source file for qc_controller: qc_controller.py
+2016-06-01 15:21:57,248 - build_workflow - INFO - No internal resources uploaded for applet qc_controller
+2016-06-01 15:21:57,655 - build_workflow - INFO - Build complete: qc_controller applet id: {project-BvfQVV00fvF2504pyjXpxbPP:{u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f0180KY570ZFQ04JJZVGg'}}
+2016-06-01 15:21:57,872 - build_workflow - INFO - Setting executable for stage 0
+2016-06-01 15:28:47,663 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 15:28:48,024 - build_workflow - INFO - Found source file for qc_sample: qc_sample.py
+2016-06-01 15:28:54,642 - build_workflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f39Q0KY5F1YZk20PPPy1x'}
+2016-06-01 15:28:54,656 - build_workflow - INFO - Found source file for bcl2fastq: bcl2fastq.py
+2016-06-01 15:29:02,730 - build_workflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f3FQ0KY5BgyZvvjKfyxBj'}
+2016-06-01 15:29:02,743 - build_workflow - INFO - Found source file for generate_qc_report: generate_qc_report.py
+2016-06-01 15:29:02,745 - build_workflow - INFO - No internal resources uploaded for applet generate_qc_report
+2016-06-01 15:29:03,283 - build_workflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f3FQ0KY5BgyZvvjKfyxBp'}
+2016-06-01 15:29:03,296 - build_workflow - INFO - Found source file for qc_controller: qc_controller.py
+2016-06-01 15:29:03,298 - build_workflow - INFO - No internal resources uploaded for applet qc_controller
+2016-06-01 15:29:03,840 - build_workflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f3Fj0KY52vGjzxvKjK5QG'}
+2016-06-01 15:29:04,048 - build_workflow - INFO - Setting executable for stage 0
+2016-06-01 15:29:04,834 - build_workflow - INFO - Setting executable for stage 1
+2016-06-01 15:29:05,655 - build_workflow - INFO - Setting executable for stage 2
+2016-06-01 15:29:06,508 - build_workflow - INFO - Setting inputs for stage 0
+2016-06-01 15:29:06,619 - build_workflow - INFO - Setting inputs for stage 1
+2016-06-01 15:29:07,476 - build_workflow - INFO - Setting inputs for stage 2
+2016-06-01 15:29:08,318 - build_workflow - INFO - Build complete: wf_bcl2fastq_qc workflow id: {project-Bpv3PZQ0KY5P9vk59kg639jf, workflow-Bx7f3Fj0KY5F1YZk20PPPy21}
+2016-06-01 15:35:17,988 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 15:35:18,718 - build_workflow - INFO - Found source file for qc_sample: qc_sample.py
+2016-06-01 15:35:23,646 - build_workflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f6Bj0KY50v5q9B51GkjF0'}
+2016-06-01 15:35:23,660 - build_workflow - INFO - Found source file for bcl2fastq: bcl2fastq.py
+2016-06-01 15:35:29,504 - build_workflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f6G80KY5PQKGXQ1116FgB'}
+2016-06-01 15:35:29,518 - build_workflow - INFO - Found source file for generate_qc_report: generate_qc_report.py
+2016-06-01 15:35:29,520 - build_workflow - INFO - No internal resources uploaded for applet generate_qc_report
+2016-06-01 15:35:30,041 - build_workflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f6G80KY5GqKKZK119KyXF'}
+2016-06-01 15:35:30,054 - build_workflow - INFO - Found source file for qc_controller: qc_controller.py
+2016-06-01 15:35:30,056 - build_workflow - INFO - No internal resources uploaded for applet qc_controller
+2016-06-01 15:35:30,598 - build_workflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-Bpv3PZQ0KY5P9vk59kg639jf', u'id': u'applet-Bx7f6GQ0KY5GZX0pP118PYyj'}
+2016-06-01 15:35:30,806 - build_workflow - INFO - Setting executable for stage 0
+2016-06-01 15:35:31,571 - build_workflow - INFO - Setting executable for stage 1
+2016-06-01 15:35:32,309 - build_workflow - INFO - Setting executable for stage 2
+2016-06-01 15:35:33,154 - build_workflow - INFO - Setting inputs for stage 0
+2016-06-01 15:35:33,263 - build_workflow - INFO - Setting inputs for stage 1
+2016-06-01 15:35:34,061 - build_workflow - INFO - Setting inputs for stage 2
+2016-06-01 15:35:34,804 - build_workflow - INFO - Build complete: wf_bcl2fastq_qc workflow id: {project-Bpv3PZQ0KY5P9vk59kg639jf, workflow-Bx7f6GQ0KY5PQKGXQ1116FgG}
+2016-06-01 15:40:56,867 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 15:41:12,038 - build_workflow - INFO - Building qc_sample applet
+2016-06-01 15:41:12,050 - build_workflow - INFO - Found source file for qc_sample: qc_sample.py
+2016-06-01 15:41:41,194 - build_workflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7f9900fvFPQKGXQ1116Fgb'}
+2016-06-01 15:41:41,194 - build_workflow - INFO - Building bcl2fastq applet
+2016-06-01 15:41:41,207 - build_workflow - INFO - Found source file for bcl2fastq: bcl2fastq.py
+2016-06-01 15:41:47,018 - build_workflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7f9BQ0fvF0v5q9B51GkjFb'}
+2016-06-01 15:41:47,018 - build_workflow - INFO - Building generate_qc_report applet
+2016-06-01 15:41:47,031 - build_workflow - INFO - Found source file for generate_qc_report: generate_qc_report.py
+2016-06-01 15:41:47,033 - build_workflow - INFO - No internal resources uploaded for applet generate_qc_report
+2016-06-01 15:41:47,539 - build_workflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7f9Bj0fvF5gxqYGk1JkZkp'}
+2016-06-01 15:41:47,540 - build_workflow - INFO - Building qc_controller applet
+2016-06-01 15:41:47,553 - build_workflow - INFO - Found source file for qc_controller: qc_controller.py
+2016-06-01 15:41:47,555 - build_workflow - INFO - No internal resources uploaded for applet qc_controller
+2016-06-01 15:41:47,974 - build_workflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7f9Bj0fvF5kFKqFk17BP11'}
+2016-06-01 15:49:38,501 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop
+2016-06-01 15:49:39,200 - build_workflow - INFO - Building qc_sample applet
+2016-06-01 15:49:39,212 - build_workflow - INFO - Found source file for qc_sample: qc_sample.py
+2016-06-01 15:49:48,656 - build_workflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fJ300fvFGqKKZK119KyZp'}
+2016-06-01 15:49:48,656 - build_workflow - INFO - Building bcl2fastq applet
+2016-06-01 15:49:48,669 - build_workflow - INFO - Found source file for bcl2fastq: bcl2fastq.py
+2016-06-01 15:49:57,125 - build_workflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fJ500fvF0v5q9B51GkjJJ'}
+2016-06-01 15:49:57,125 - build_workflow - INFO - Building generate_qc_report applet
+2016-06-01 15:49:57,139 - build_workflow - INFO - Found source file for generate_qc_report: generate_qc_report.py
+2016-06-01 15:49:57,141 - build_workflow - INFO - No internal resources uploaded for applet generate_qc_report
+2016-06-01 15:49:57,707 - build_workflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fJ580fvF5kFKqFk17BP2q'}
+2016-06-01 15:49:57,707 - build_workflow - INFO - Building qc_controller applet
+2016-06-01 15:49:57,720 - build_workflow - INFO - Found source file for qc_controller: qc_controller.py
+2016-06-01 15:49:57,722 - build_workflow - INFO - No internal resources uploaded for applet qc_controller
+2016-06-01 15:49:58,286 - build_workflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fJ580fvFGKyXqBx1Jff77'}
+2016-06-01 15:49:58,515 - build_workflow - INFO - Setting executable for stage 0
+2016-06-01 15:50:01,130 - build_workflow - INFO - Setting executable for stage 1
+2016-06-01 15:50:03,637 - build_workflow - INFO - Setting executable for stage 2
+2016-06-01 15:50:05,997 - build_workflow - INFO - Setting inputs for stage 0
+2016-06-01 15:50:06,131 - build_workflow - INFO - Setting inputs for stage 1
+2016-06-01 15:50:08,458 - build_workflow - INFO - Setting inputs for stage 2
+2016-06-01 15:50:10,768 - build_workflow - INFO - Build complete: wf_bcl2fastq_qc workflow id: {project-BvfQVV00fvF2504pyjXpxbPP, workflow-Bx7fJ5Q0fvF5kFKqFk17BP2x}
+2016-06-01 16:00:08,975 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop/wf_bcl2fastq_qc
+2016-06-01 16:00:09,697 - build_workflow - INFO - Building qc_sample applet
+2016-06-01 16:00:28,016 - build_workflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop/wf_bcl2fastq_qc
+2016-06-01 16:00:28,361 - build_workflow - INFO - Building qc_sample applet
+2016-06-01 16:00:32,816 - build_workflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fX400fvF1KyzQQx18B0fV'}
+2016-06-01 16:00:32,816 - build_workflow - INFO - Building bcl2fastq applet
+2016-06-01 16:00:40,707 - build_workflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fX600fvF5kFKqFk17BP6b'}
+2016-06-01 16:00:40,707 - build_workflow - INFO - Building generate_qc_report applet
+2016-06-01 16:00:41,143 - build_workflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fX600fvFGqKKZK119Kyj8'}
+2016-06-01 16:00:41,144 - build_workflow - INFO - Building qc_controller applet
+2016-06-01 16:00:41,576 - build_workflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fX680fvF5kFKqFk17BP6g'}
+2016-06-01 16:00:41,795 - build_workflow - INFO - Setting executable for stage 0
+2016-06-01 16:00:43,896 - build_workflow - INFO - Setting executable for stage 1
+2016-06-01 16:00:46,016 - build_workflow - INFO - Setting executable for stage 2
+2016-06-01 16:00:48,215 - build_workflow - INFO - Setting inputs for stage 0
+2016-06-01 16:00:48,338 - build_workflow - INFO - Setting inputs for stage 1
+2016-06-01 16:00:50,668 - build_workflow - INFO - Setting inputs for stage 2
+2016-06-01 16:00:52,883 - build_workflow - INFO - Build complete: wf_bcl2fastq_qc workflow id: {project-BvfQVV00fvF2504pyjXpxbPP, workflow-Bx7fX680fvFGZX0pP118PZ4P}

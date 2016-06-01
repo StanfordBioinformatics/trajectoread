@@ -1,0 +1,54 @@
+2016-06-01 16:20:59,628 - BuildWorkflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop/wf_bcl2fastq_qc
+2016-06-01 16:25:45,480 - BuildWorkflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop/wf_bcl2fastq_qc
+2016-06-01 16:25:46,305 - BuildWorkflow - INFO - Building qc_sample applet
+2016-06-01 16:25:56,292 - BuildWorkflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fy0j0fvF1KyzQQx18B0vG'}
+2016-06-01 16:25:56,293 - BuildWorkflow - INFO - Building bcl2fastq applet
+2016-06-01 16:26:02,359 - BuildWorkflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fy2Q0fvFGKyXqBx1JffQ1'}
+2016-06-01 16:26:02,359 - BuildWorkflow - INFO - Building generate_qc_report applet
+2016-06-01 16:26:02,975 - BuildWorkflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fy2Q0fvFGqKKZK119Kyxk'}
+2016-06-01 16:26:02,975 - BuildWorkflow - INFO - Building qc_controller applet
+2016-06-01 16:26:03,604 - BuildWorkflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fy2j0fvF5gxqYGk1Jkb5J'}
+2016-06-01 16:28:31,589 - BuildWorkflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop/wf_bcl2fastq_qc
+2016-06-01 16:28:32,331 - BuildWorkflow - INFO - Building qc_sample applet
+2016-06-01 16:28:39,073 - BuildWorkflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fz9Q0fvFGKyXqBx1JffQb'}
+2016-06-01 16:28:39,073 - BuildWorkflow - INFO - Building bcl2fastq applet
+2016-06-01 16:28:42,946 - BuildWorkflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fzBQ0fvF1KyzQQx18B0x5'}
+2016-06-01 16:28:42,947 - BuildWorkflow - INFO - Building generate_qc_report applet
+2016-06-01 16:28:43,518 - BuildWorkflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fzBj0fvFGKyXqBx1JffQg'}
+2016-06-01 16:28:43,518 - BuildWorkflow - INFO - Building qc_controller applet
+2016-06-01 16:28:44,214 - BuildWorkflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fzBj0fvF5gxqYGk1Jkb6J'}
+2016-06-01 16:29:21,668 - BuildWorkflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop/wf_bcl2fastq_qc
+2016-06-01 16:29:22,019 - BuildWorkflow - INFO - Building qc_sample applet
+2016-06-01 16:29:27,163 - BuildWorkflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fzbQ0fvF5gxqYGk1Jkb6g'}
+2016-06-01 16:29:27,163 - BuildWorkflow - INFO - Building bcl2fastq applet
+2016-06-01 16:29:33,179 - BuildWorkflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fzg00fvFGqKKZK119Kyz0'}
+2016-06-01 16:29:33,179 - BuildWorkflow - INFO - Building generate_qc_report applet
+2016-06-01 16:29:33,753 - BuildWorkflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fzg80fvFGZX0pP118PZFG'}
+2016-06-01 16:29:33,754 - BuildWorkflow - INFO - Building qc_controller applet
+2016-06-01 16:29:34,328 - BuildWorkflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7fzgQ0fvF1KyzQQx18B0xg'}
+2016-06-01 16:31:13,685 - BuildWorkflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop/wf_bcl2fastq_qc
+2016-06-01 16:31:14,436 - BuildWorkflow - INFO - Building qc_sample applet
+2016-06-01 16:31:14,450 - BuildWorkflow - INFO - Applet initialized
+2016-06-01 16:31:21,013 - BuildWorkflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7g0Vj0fvFGZX0pP118PZFX'}
+2016-06-01 16:31:21,014 - BuildWorkflow - INFO - Building bcl2fastq applet
+2016-06-01 16:31:21,028 - BuildWorkflow - INFO - Applet initialized
+2016-06-01 16:31:26,998 - BuildWorkflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7g0YQ0fvFPQKGXQ1116G4b'}
+2016-06-01 16:31:26,998 - BuildWorkflow - INFO - Building generate_qc_report applet
+2016-06-01 16:31:27,012 - BuildWorkflow - INFO - Applet initialized
+2016-06-01 16:31:27,572 - BuildWorkflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7g0Yj0fvFGKyXqBx1JffY8'}
+2016-06-01 16:31:27,573 - BuildWorkflow - INFO - Building qc_controller applet
+2016-06-01 16:31:27,589 - BuildWorkflow - INFO - Applet initialized
+2016-06-01 16:31:28,156 - BuildWorkflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7g0Yj0fvF5gxqYGk1Jkb74'}
+2016-06-01 16:32:12,358 - BuildWorkflow - INFO - Workflow path on DNAnexus will be: project-BvfQVV00fvF2504pyjXpxbPP:/1.0/develop/wf_bcl2fastq_qc
+2016-06-01 16:32:12,759 - BuildWorkflow - INFO - Building qc_sample applet
+2016-06-01 16:32:12,773 - BuildWorkflow - INFO - Applet initialized
+2016-06-01 16:32:19,968 - BuildWorkflow - INFO - Build complete: qc_sample applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7g10j0fvF5kFKqFk17BPGy'}
+2016-06-01 16:32:19,968 - BuildWorkflow - INFO - Building bcl2fastq applet
+2016-06-01 16:32:19,983 - BuildWorkflow - INFO - Applet initialized
+2016-06-01 16:32:24,001 - BuildWorkflow - INFO - Build complete: bcl2fastq applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7g11j0fvFPQKGXQ1116G4g'}
+2016-06-01 16:32:24,001 - BuildWorkflow - INFO - Building generate_qc_report applet
+2016-06-01 16:32:24,015 - BuildWorkflow - INFO - Applet initialized
+2016-06-01 16:32:24,622 - BuildWorkflow - INFO - Build complete: generate_qc_report applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7g1200fvF5kFKqFk17BPJ0'}
+2016-06-01 16:32:24,622 - BuildWorkflow - INFO - Building qc_controller applet
+2016-06-01 16:32:24,637 - BuildWorkflow - INFO - Applet initialized
+2016-06-01 16:32:25,254 - BuildWorkflow - INFO - Build complete: qc_controller applet id: {u'project': u'project-BvfQVV00fvF2504pyjXpxbPP', u'id': u'applet-Bx7g1200fvFGKyXqBx1JffYB'}

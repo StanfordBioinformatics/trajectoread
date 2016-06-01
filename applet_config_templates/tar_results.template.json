@@ -5,19 +5,19 @@
   "description": "Create archive including all fastqs, bams, fastqc reports, and the QC PDF report",
   "dxapi": "1.0.0",
   "version": "0.0.1",
-  "categories": [],
+  "categories": ["Archiving"],
   "inputSpec": [
     {
       "name": "record_dxid",
       "label": "Record dxid",
       "class": "string",
-      "optional": true,
+      "optional": true
     },
     {
       "name": "dashboard_project_dxid",
       "label": "Dashboard project dxid",
       "class": "string",
-      "optional": true,
+      "optional": true
     },
     {
       "name": "project_dxid",
@@ -29,7 +29,7 @@
       "name": "project_name",
       "label": "Project name",
       "class": "string",
-      "optional": true,
+      "optional": true
     }
   ],
   "outputSpec": [
@@ -37,17 +37,24 @@
       "name": "tarball",
       "label": "Results Tarball",
       "class": "file",
-      "optional": true
+      "optional": false
     }
   ],
   "runSpec": {
     "interpreter": "python2.7",
     "file": "src/tar_results.py",
     "bundledDepends": [],
+    "distribution": "Ubuntu",
+    "release": "12.04",
     "execDepends": [],
     "systemRequirements": {
       "*": {
         "instanceType": "mem2_hdd2_x1"
+      }
+    },
+    "timeoutPolicy": {
+      "main": {
+        "hours": 6
       }
     }
   },
