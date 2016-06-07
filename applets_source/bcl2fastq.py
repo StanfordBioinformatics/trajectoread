@@ -118,9 +118,8 @@ class FlowcellLane:
         self.lims_url = self.properties['lims_url']
         self.lims_token = self.properties['lims_token']
         self.rta_version = self.properties['rta_version']
-        #self.library_id = self.properties['library_id']
-        #self.lane_id = self.properties['lane_id']
         self.seq_instrument = self.properties['seq_instrument']
+        self.flowcell_id = self.properties['flowcell_id']
 
         self.lane_project = dxpy.DXProject(dxid = self.lane_project_dxid)
         self.home = os.getcwd()
@@ -349,6 +348,13 @@ class FlowcellLane:
         self.sample_sheet = stdout_elements[1]
         print 'This is the self.sample_sheet: %s' % self.sample_sheet
         
+        # DEV: This is a dirty hack. Need to fix issue in LIMS ASAP -PBR 6/6/2016
+        if self.seq_instrument not in ['Cooper', 'Gadget']:
+            print 'This is not a HiSeq 4000 run: need to RC i5s'
+            self.reverse_complement_i5(self.sample_sheet)
+        else:
+            print 'This is a HiSeq 4000 run; indexes are fine'
+
         # DEV: insert check so that samplesheet is only uploaded if does not exist.
         #      Also, maybe add it to output?
         dxpy.upload_local_file(filename = self.sample_sheet, 
@@ -359,6 +365,39 @@ class FlowcellLane:
                               )
         return self.sample_sheet
         
+    def reverse_complement_i5(self, sample_sheet):
+
+        # Read in samplesheet
+        # For line in file
+        # Reverse complement any i5 barcodes
+        print 'Reverse complementing any i5 indexes'
+        dual_index = False
+
+        rci5_sample_sheet = '%s_L%d_rci5_samplesheet.csv' % (self.run_name, self.lane_index)
+        OUT = open(rci5_sample_sheet, 'w')
+
+        with open(sample_sheet, 'r') as IN:
+            for line in IN:
+                line = line.rstrip()
+                elements = line.split(',')
+                print elements
+                if len(elements) == 6 and elements[0] != 'Sample_Project':
+                    dual_index = True
+                    print 'Found i5 indexes, replacing sample sheet'
+                    i5_index = elements[5]
+                    i5_index_rc = ReverseComplement1(i5_index)
+                    elements[5] = i5_index_rc
+                    new_line = ','.join(elements)
+                    new_line += '\n'
+                    OUT.write(new_line)
+                else:
+                    line += '\n'
+                    OUT.write(line)
+        OUT.close()
+
+        if dual_index == True:
+            self.sample_sheet = rci5_sample_sheet
+
     def get_flowcell_id(self):
         ''' Description: Get flowcell ID from samplesheet generated from LIMS.
         '''
@@ -716,6 +755,10 @@ class FlowcellLane:
             print "Could not get metadata for:\nfastq: %s\nlane: %s\nrun: %s" % (fastq, lane, self.run_name)
             pass
         return (new_fastq_filename, barcode, read_index)
+
+def ReverseComplement1(seq):
+    seq_dict = {'A':'T','T':'A','G':'C','C':'G'}
+    return "".join([seq_dict[base] for base in reversed(seq)])
 
 @dxpy.entry_point("main")
 def main(**applet_input):

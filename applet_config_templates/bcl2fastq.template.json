@@ -5,13 +5,13 @@
   "dxapi": "1.0.0",
   "version": "0.1.0",
   "inputSpec": [
-	{
+	 {
     	"name": "record_dxid",
     	"label": "Lane record dxid",
     	"help": "The DNAnexus ID of the sequencing lane DXRecord.",
     	"class": "string",
     	"optional": false
-	},
+	  },
     {
       "name": "dashboard_project_dxid",
       "label": "Dashboard project dxid",
@@ -133,6 +133,11 @@
     "systemRequirements": {
       "*": {
         "instanceType": "mem1_ssd1_x16"
+      }
+    },
+    "executionPolicy": {
+      "restartOn": {
+        "*": 3
       }
     }
   },
