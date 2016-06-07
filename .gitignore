@@ -1,0 +1,9 @@
+
+# Ignore all builder log files
+builders/logs/*
+
+# Ignore applet builds (deprecated)
+applets/*
+
+# Ignore files on the launchpad (pre-build applets)
+launchpad/*

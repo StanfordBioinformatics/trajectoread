@@ -25,10 +25,14 @@ class WorkflowBuild:
     def __init__(self, name, path_list, internal_rsc_manager, external_rsc_manager):
 
         self.workflow_name = name
-        self.logger = configure_logger(name = self.workflow_name, 
-                                       object_type = 'BuildWorkflow',
-                                       path_list = path_list
-                                       )
+        self.workflow_logger = configure_logger(name = self.workflow_name, 
+                                                object_type = 'BuildWorkflow',
+                                                path_list = path_list
+                                                )
+        self.applet_logger = configure_logger(name = self.workflow_name, 
+                                              object_type = 'Applet',
+                                              path_list = path_list
+                                              )
         path_list = PathList()
         
         self.environment = self.parse_environment(path_list = path_list)
@@ -46,9 +50,7 @@ class WorkflowBuild:
                                                 )
         else:
             self.workflow_dxpath = os.path.join('/', self.current_version, self.workflow_name)
-        self.logger.info('Workflow path on DNAnexus will be: %s:%s' % (self.project_dxid, 
-                                                                       self.workflow_dxpath
-                                                                       ))
+        self.workflow_logger.info('Workflow path on DNAnexus will be: %s:%s' % (self.project_dxid, self.workflow_dxpath))
 
         # Load workflow configuration object
         workflow_config = WorkflowConfig(path_list = path_list, 
@@ -58,12 +60,13 @@ class WorkflowBuild:
 
         # Build all applets listed in workflow
         for applet_name in workflow_config.applets:
-            self.logger.info('Building %s applet' % applet_name)
+            self.workflow_logger.info('Building %s applet' % applet_name)
             applet = Applet(name = applet_name, 
                             version = self.current_version, 
                             path_list = path_list,
+                            logger = self.applet_logger
                             )
-            self.logger.info('Applet initialized')
+            self.workflow_logger.info('Applet initialized')
             internal_rscs = workflow_config.applets[applet_name]['internal_rscs']
             internal_rsc_manager.add_applet_internal_rscs(applet=applet, 
                                                           internal_rscs=internal_rscs, 
@@ -76,10 +79,10 @@ class WorkflowBuild:
             applet_id = applet.build(project_dxid = self.project_dxid,
                                      folder_path = self.workflow_dxpath)
             workflow_config.applets[applet_name]['dxid'] = applet_id['id']
-            self.logger.info('Build complete: %s applet id: %s' % (applet_name, applet_id))
+            self.workflow_logger.info('Build complete: %s applet id: %s' % (applet_name, applet_id))
         
         # Create workflow 
-        workflow_properites = {
+        workflow_properties = {
                                'name': self.workflow_name,
                                'branch': self.branch, 
                                'version': self.current_version,
@@ -87,15 +90,15 @@ class WorkflowBuild:
                               }
         workflow_config.create_workflow(path=self.workflow_dxpath, properties=workflow_properties)
         for stage_index in range(0, len(workflow_config.stages)):
-            self.logger.info('Setting executable for stage %d' % stage_index)
+            self.workflow_logger.info('Setting executable for stage %d' % stage_index)
             workflow_config.set_stage_executable(str(stage_index))
 
         for stage_index in range(0, len(workflow_config.stages)):
-            self.logger.info('Setting inputs for stage %d' % stage_index)
+            self.workflow_logger.info('Setting inputs for stage %d' % stage_index)
             workflow_config.set_stage_inputs(str(stage_index))
         
-        workflow_config.update_config_file()
-        self.logger.info('Build complete: %s workflow id: {%s, %s}' % (self.workflow_name, 
+        workflow_config.update_config_file(path_list)
+        self.workflow_logger.info('Build complete: %s workflow id: {%s, %s}' % (self.workflow_name, 
                                                                        workflow_config.project_dxid,
                                                                        workflow_config.object_dxid
                                                                        ))
@@ -130,7 +133,7 @@ class WorkflowBuild:
             project_dxid = build_config['workflow_projects']['hotfix']['dxid']
             project_key = 'hotfix'
         else:
-            self.logger.critical('Could not determine DXProject for branch: %s' % git_branch)
+            self.workflow_logger.critical('Could not determine DXProject for branch: %s' % git_branch)
             sys.exit()
 
         environment = {
@@ -295,7 +298,7 @@ class WorkflowConfig:
                                  stage_input = stage_input
                                 )
 
-    def update_config_file(self):
+    def update_config_file(self, path_list):
         ''' Description: Open workflow config file, get 'date_created' value,
                          and rename to 'external_rscs_<date_created>.json'
         '''
@@ -313,7 +316,7 @@ class WorkflowConfig:
             existing_config_archived = '%s_%s.%s' % (filename, 
                                                      existing_date_created, 
                                                      filetype)
-            existing_config_archived_path = os.path.join(self.workflow_config_dir, 'archive',
+            existing_config_archived_path = os.path.join(path_list.workflow_config_templates, 'archive',
                                                          existing_config_archived)
             os.rename(existing_config_path, existing_config_archived_path)
         
@@ -443,14 +446,17 @@ class AppletBuild:
 
 class Applet:
 
-    def __init__(self, name, version, path_list):
+    def __init__(self, name, version, path_list, logger=None):
         
         self.name = name
         self.version = version
-        self.logger = configure_logger(name = self.name, 
-                                       object_type = 'Applet',
-                                       path_list = path_list
-                                       )
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = configure_logger(name = self.name, 
+                                           object_type = 'Applet',
+                                           path_list = path_list
+                                           )
         # DEV: Think I'm going to deprecate version_label; moving to project/folder model
         self.version_label = self.get_version_label()
         
@@ -818,7 +824,7 @@ def configure_logger(name, object_type, path_list):
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     # Add logging file handler
-    file_handler_basename = 'build_%s_%s_%s.log' % (object_type, name, timestamp)
+    file_handler_basename = 'builder_%s_%s_%s.log' % (name, object_type, timestamp)
     file_handler_path = os.path.join(path_list.logs, file_handler_basename)
     LOG = logging.FileHandler(file_handler_path)
     LOG.setLevel(logging.DEBUG)
