@@ -384,9 +384,26 @@ class FlowcellLane:
                 if len(elements) == 6 and elements[0] != 'Sample_Project':
                     dual_index = True
                     print 'Found i5 indexes, replacing sample sheet'
-                    i5_index = elements[5]
-                    i5_index_rc = ReverseComplement1(i5_index)
-                    elements[5] = i5_index_rc
+                    # reverse-complement Sample_Name
+                    sample_id = elements[2]
+                    id_elements = sample_id.split('_')
+                    i5_index = id_elements[2]
+                    rc_i5_index = reverse_complement(i5_index)
+                    id_elements[2] = rc_i5_index
+                    sample_id_rc_i5 = '_'.join(id_elements)
+                    elements[2] = sample_id_rc_i5
+
+                    # reverse-complement Sample_ID
+                    sample_name = elements[3]
+                    name_elements = sample_name.split('_')
+                    name_elements[2] = rc_i5_index
+                    sample_name_rc_i5 = '_'.join(name_elements)
+                    elements[3] = sample_name_rc_i5
+
+                    # reverse-complement index element
+                    elements[5] = rc_i5_index
+
+                    # Join revised elements back into string
                     new_line = ','.join(elements)
                     new_line += '\n'
                     OUT.write(new_line)
@@ -756,7 +773,7 @@ class FlowcellLane:
             pass
         return (new_fastq_filename, barcode, read_index)
 
-def ReverseComplement1(seq):
+def reverse_complement(seq):
     seq_dict = {'A':'T','T':'A','G':'C','C':'G'}
     return "".join([seq_dict[base] for base in reversed(seq)])
 

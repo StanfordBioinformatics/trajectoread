@@ -71,14 +71,14 @@ class FlowcellLane:
 		if not self.user_first_name or not self.user_last_name:
 			self.user = self.details['user']
 			user_elements = self.user.split()
-			self.user_first_name = user_elements[0]
-			self.user_last_name = user_elements[1]
+			self.user_first_name = user_elements[0].rstrip()
+			self.user_last_name = user_elements[1].rstrip()
 
 		if not self.project_dxid:
 			self.project_dxid = self.details['laneProject']
 
 		if not self.user_email:
-			self.user_email = self.details['email']
+			self.user_email = self.details['email'].rstrip()
 
 		if not self.library_name:
 			library_label = self.details['library']
