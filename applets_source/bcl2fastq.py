@@ -381,7 +381,7 @@ class FlowcellLane:
                 line = line.rstrip()
                 elements = line.split(',')
                 print elements
-                if len(elements) == 6 and elements[0] != 'Sample_Project':
+                if len(elements) == 6 and elements[0] != 'Sample_Project' and elements[5]:
                     dual_index = True
                     print 'Found i5 indexes, replacing sample sheet'
                     # reverse-complement Sample_Name
