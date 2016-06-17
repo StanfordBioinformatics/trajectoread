@@ -185,7 +185,7 @@
             "tools_used": []
         }
     }, 
-    "name": "WF_bcl2fastq_qc_release",
+    "name": "wf_bcl2fastq_qc_release",
     "workflow_dxid": "", 
     "workflow_project_dxid": ""
 }

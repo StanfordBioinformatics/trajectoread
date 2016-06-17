@@ -22,20 +22,24 @@ from dxpy import app_builder
 
 class WorkflowBuild:
 
-    def __init__(self, name, path_list, internal_rsc_manager, external_rsc_manager):
+    def __init__(self, workflow_name, path_list, internal_rsc_manager, external_rsc_manager):
 
-        self.workflow_name = name
-        self.workflow_logger = configure_logger(name = self.workflow_name, 
-                                                object_type = 'BuildWorkflow',
-                                                path_list = path_list
+        # Configure loggers for BuildWorkflow and Applet classes
+        self.workflow_logger = configure_logger(name = workflow_name, 
+                                                source_type = 'BuildWorkflow',
+                                                path_list = path_list,
+                                                file_handle = True
                                                 )
-        self.applet_logger = configure_logger(name = self.workflow_name, 
-                                              object_type = 'Applet',
-                                              path_list = path_list
+        self.applet_logger = configure_logger(name = workflow_name, 
+                                              source_type = 'Applet',
+                                              path_list = path_list,
+                                              file_handle = True
                                               )
-        path_list = PathList()
         
-        self.environment = self.parse_environment(path_list = path_list)
+        self.workflow_name = workflow_name
+
+        # Parse environment information from Launcher.json and Git status
+        self.environment = self.parse_environment(path_list=path_list)
         self.project_key = self.environment['project_key']
         self.project_dxid = self.environment['project_dxid']
         self.branch = self.environment['git_branch']
@@ -101,22 +105,24 @@ class WorkflowBuild:
                             'date_created': str(datetime.datetime.now()).split()[0] # yyyy-mm-dd
                            }
         # Create DXWorkflow object on DNAnexus
-        workflow_config.create_workflow(path = self.workflow_dxpath, 
-                                        details = workflow_details
-                                        )
+        workflow_config.create_workflow_object(path = self.workflow_dxpath, 
+                                               details = workflow_details,
+                                               environment = self.project_key
+                                               )
         for stage_index in range(0, len(workflow_config.stages)):
             self.workflow_logger.info('Setting executable for stage %d' % stage_index)
-            workflow_config.set_stage_executable(str(stage_index))
+            workflow_config.add_stage_executable(str(stage_index))
 
         for stage_index in range(0, len(workflow_config.stages)):
             self.workflow_logger.info('Setting inputs for stage %d' % stage_index)
             workflow_config.set_stage_inputs(str(stage_index))
         
+        dxpy.api.workflow_close(workflow_config.object_dxid)
         workflow_config.write_workflow_json(path_list, self.current_version)
-        self.workflow_logger.info('Build complete: %s workflow id: {%s, %s}' % (self.workflow_name, 
-                                                                       workflow_config.project_dxid,
-                                                                       workflow_config.object_dxid
-                                                                       ))
+        self.workflow_logger.info('Build complete: %s ,' % self.workflow_name +
+                                  'workflow id: {%s, %s}' % (workflow_config.project_dxid,
+                                                             workflow_config.object_dxid
+                                                             ))
 
     def parse_environment(self, path_list):
         ''' Description: First, reads in the possible build-environment 
@@ -169,23 +175,23 @@ class WorkflowConfig:
                  has changed.
         '''
 
+        self.logger = configure_logger(name = name, 
+                                       source_type = 'WorkflowConfig',
+                                       path_list = path_list,
+                                       file_handle = True
+                                       )
+
         self.name = name
         self.project_dxid = project_dxid
         self.dx_OS = dx_OS
 
-        #workflow_json_basename = self.name + '.json'
         workflow_json_template = self.name + '.json'
         self.template_path = os.path.join(path_list.workflow_config_templates, 
                                         workflow_json_template
                                         )
-
-        self.logger = configure_logger(name = self.name, 
-                                       object_type = 'WorkflowConfig',
-                                       path_list = path_list
-                                       )
         
         # DEV: future project will be to just update exiting development workflows
-        self.new_workflow = True    # Always building new applets/workflows, now
+        #self.new_workflow = True    # Always building new applets/workflows, now
 
         self.attributes = None
         self.object = None
@@ -210,6 +216,9 @@ class WorkflowConfig:
             sys.exit()
 
     def create_new_workflow_project(self):
+        ''' Description: Only called if workflow project does not exist. Should only
+            be used when chaning development framework.
+        '''
 
         project_dxid = dxpy.api.project_new(input_params={'name' : self.name})['id']
         return project_dxid
@@ -222,46 +231,77 @@ class WorkflowConfig:
         self.applets = self.attributes['applets']
         self.stages = self.attributes['stages']
 
-    def create_workflow(self, path, properties=None, details=None):
-        #if self.object_dxid:
-        if self.new_workflow == False:
-            self.object = dxpy.DXWorkflow(self.object_dxid)
-        #elif not self.object_dxid:
-        elif self.new_workflow == True:
-            self.object = dxpy.new_dxworkflow(title = self.name,
-                                              name =  self.name,
-                                              project = self.project_dxid,
-                                              folder = path,
-                                              properties = properties,
-                                              details = details
-                                              )
-            self.object_dxid = self.object.describe()['id']
+    def create_workflow_object(self, path, environment, properties=None, details=None):
+        ''' Description: In development environment, find and delete any old workflow
+            object and create new one every time. If there is an existing workflow in
+            the production environment, throw an error. Never delete an existing 
+            production workflow or writing two production workflows to the same project 
+            folder.
+        '''
 
-    def set_stage_executable(self, stage_index):
-        #pdb.set_trace()
+        # Find existing workflow(s) in project folder
+        generator = dxpy.find_data_objects(classname = 'workflow',
+                                           name = self.name,
+                                           project = self.project_dxid,
+                                           folder = path
+                                           )
+        existing_workflows = list(generator)
+        
+        # Remove old development workflow(s)
+        if existing_workflows and environment in ['hotfix', 'develop']:
+            for workflow in existing_workflows:
+                self.logger.warning('Removing existing development workflow: ' +
+                                    '%s' % workflow
+                                    )
+                dxpy.remove(dxpy.dxlink(workflow))
+
+        # Throw error if there is already workflow in production environment
+        elif existing_workflows and environment == 'production':
+            self.logger.error('Existing workflow(s) in production environment: '  +
+                              'count: %s, ' % len(existing_workflows) +
+                              'project: %s, ' % self.project_dxid + 
+                              'path: %s, ' % path + 
+                              'name: %s' % self.name)
+            sys.exit()
+
+        # Create new workflow
+        self.object = dxpy.new_dxworkflow(title = self.name,
+                                          name =  self.name,
+                                          project = self.project_dxid,
+                                          folder = path,
+                                          properties = properties,
+                                          details = details
+                                          )
+        self.object_dxid = self.object.describe()['id']
+
+    def update_stage_executable(self, stage_index):
+        ''' Description: Not in use since current strategy is to always create
+            new workflow objects.
+        '''
+
         self.edit_version = self.object.describe()['editVersion']
         
-        #if self.stages[stage_index]['dxid']:
-        if self.new_workflow == False:
-            output_folder = self.stages[stage_index]['folder']
-            applet_name = self.stages[stage_index]['executable']
-            applet_dxid = self.applets[applet_name]['dxid']
-            self.object.update_stage(stage = stage_index,
-                                     edit_version = self.edit_version, 
-                                     executable = applet_dxid, 
-                                     folder = output_folder
-                                    )
-        
-        #elif not self.stages[stage_index]['dxid']:
-        elif self.new_workflow == True:
-            output_folder = self.stages[stage_index]['folder']
-            applet_name = self.stages[stage_index]['executable']
-            applet_dxid = self.applets[applet_name]['dxid']
-            stage_dxid = self.object.add_stage(edit_version = self.edit_version,
-                                               executable = applet_dxid,
-                                               folder = output_folder
-                                              )
-            self.stages[stage_index]['dxid'] = stage_dxid
+        output_folder = self.stages[stage_index]['folder']
+        applet_name = self.stages[stage_index]['executable']
+        applet_dxid = self.applets[applet_name]['dxid']
+        self.object.update_stage(stage = stage_index,
+                                 edit_version = self.edit_version, 
+                                 executable = applet_dxid, 
+                                 folder = output_folder
+                                )
+
+    def add_stage_executable(self, stage_index):
+
+        self.edit_version = self.object.describe()['editVersion']
+    
+        output_folder = self.stages[stage_index]['folder']
+        applet_name = self.stages[stage_index]['executable']
+        applet_dxid = self.applets[applet_name]['dxid']
+        stage_dxid = self.object.add_stage(edit_version = self.edit_version,
+                                           executable = applet_dxid,
+                                           folder = output_folder
+                                          )
+        self.stages[stage_index]['dxid'] = stage_dxid
 
     def set_stage_inputs(self, stage_index):
         if not self.stages[stage_index]['dxid']:
@@ -306,8 +346,7 @@ class WorkflowConfig:
                                                                   field_type: field_name
                                                                  }
                                                     })
-            #print 'Info: Stage %d field %s input:' % (int(stage_index), field_name)
-            #print stage_input
+
         self.edit_version = self.object.describe()['editVersion']
         self.object.update_stage(stage = stage_index,
                                  edit_version = self.edit_version,
@@ -341,13 +380,15 @@ class WorkflowConfig:
 
 class AppletBuild:
 
-    def __init__(self, name, path_list, internal_rsc_manager, external_rsc_manager):
+    def __init__(self, applet_name, path_list, internal_rsc_manager, external_rsc_manager):
 
-        self.logger = configure_logger(name = name, 
-                                       object_type = 'applet',
-                                       path_list = path_list
+        self.logger = configure_logger(name = applet_name, 
+                                       source_type = 'AppletBuild',
+                                       path_list = path_list,
+                                       file_handle = True
                                        )
         
+        self.applet_name = applet_name
         self.environment = self.parse_environment(path_list = path_list)
         self.project_key = self.environment['project_key']
         self.project_dxid = self.environment['project_dxid']
@@ -360,12 +401,6 @@ class AppletBuild:
         else:
             self.applet_dxpath = os.path.join('/', self.current_version)
         self.logger.info('Applet path on DNAnexus will be: %s' % self.applet_dxpath)
-
-        # Create resource managers
-        self.logger.info('Creating resource managers')
-        internal_rsc_manager = InternalRscManager(path_list.internal_rscs_json, path_list)
-        external_rscs_project_dxid = self.environment['external_rscs_dxid']
-        external_rsc_manager = ExternalRscManager(external_rscs_project_dxid, path_list)
 
         # Load applet resources JSON
         self.logger.info('Loading applet resources config file: %s' % path_list.applet_rscs)
@@ -455,8 +490,9 @@ class Applet:
             self.logger = logger
         else:
             self.logger = configure_logger(name = self.name, 
-                                           object_type = 'Applet',
-                                           path_list = path_list
+                                           source_type = 'Applet',
+                                           path_list = path_list,
+                                           file_handle = True
                                            )
         # DEV: Think I'm going to deprecate version_label; moving to project/folder model
         self.version_label = get_version_label()
@@ -473,7 +509,6 @@ class Applet:
                 matching_files.append(source_file)
             else:
                 pass
-        print matching_files
 
         if len(matching_files) == 1:
             code_basename = matching_files[0]
@@ -614,6 +649,9 @@ class Applet:
 class ExternalRscManager:
 
     def __init__(self, path_list, project_dxid, os="Ubuntu-12.04", name='external_resources.json'):
+
+        self.logger = configure_logger(source_type='ExternalRscManager')
+
         self.local_dir = path_list.external_rscs
 
         with open(path_list.external_rscs_json, 'r') as EXTERNAL_RSC_CONFIG:
@@ -664,7 +702,9 @@ class ExternalRscManager:
             with open(config_path, 'r') as CONFIG:
                 self.config_data = json.load(CONFIG)
         else:
-            print 'Error: Unrecognized configuration file rsc_type: %s for configuration file: %s' % (self.file_type, self.filename)
+            self.logger.error('Unrecognized configuration file rsc_type: %s ' % self.file_type + 
+                              'for configuration file: %s' % self.filename
+                              )
             sys.exit()
 
     def get_filename_dxid(self, name, version=None):
@@ -683,7 +723,10 @@ class ExternalRscManager:
                 rsc_filename = self.config_data[name]['versions'][version]['filename']
                 rsc_dxid = self.config_data[name]['versions'][version]['dxid']
             except:
-                print 'Error: Could not get external rsc information for %s version %s' % (name, version)
+                self.logger.error('Could not get external rsc information for %s ' % name +
+                                  ' version %s' % version
+                                  )
+                sys.exit()
         resouce_dict = {'filename':rsc_filename, 'dxid':rsc_dxid}
         return(rsc_dict)
 
@@ -711,7 +754,7 @@ class ExternalRscManager:
                 name = rsc['name']
                 self.add_rsc_to_applet(applet, name)
             else:
-                print 'How did you get here?'
+                self.logger.error('How did you get here?')
                 sys.exit()
 
 class InternalRscManager:
@@ -719,13 +762,12 @@ class InternalRscManager:
     Instead of having InternalResourceManager get the paths, have it handle
     all the aspects of adding rscs to the applet
         InternalrscManager.add_rsc_to_applet(applet, rsc_type, name, internal_rscs_path)
-    
-    DEV: I think I should hardcode more of this stuff to make it fixed, rather
-    than trying to weave it through Workflow -> Stage objects. trajectoread
-    represents a mix of dynamic static architecture.
     '''
 
     def __init__(self, path_list):
+
+        self.logger = configure_logger(source_type='InternalRscManager')
+
         self.internal_rscs_path = path_list.internal_rscs
         with open(path_list.internal_rscs_json, 'r') as INTERNAL_RSC_CONFIG:
             self.config = json.load(INTERNAL_RSC_CONFIG)
@@ -744,7 +786,7 @@ class InternalRscManager:
             applet.add_rsc(local_path, dnanexus_path)
 
     def _add_python_package(self, applet, rsc_type, name):
-        print 'Info: Adding python package %s to applet' % name
+        self.logger.info('Adding python package %s to applet' % name)
         package_files = self.config[rsc_type][name]["all_files"]
         for file in package_files:
             file_local_path = self._get_local_path(rsc_type, name) + '/' + file
@@ -757,7 +799,7 @@ class InternalRscManager:
         if (os.path.exists(full_path)):
             return full_path
         else:
-            print 'Error: Could not find internal rsc path:' + full_path
+            self.logger.error('Could not find internal rsc path: %s' % full_path)
             sys.exit()
 
     def _get_dnanexus_path(self, rsc_type, name):
@@ -803,21 +845,22 @@ class PathList:
     def describe(self):
         self.__dict__
 
-def configure_logger(name, object_type, path_list):
+def configure_logger(source_type, name=None, path_list=None, file_handle=False):
     # Configure Logger object
-    logger = logging.getLogger(object_type)    # Create logger object
+    logger = logging.getLogger(source_type)    # Create logger object
     logger.setLevel(logging.DEBUG)
 
     timestamp = str(datetime.datetime.now()).split()[0]     # yyyy-mm-dd
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     # Add logging file handler
-    file_handler_basename = 'builder_%s_%s_%s.log' % (name, object_type, timestamp)
-    file_handler_path = os.path.join(path_list.logs, file_handler_basename)
-    LOG = logging.FileHandler(file_handler_path)
-    LOG.setLevel(logging.DEBUG)
-    LOG.setFormatter(formatter)
-    logger.addHandler(LOG)
+    if file_handle:
+        file_handler_basename = 'builder_%s_%s_%s.log' % (name, source_type, timestamp)
+        file_handler_path = os.path.join(path_list.logs, file_handler_basename)
+        LOG = logging.FileHandler(file_handler_path)
+        LOG.setLevel(logging.DEBUG)
+        LOG.setFormatter(formatter)
+        logger.addHandler(LOG)
 
     # Add logging stream handler
     STREAM = logging.StreamHandler(sys.stdout)
@@ -839,18 +882,23 @@ def _make_new_dir(directory):
 
 def main():
 
+    name = "Main"
+    logger = configure_logger(source_type='Main')
+
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--applet_name', dest='applet_name', type=str)
     parser.add_argument('-w', '--workflow_name', dest='workflow_name', type=str)
     args = parser.parse_args()
-    print args
+    logger.info('Args: %s' % args)
     if args.applet_name and args.workflow_name:
         # temporary logger stand-in
-        print 'Error: applet and workflow arguments passed to builder. Can only build one object at once'
+        logger.error('Applet and workflow arguments passed to builder. ' +
+                          'Can only build one object at once'
+                          )
         sys.exit()    
     elif not args.applet_name and not args.workflow_name:
-        print 'Error: no valid DNAnexus objects specified for building'
+        logger.error('No valid DNAnexus objects specified for building')
         sys.exit()
 
     # Initiate path list and global resource manager objects
@@ -869,20 +917,19 @@ def main():
 
     # Create build object
     if args.applet_name:
-        print 'Building applet: %s' % args.applet_name
-        builder = AppletBuild(name = args.applet_name, 
+        logger.info('Building applet: %s' % args.applet_name)
+        builder = AppletBuild(applet_name = args.applet_name, 
                               path_list = path_list,
                               internal_rsc_manager = internal_rsc_manager,
                               external_rsc_manager = external_rsc_manager
                               )
     elif args.workflow_name:
-        print 'Building workflow: %s' % args.workflow_name
-        builder = WorkflowBuild(name = args.workflow_name, 
+        logger.info('Building workflow: %s' % args.workflow_name)
+        builder = WorkflowBuild(workflow_name = args.workflow_name, 
                                 path_list = path_list,
                                 internal_rsc_manager = internal_rsc_manager,
                                 external_rsc_manager = external_rsc_manager
                                 )
-
         
 if __name__ == "__main__":
     main() 
