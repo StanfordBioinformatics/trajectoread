@@ -111,8 +111,9 @@
         "name": "openjdk-6-jre-headless"
       },
       {
-        "name": "pysam",
-        "package_manager": "pip"
+        "name": "pysam", 
+        "package_manager": "pip", 
+        "version": "0.9.1"
       }
     ],
     "systemRequirements": {

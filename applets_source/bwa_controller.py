@@ -319,7 +319,7 @@ def main(record_dxid, applet_project, applet_build_version, fastqs, output_folde
             fastq_files = [dxpy.dxlink(item) for item in read_dict["1"]]
             fastq_files2 = [dxpy.dxlink(item) for item in read_dict["2"]]
         else:
-            fastq_files = [dxpy.dxlink(item) for item in fastq_files]
+            fastq_files = [dxpy.dxlink(item) for item in read_dict["1"]]
 
         print("fastq_files: {}".format(fastq_files))
         print("fastq_files2: {}".format(fastq_files2))
