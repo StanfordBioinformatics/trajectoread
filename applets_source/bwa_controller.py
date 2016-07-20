@@ -60,17 +60,6 @@ class FlowcellLane:
         self.lane_id = self.properties['lane_id']
 
         self.fastq_dxids = fastqs
-        #self.samples_dicts = None
-
-        # Get fastq files information and dx references
-        #if not self.fastq_dxids:
-        #    self.fastq_dxids = self.find_fastq_files()
-        #self.samples_dicts = self.set_sample_files()
-
-        #if not self.samples_dicts:
-        #    print('Error: sample dictionaries containing bam and fastq files' +
-        #            'were not generated')
-        #    sys.exit()  # DEV: use more specific errors (?) if possible
 
     def find_fastq_files(self):
         '''
@@ -205,11 +194,13 @@ class MapperApp:
 
 @dxpy.entry_point("run_map_sample")
 def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file, 
-    genome_index_file, mapper, applet_project, applet_build_version, 
+    genome_index_file, mapper, applet_id, applet_project, 
     fastq_files2=None, mark_duplicates=False, sample_name=None, properties=None):
     
     applet_name = 'map_sample'
     applet_folder = '/builds/%s' % applet_build_version
+    
+    '''
     mapper_applet_id = dxpy.find_one_data_object(classname = 'applet',
                                                  name = applet_name,
                                                  name_mode = 'exact',
@@ -221,6 +212,10 @@ def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file,
     mapper_applet = dxpy.DXApplet(dxid = mapper_applet_id['id'], 
                                   project = mapper_applet_id['project']
                                  )
+    '''
+
+    mapper_applet = dxpy.DXApplet(dxid=applet_id, project=applet_project)
+
     print 'Running map_sample'
     mapper_input = {
                     "project_dxid": project_dxid,
@@ -295,7 +290,7 @@ def test_mapping():
         })
 
 @dxpy.entry_point("main")
-def main(record_dxid, applet_project, applet_build_version, fastqs, output_folder, dashboard_project_id=None, mark_duplicates=False):
+def main(record_dxid, worker_id, worker_project, fastqs, output_folder, dashboard_project_id=None, mark_duplicates=False):
 
     output = {
               "bams": [],
@@ -352,8 +347,8 @@ def main(record_dxid, applet_project, applet_build_version, fastqs, output_folde
                                                   "mapper": lane.mapper,
                                                   "sample_name": sample_name,
                                                   "mark_duplicates": mark_duplicates,
-                                                  "applet_project": applet_project,
-                                                  "applet_build_version": applet_build_version,
+                                                  "applet_id": worker_id,
+                                                  "applet_project": worker_project,
                                                   "properties": mapped_files_properties
                                                  }, 
                                         fn_name="run_map_sample"

@@ -104,7 +104,8 @@
     "stages": {
         "0": {
             "dxid": "", 
-            "executable": "bcl2fastq", 
+            "executable": "bcl2fastq",
+            "type": "stand-alone",
             "folder": "stage0_bcl2fastq", 
             "input": {
                 "lane_data_tar": "", 
@@ -121,11 +122,13 @@
         }, 
         "1": {
             "dxid": "", 
-            "executable": "bwa_controller", 
+            "executable": "bwa_controller",
+            "type": "controller", 
+            "worker_name": "map_sample",
             "folder": "stage1_bwa", 
-            "input": {
-                "applet_build_version": "", 
-                "applet_project": "", 
+            "input": { 
+                "worker_id": "", 
+                "worker_project": "",
                 "record_dxid": ""
             }, 
             "linked_input": {
@@ -144,11 +147,14 @@
         }, 
         "2": {
             "dxid": "", 
-            "executable": "qc_controller", 
+            "executable": "qc_controller",
+            "type": "controller",
+            "worker_name": "qc_sample",
             "folder": "stage2_qc", 
             "input": {
                 "applet_build_version": "", 
-                "applet_project": "", 
+                "worker_id": "", 
+                "worker_project": "",
                 "record_dxid": ""
             }, 
             "linked_input": {
@@ -176,6 +182,7 @@
         "3": {
             "dxid": "", 
             "executable": "generate_qc_report", 
+            "type": "stand-alone",
             "folder": "stage3_qc_report", 
             "input": {
                 "record_dxid": ""
@@ -222,6 +229,7 @@
         "4": {
             "dxid": "", 
             "executable": "release_lane", 
+            "type": "stand-alone",
             "folder": "", 
             "input": {
                 "dx_user_id": "", 

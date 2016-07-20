@@ -1,100 +1,98 @@
 {
-  "name": "bwa_controller",
-  "title": "BWA Controller",
-  "summary": "Converts Illumina data from BCL to FASTQ, demultiplexing barcoded samples if appropriate. Uses DXApp 'BWA-MEM FASTQ Read Mapper' version 1.5.0.",
-  "dxapi": "1.0.0",
-  "version": "0.1.0",
-  "inputSpec": [
-	{
-		"name": "record_dxid",
-		"label": "Lane record dxid",
-		"help": "The DNAnexus ID of the dashboard record for the sequencing lane.",
-		"class": "string",
-		"optional": false
-	},
-    {
-      "name": "dashboard_project_id",
-      "label": "Dashboard project dxid",
-      "help": "SCGPM Dashboard Data project dxid.",
-      "class": "string",
-      "optional": true
-    },
-    {
-      "name": "applet_project",
-      "label": "Applet project",
-      "help": "Project that housese map_sample applet",
-      "class": "string",
-      "optional": false
-    },
-    {
-      "name": "applet_build_version",
-      "label": "Applet build version",
-      "help": "Name of builds subdirectory with current applet versions",
-      "class": "string",
-      "optional": false
-    },
-    {
-      "name": "fastqs",
-      "label": "Fastq files",
-      "class": "array:file",
-      "patterns": ["*fastq.gz", "*.fastq", "*.fq.gz"],
-      "optional": true
-    },
-    {
-      "name": "mark_duplicates",
-      "label": "Mark Duplicates",
-      "class": "boolean",
-      "optional": true
-    },
-    {
-      "name": "output_folder",
-      "label": "Output Folder",
-      "class": "string",
-      "optional": false
-    }
-  ],
-  "outputSpec": [
-    {
-      "name": "bams",
-      "label": "BAM files",
-      "class": "array:file"
-    },
-    {
-      "name": "bais",
-      "label": "BAI files",
-      "class": "array:file"
-    },
-    {
-      "name": "tools_used",
-      "class": "array:file"
-    }
-  ],
-  "runSpec": {
-    "interpreter": "python2.7",
-    "file": "src/bwa_controller.py",
-		"bundledDepends": [],
-    "execDepends": [
-      {"name": "libxml-simple-perl"},
-      {"name": "xsltproc"},
-      {"name": "imagemagick"},
-      {"name": "gnuplot-nox"},
-      {"name": "ghostscript"},
-      {"name": "zlib1g-dev"},
-      {"name": "libbz2-dev"},
-      {"name": "libxml2"},
-      {"name": "libxml2-dev"},
-      {"name": "libicu-dev"},
-      {"name": "libncurses5"},
-      {"name": "libncurses5-dev"}
+    "name": "bwa_controller",
+    "title": "BWA Controller",
+    "summary": "Align reads with bwa",
+    "dxapi": "1.0.0",
+    "version": "0.1.0",
+    "inputSpec": [
+        {
+            "name": "record_dxid",
+            "label": "Lane record ID",
+            "help": "The DNAnexus ID of the dashboard record for the sequencing lane.",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "dashboard_project_id",
+            "label": "Dashboard project ID",
+            "help": "SCGPM Dashboard Data project dxid.",
+            "class": "string",
+            "default": "project-BY82j6Q0jJxgg986V16FQzjx",
+            "optional": true
+        },
+        {
+            "name": "worker_id",
+            "label": "Worker ID",
+            "help": "ID of map_sample applet",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "worker_project",
+            "label": "Worker project ID",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "fastqs",
+            "label": "Fastq files",
+            "class": "array:file",
+            "patterns": ["*fastq.gz", "*.fastq", "*.fq.gz"],
+            "optional": false
+        },
+        {
+            "name": "mark_duplicates",
+            "label": "Mark Duplicates",
+            "class": "boolean",
+            "default": false,
+            "optional": true
+
+        },
+        {
+            "name": "output_folder",
+            "label": "Output Folder",
+            "class": "string",
+            "default": "/stage1_bwa",
+            "optional": false
+        }
     ],
-    "systemRequirements": {
-      "*": {
-        "instanceType": "mem1_ssd1_x8"
-      }
+    "outputSpec": [
+        {
+            "name": "bams",
+            "label": "Bam files",
+            "class": "array:file"
+        },
+        {
+            "name": "bais",
+            "label": "Bai files",
+            "class": "array:file"
+        },
+        {
+            "name": "tools_used",
+            "class": "array:file"
+        }
+    ],
+    "runSpec": {
+        "interpreter": "python2.7",
+        "file": "src/bwa_controller.py",
+        "bundledDepends": [],
+        "execDepends": [],
+        "systemRequirements": {
+            "*": {
+                "instanceType": "mem1_ssd1_x2"
+            }
+        },
+        "restartableEntryPoints": "all",
+        "executionPolicy": {
+            "restartOn": {
+                "*": 3
+            }
+        },
+        "distribution": "Ubuntu",
+        "release": "12.04"
+    },
+    "access": {
+        "allProjects": "ADMINISTER",
+        "network": ["*"]
     }
-  },
-  "access": {
-    "allProjects": "ADMINISTER",
-		"network": ["*"]
-  }
 }

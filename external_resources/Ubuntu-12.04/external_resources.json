@@ -65,13 +65,13 @@
     }, 
     "pdf_reports": {
         "current": "1.0", 
-        "dxid": "file-Bq3Zz700p6fbPppJk961gZ9Y", 
+        "dxid": "file-Bv201b00p6fxxxJb8j8BfZJY", 
         "filename": "pdf_reports-1.0.tar",
         "versions": {
             "1.0": {
                 "OS": "Ubuntu-12.04", 
                 "filename": "pdf_reports-1.0.tar", 
-                "dxid": "file-Bq3Zz700p6fbPppJk961gZ9Y",
+                "dxid": "file-Bv201b00p6fxxxJb8j8BfZJY",
                 "program": "pdf_reports", 
                 "compression": "tar",
                 "used_by": ["qc_controller"], 

@@ -104,15 +104,19 @@ class WorkflowBuild:
                             'commit': self.commit,
                             'date_created': str(datetime.datetime.now()).split()[0] # yyyy-mm-dd
                            }
+        
         # Create DXWorkflow object on DNAnexus
         workflow_config.create_workflow_object(path = self.workflow_dxpath, 
                                                details = workflow_details,
                                                environment = self.project_key
                                                )
+
+        # Add executables to each workflow stage
         for stage_index in range(0, len(workflow_config.stages)):
             self.workflow_logger.info('Setting executable for stage %d' % stage_index)
             workflow_config.add_stage_executable(str(stage_index))
 
+        # Add applet inputs to each workflow stage
         for stage_index in range(0, len(workflow_config.stages)):
             self.workflow_logger.info('Setting inputs for stage %d' % stage_index)
             workflow_config.set_stage_inputs(str(stage_index))
@@ -212,7 +216,7 @@ class WorkflowConfig:
         try:
             dxpy.api.system_whoami()
         except:
-            logger.error('You must login to DNAnexus before proceeding ($ dx login)')
+            self.logger.error('You must login to DNAnexus before proceeding ($ dx login)')
             sys.exit()
 
     def create_new_workflow_project(self):
@@ -308,6 +312,7 @@ class WorkflowConfig:
             logger.error('Stage %s has not yet been created' % stage_index)
         stage_input = {}
 
+        '''
         standard_inputs = self.stages[stage_index]['input']
         for name in standard_inputs:
             if name == 'applet_build_version':
@@ -317,6 +322,18 @@ class WorkflowConfig:
             elif name == 'applet_project':
                 self.stages[stage_index]['input']['applet_project'] = self.project_dxid
                 stage_input[name] = self.project_dxid
+        '''
+
+        if self.stages[stage_index]['type'] == 'controller':
+            worker_name = self.stages[stage_index]['worker_name']
+            worker_id = self.applets[worker_name]['dxid']
+            worker_project = self.project_dxid
+            
+            self.stages[stage_index]['input']['worker_id'] = worker_id
+            self.stages[stage_index]['input']['worker_project'] = worker_project
+            
+            stage_input['worker_id'] = worker_id
+            stage_input['worker_project'] = worker_project
 
         linked_inputs = self.stages[stage_index]['linked_input']
         ## DEV: Change linked input from dict to LIST of dicts. 
@@ -553,7 +570,8 @@ class Applet:
                                        project = project_dxid, 
                                        overwrite = True, 
                                        override_folder = folder_path, 
-                                       override_name = self.name
+                                       override_name = self.name,
+                                       description = self.name
                                       )
 
         # Get dxid of newly built applet

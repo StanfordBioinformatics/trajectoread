@@ -1,113 +1,118 @@
 {
-  "name": "qc_controller",
-  "title": "QC Controller",
-  "summary": "Process a lane by grouping FASTQ files by sample and processing each sample",
-  "description": "This app performs the lane-level processing for the SCGPM production pipeline. It fetches metadata from Syapse and invokes the sample-level processing for each sample within the lane.",
-  "dxapi": "1.0.0",
-  "version": "0.0.1",
-  "categories": [],
-  "inputSpec": [
-    { 
-      "name": "record_dxid",
-      "label": "Lane record dxid",
-      "class": "string",
-      "optional": false
+    "name": "qc_controller",
+    "title": "QC Controller",
+    "summary": "Generate QC metrics for samples",
+    "description": "",
+    "dxapi": "1.0.0",
+    "version": "0.0.1",
+    "categories": [],
+    "inputSpec": [
+        { 
+            "name": "record_dxid",
+            "label": "Lane record dxid",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "dashboard_project_dxid",
+            "label": "Dashboard project dxid",
+            "class": "string",
+            "optional": true
+        },
+        {
+            "name": "fastqs",
+            "label": "Fastq files",
+            "class": "array:file",
+            "patterns": ["*fastq.gz", "*.fastq", "*.fq.gz"],
+            "optional": false
+        },
+        {
+            "name": "bams",
+            "label": "BAM files",
+            "class": "array:file",
+            "patterns": ["*.bam"],
+            "optional": true
+        },
+        {
+            "name": "worker_id",
+            "label": "Worker ID",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "worker_project",
+            "label": "Worker project ID",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "output_folder",
+            "label": "Output folder",
+            "class": "string",
+            "optional": false
+        }
+    ],
+    "outputSpec": [
+        {
+            "name": "fastqc_reports",
+            "label": "fastqc_reports",
+            "class": "array:file",
+            "optional": false
+        },
+        {
+            "name": "qc_stats_jsons",
+            "label": "QC data in JSON format",
+            "class": "array:file",
+            "optional": false
+        },
+        {
+            "name": "tools_used",
+            "label": "JSON files with tools and command lines used.",
+            "class": "array:file",
+            "optional": false
+        },
+        {
+            "name": "alignment_summary_metrics",
+            "label": "alignment_summary_metrics",
+            "class": "array:file",
+            "optional": true
+        },
+        {
+            "name": "mismatch_metrics",
+            "label": "Per cycle metrics on mismatches",
+            "class": "array:file",
+            "optional": true
+        },
+        {
+            "name": "insert_size_metrics",
+            "label": "insert_size_metrics",
+            "class": "array:file",
+            "optional": true
+        }
+    ],
+    "runSpec": {
+        "interpreter": "python2.7",
+        "file": "src/qc_controller.py",
+        "bundledDepends": [],
+        "execDepends": [],
+        "systemRequirements": {
+            "*": {
+            "instanceType": "mem1_ssd1_x2"
+            }
+        },
+        "restartableEntryPoints": "all",
+        "executionPolicy": {
+            "restartOn": {
+                "*": 3
+            }
+        },
+        "distribution": "Ubuntu",
+        "release": "12.04"
     },
-    {
-      "name": "dashboard_project_dxid",
-      "label": "Dashboard project dxid",
-      "class": "string",
-      "optional": true
+    "access": {
+        "project": "ADMINISTER",
+        "allProjects": "ADMINISTER",
+        "network": ["*"]
     },
-    {
-      "name": "fastqs",
-      "label": "Fastq files",
-      "class": "array:file",
-      "patterns": ["*fastq.gz", "*.fastq", "*.fq.gz"],
-      "optional": false
-    },
-    {
-      "name": "bams",
-      "label": "BAM files",
-      "class": "array:file",
-      "patterns": ["*.bam"],
-      "optional": true
-    },
-    {
-      "name": "applet_project",
-      "label": "Project where qc_sample applet is",
-      "class": "string",
-      "optional": false
-    },
-    {
-      "name": "applet_build_version",
-      "label": "qc_sample build directory",
-      "class": "string",
-      "optional": false
-    },
-    {
-      "name": "output_folder",
-      "label": "Output folder",
-      "class": "string",
-      "optional": false
-    }
-  ],
-  "outputSpec": [
-    {
-      "name": "fastqc_reports",
-      "label": "fastqc_reports",
-      "class": "array:file",
-      "optional": false
-    },
-    {
-      "name": "qc_stats_jsons",
-      "label": "QC data in JSON format",
-      "class": "array:file",
-      "optional": false
-    },
-    {
-      "name": "tools_used",
-      "label": "JSON files with tools and command lines used.",
-      "class": "array:file",
-      "optional": false
-    },
-    {
-      "name": "alignment_summary_metrics",
-      "label": "alignment_summary_metrics",
-      "class": "array:file",
-      "optional": true
-    },
-    {
-      "name": "mismatch_metrics",
-      "label": "Per cycle metrics on mismatches",
-      "class": "array:file",
-      "optional": true
-    },
-    {
-      "name": "insert_size_metrics",
-      "label": "insert_size_metrics",
-      "class": "array:file",
-      "optional": true
-    }
-  ],
-  "runSpec": {
-    "interpreter": "python2.7",
-    "file": "src/qc_controller.py",
-    "bundledDepends": [],
-    "execDepends": [
-      {"name": "pdftk"},
-      {"name": "imagemagick"},
-      {"name": "ghostscript"},
-      {"name": "openjdk-7-jre-headless"},
-      {"name": "requests", "package_manager": "pip"},
-      {"name": "pyPdf", "package_manager": "pip"},
-      {"name": "pytz", "package_manager": "pip"}
-    ]
-  },
-  "access": {
-    "project": "ADMINISTER",
-    "allProjects": "ADMINISTER",
-    "network": ["*"]
-  },
-  "authorizedUsers": []
+    "authorizedUsers": []
 }

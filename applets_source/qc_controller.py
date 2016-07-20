@@ -280,9 +280,10 @@ def group_files_by_barcode(barcoded_files):
     return sample_dict
 
 @dxpy.entry_point("run_qc_sample")
-def qc_sample(fastq_files, sample_name, applet_project, applet_folder, output_project, output_folder, properties=None, 
+def qc_sample(fastq_files, sample_name, applet_id, applet_project, output_project, output_folder, properties=None, 
     aligner=None, genome_fasta_file = None, fastq_files2=None, bam_file=None):
 
+    '''
     qc_sample_applet_name = 'qc_sample' 
     qc_sample_applet_dxid = dxpy.find_one_data_object(classname = 'applet',
                                                       name = qc_sample_applet_name, 
@@ -292,6 +293,9 @@ def qc_sample(fastq_files, sample_name, applet_project, applet_folder, output_pr
                                                       zero_ok = False, 
                                                       more_ok = False)
     qc_sample_applet = dxpy.DXApplet(qc_sample_applet_dxid['id'])
+    '''
+
+    qc_sample_applet = dxpy.DXApplet(dxid=applet_id, project=applet_project)
 
     fastq_files = [dxpy.dxlink(x) for x in fastq_files]
     if fastq_files2:
@@ -330,92 +334,8 @@ def qc_sample(fastq_files, sample_name, applet_project, applet_folder, output_pr
     
     return output
 
-@dxpy.entry_point("generate_qc_pdf_report")
-def generate_qc_pdf_report(**job_inputs):
-    """
-    Run create_pdf_reports.py to create a PDF report from the JSON statistics.
-    """
-
-    output_project = job_inputs['output_project']
-    output_folder = job_inputs['output_folder']
-
-    # Download and prepare necessary files
-    print("process_lane.generate_qc_pdf_report job inputs: ")
-    print(job_inputs)
-    if 'mismatch_metrics' in job_inputs:
-        mismatch_stats_files = [download_file(mismatch_file) for mismatch_file in job_inputs['mismatch_metrics']]
-    interop_file = download_file(job_inputs['interop_file'])
-
-    tools_used_fn = create_tools_used_file(job_inputs['tools_used'])
-
-    # Merge the individual sample stats into one file.
-    samples_stats_json_files = [download_file(samples_stats_file) for samples_stats_file in job_inputs['samples_stats_json_files']]
-    samples_stats = [json.loads(open(input_json_file).read()) for input_json_file in samples_stats_json_files]
-    with open(SAMPLE_STATS_JSON_FN, 'w') as fh:
-        fh.write(json.dumps(samples_stats))
-
-    with open(RUN_DETAILS_JSON_FN, 'w') as fh:
-        fh.write(json.dumps(job_inputs['run_details']))
-
-    with open(BARCODES_JSON_FN, 'w') as fh:
-        fh.write(json.dumps(job_inputs['barcodes']))
-
-    # Now actually make the call to create the pdf.
-    ofn = job_inputs['run_details']['run_name'].replace(' ', '_') + '_qc_report.pdf'
-    cmd = 'python /create_pdf_reports.py '
-    if 'mismatch_metrics' in job_inputs:
-        cmd += '--mismatch_files {0} '.format(' '.join(mismatch_stats_files))
-    else:
-        cmd += '--basic '
-    cmd += '--interop {0} '.format(interop_file)
-    cmd += '--run_details {0} '.format(RUN_DETAILS_JSON_FN)
-    cmd += '--sample_stats {0} '.format(SAMPLE_STATS_JSON_FN)
-    cmd += '--barcodes {0} '.format(BARCODES_JSON_FN)
-    cmd += '--tools_used {0} '.format(tools_used_fn)
-    if job_inputs['paired_end']:
-        cmd += '--paired_end '
-    if job_inputs['mark_duplicates']:
-        cmd += '--collect_duplicate_info '
-    cmd += '--out_file {0} '.format(ofn)
-
-    print cmd
-    subprocess.check_call(cmd, shell=True)
-
-    qc_pdf_report = dxpy.upload_local_file(filename = ofn, 
-                                           project = output_project,
-                                           folder = output_folder,
-                                           parents = True
-                                          )
-    run_details_json_fid = dxpy.upload_local_file(filename = RUN_DETAILS_JSON_FN,
-                                                  project = output_project,
-                                                  folder = output_folder,
-                                                  parents = True
-                                                 )
-    barcodes_json_fid = dxpy.upload_local_file(filename = BARCODES_JSON_FN,
-                                               project = output_project,
-                                               folder = output_folder,
-                                               parents = True
-                                              )
-    sample_stats_json_fid = dxpy.upload_local_file(filename = SAMPLE_STATS_JSON_FN,
-                                                   project = output_project,
-                                                   folder = output_folder,
-                                                   parents = True
-                                                  )
-    #dashboard_record_object = app_utils.get_dashboard_record_object(job_inputs['dashboard_record_id'])
-    #props = dashboard_record_object.get_properties()
-    #props[conf.qcReportIdAttrName] = dxpy.PROJECT_CONTEXT_ID + ':' + qc_pdf_report.get_id()
-    #props[conf.pipelineStageAttrName] = conf.pipelineStageAttrValues["complete"]
-    #dashboard_record_object.set_properties(props)
-
-    return {
-            'qc_pdf_report': dxpy.dxlink(qc_pdf_report), 
-            'run_details_json': dxpy.dxlink(run_details_json_fid), 
-            'barcodes_json': dxpy.dxlink(barcodes_json_fid), 
-            'sample_stats_json': dxpy.dxlink(sample_stats_json_fid)
-           }
-
 @dxpy.entry_point("main")
-def main(record_dxid, applet_project, applet_build_version, output_folder, fastqs=None, bams=None, dashboard_project_dxid=None):
+def main(record_dxid, worker_id, worker_project, output_folder, fastqs=None, bams=None, dashboard_project_dxid=None):
 
     applet_folder = '/builds/%s' % applet_build_version
     lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, bams=bams, 
@@ -459,8 +379,8 @@ def main(record_dxid, applet_project, applet_build_version, output_folder, fastq
         
         qc_job_input = {'fastq_files': fastq_files,
                         'sample_name': barcode,
-                        'applet_project': applet_project,
-                        'applet_folder': applet_folder,
+                        'applet_id': worker_id,
+                        'applet_project': worker_project,
                         'output_folder': output_folder,
                         'output_project': lane.project_dxid,
                         'properties': None

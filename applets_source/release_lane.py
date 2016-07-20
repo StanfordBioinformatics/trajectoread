@@ -150,14 +150,6 @@ class FlowcellLane:
 
 		# Get LIMS info
 		if not self.lims_url or not self.lims_token:
-			#try:
-			#	lims_url = self.properties['lims_url']
-			#	lims_token = self.properties['lims_token']
-			#except:
-			#	warning = 'Warning: Could not add DX User ID to LIMS; could not get '
-			#	warning += 'LIMS URL/token information from DXRecord properties.'
-			#	print warning
-			#	return None
 			warning = 'Warning: Could not update LIMS pipeline run info.'
 			print warning
 			return None
