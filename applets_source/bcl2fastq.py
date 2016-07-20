@@ -54,10 +54,10 @@ class InputParameters:
         else:
             self.test_mode = params_dict['test_mode']
 
-        if not 'mismatches' in params_dict.keys():
+        if not 'barcode_mismatches' in params_dict.keys():
             self.mismatches = 1
         else:
-            self.mismatches = params_dict['mismatches']
+            self.mismatches = params_dict['barcode_mismatches']
 
         if not 'ignore_missing_stats' in params_dict.keys():
             self.ignore_missing_stats = True

@@ -1,5 +1,6 @@
 {
     "bcl2fastq": {
+        "type": "stand-alone",
         "external_rscs": [
             {
                 "name": "bcl2fastq", 
@@ -21,10 +22,13 @@
         }
     }, 
     "bwa_controller": {
+        "type": "controller",
+        "worker": "map_sample",
         "external_rscs": [], 
         "internal_rscs": {}
     }, 
     "generate_qc_report": {
+        "type": "stand-alone",
         "external_rscs": [
             {
                 "name": "pdf_reports", 
@@ -34,6 +38,8 @@
         "internal_rscs": {}
     }, 
     "map_sample": {
+        "type": "worker",
+        "controller": "bwa_controller",
         "external_rscs": [
             {
                 "name": "bwa", 
@@ -55,6 +61,8 @@
         "internal_rscs": {}
     }, 
     "qc_controller": {
+        "type": "controller",
+        "worker": "qc_sample",
         "external_rscs": [
             {
                 "name": "pdf_reports", 
@@ -64,6 +72,8 @@
         "internal_rscs": {}
     }, 
     "qc_sample": { 
+        "type": "worker",
+        "controller": "qc_controller",
         "external_rscs": [
             {
                 "name": "picard_tools", 
@@ -82,6 +92,7 @@
         }
     }, 
     "release_lane": {
+        "type": "stand-alone",
         "external_rscs": [], 
         "internal_rscs": {
             "python_packages": [
@@ -90,6 +101,7 @@
         }
     },
     "tar_results": {
+        "type": "stand-alone",
         "external_rscs": [],
         "internal_rscs": {}
     }

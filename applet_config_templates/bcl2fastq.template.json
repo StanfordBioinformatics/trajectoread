@@ -50,8 +50,8 @@
             "default": false
         },
         {
-            "name": "mismatches",
-            "label": "Mismatches",
+            "name": "barcode_mismatches",
+            "label": "Barcode Mismatches",
             "help": "Number of allowed mismatches",
             "class": "int",
             "optional": true,

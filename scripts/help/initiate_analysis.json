@@ -1,0 +1,43 @@
+{
+    "dashboard_project": "project-BY82j6Q0jJxgg986V16FQzjx",
+    "workflow_projects": {
+                            "production": "",
+                            "development": ""
+    },
+    "production_workflows": {
+                             "project_id": "",
+                             "SCGPM_bcl2fastq_bwa_qc_release": {
+                                                                "id": "",
+                                                                "operations": ["bcl2fastq", 
+                                                                               "bwa", 
+                                                                               "qc", 
+                                                                               "release"
+                                                                               ]
+                             },
+                             "SCGPM_bcl2fastq_qc_release": {
+                                                            "id": "",
+                                                            "operations": ["bcl2fastq", 
+                                                                           "qc", 
+                                                                           "release"
+                                                                           ]
+                             }
+    },
+    "development_workflows": {
+                              "project_id": "",
+                              "SCGPM_bcl2fastq_bwa_qc_release": {
+                                                                 "id": "",
+                                                                 "operations": ["bcl2fastq", 
+                                                                                "bwa", 
+                                                                                "qc", 
+                                                                                "release"
+                                                                                ]
+                              },
+                              "SCGPM_bcl2fastq_qc_release": {
+                                                             "id": "",
+                                                             "operations": ["bcl2fastq", 
+                                                                            "qc", 
+                                                                            "release"
+                                                                            ]
+                              }
+    }
+}

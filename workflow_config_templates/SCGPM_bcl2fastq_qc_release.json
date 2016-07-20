@@ -1,7 +1,7 @@
 {
     "applets": {
         "bcl2fastq": {
-            "dxid": "applet-BxVV9kj0fvF8KYYQkkGj3j0Q", 
+            "dxid": "", 
             "external_rscs": [
                 {
                     "name": "bcl2fastq", 
@@ -23,7 +23,7 @@
             }
         }, 
         "generate_qc_report": {
-            "dxid": "applet-BxVV9p00fvF09Xx7jkGb2YG9", 
+            "dxid": "", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -33,7 +33,7 @@
             "internal_rscs": {}
         }, 
         "qc_controller": {
-            "dxid": "applet-BxVV9p00fvFKgxfjqxGb6gKz", 
+            "dxid": "", 
             "external_rscs": [
                 {
                     "name": "pdf_reports", 
@@ -43,7 +43,7 @@
             "internal_rscs": {}
         }, 
         "qc_sample": {
-            "dxid": "applet-BxVV9jj0fvFKgxfjqxGb6gKx", 
+            "dxid": "", 
             "external_rscs": [
                 {
                     "name": "picard_tools", 
@@ -62,7 +62,7 @@
             }
         }, 
         "release_lane": {
-            "dxid": "applet-BxVV9g00fvF6qjyXfxGyQXbv", 
+            "dxid": "", 
             "external_rscs": [], 
             "internal_rscs": {
                 "python_packages": [
@@ -76,14 +76,17 @@
     "edit_version": 0, 
     "stages": {
         "0": {
-            "dxid": "stage-BxVV9pj0fvF945yxpkGvFQxv", 
-            "executable": "bcl2fastq", 
+            "dxid": "", 
+            "executable": "bcl2fastq",
+            "type": "stand-alone", 
             "folder": "stage0_bcl2fastq", 
             "input": {
-                "lane_data_tar": "", 
-                "metadata_tar": "", 
-                "output_folder": "", 
-                "record_dxid": ""
+                "lane_data_tar": "$dnanexus_link-lane_data_tar_id", 
+                "metadata_tar": "$dnanexus_link-metadata_tar_id", 
+                "output_folder": "/stage0_bcl2fastq", 
+                "record_dxid": "$record_dxid",
+                "test_mode": "$test_mode",
+                "barcode_mismatches": "$barcode_mismatches"
             }, 
             "linked_input": {}, 
             "name": "Demultiplex and bcl2fastq", 
@@ -93,17 +96,24 @@
             ]
         }, 
         "1": {
-            "dxid": "stage-BxVV9q80fvFKgxfjqxGb6gP1", 
+            "dxid": "", 
             "executable": "qc_controller", 
+            "type": "controller",
+            "worker_name": "qc_sample",
             "folder": "stage1_qc", 
             "input": {
-                "applet_build_version": "2016-06-16_v1.0-7-g546c0ad", 
-                "applet_project": "project-BvfQVV00fvF2504pyjXpxbPP", 
-                "record_dxid": ""
+                "worker_id": "", 
+                "worker_project": "",
+                "output_folder": "/stage1_qc",
             }, 
             "linked_input": {
+                "record_dxid": {
+                    "field": "input_field",
+                    "name": "record_dxid",
+                    "stage": "0"
+                },
                 "fastqs": {
-                    "field": "outputField", 
+                    "field": "output_field", 
                     "name": "fastqs", 
                     "stage": "0"
                 }
@@ -119,38 +129,45 @@
             ]
         }, 
         "2": {
-            "dxid": "stage-BxVV9qj0fvF6qjyXfxGyQXby", 
-            "executable": "generate_qc_report", 
+            "dxid": "", 
+            "executable": "generate_qc_report",
+            "type": "stand-alone", 
             "folder": "stage2_qc_report", 
             "input": {
-                "record_dxid": ""
+                "output_folder": "/stage2_qc_report",
+                "interop_tar": "$dnanexus_link-interop_tar_id"
             }, 
             "linked_input": {
+                "record_dxid": {
+                    "field": "input_field",
+                    "name": "record_dxid",
+                    "stage": "0"
+                },
                 "fastqs": {
-                    "field": "outputField", 
+                    "field": "output_field", 
                     "name": "fastqs", 
                     "stage": "0"
                 }, 
                 "mismatch_metrics": {
-                    "field": "outputField", 
+                    "field": "output_field", 
                     "name": "mismatch_metrics", 
                     "stage": "1"
                 }, 
                 "qc_stats_jsons": {
-                    "field": "outputField", 
+                    "field": "output_field", 
                     "name": "qc_stats_jsons", 
                     "stage": "1"
                 }, 
                 "tools_used": [
                     {
                         "executable": "bcl2fastq", 
-                        "field": "outputField", 
+                        "field": "output_field", 
                         "name": "tools_used", 
                         "stage": "0"
                     }, 
                     {
                         "executable": "qc_controller", 
-                        "field": "outputField", 
+                        "field": "output_field", 
                         "name": "tools_used", 
                         "stage": "1"
                     }
@@ -162,21 +179,19 @@
             ]
         }, 
         "3": {
-            "dxid": "stage-BxVV9vQ0fvF6qjyXfxGyQXbz", 
+            "dxid": "", 
             "executable": "release_lane", 
+            "type": "stand-alone",
             "folder": "", 
-            "input": {
-                "dx_user_id": "", 
-                "project_dxid": "", 
-                "release_note": "", 
-                "user_email": "", 
-                "user_first_name": "", 
-                "user_last_name": "", 
-                "viewers": ""
-            }, 
+            "input": {}, 
             "linked_input": {
+                "record_dxid": {
+                    "field": "input_field",
+                    "name": "record_dxid",
+                    "stage": "0"
+                },
                 "qc_pdf_report": {
-                    "field": "outputField", 
+                    "field": "output_field", 
                     "name": "qc_pdf_report", 
                     "stage": "2"
                 }
@@ -185,7 +200,8 @@
             "tools_used": []
         }
     }, 
-    "name": "wf_bcl2fastq_qc_release",
+    "name": "SCGPM_bcl2fastq_qc_release",
+    "status": "production",
     "workflow_dxid": "", 
     "workflow_project_dxid": ""
 }

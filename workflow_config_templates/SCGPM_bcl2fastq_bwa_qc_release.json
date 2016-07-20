@@ -251,7 +251,8 @@
             "tools_used": []
         }
     }, 
-    "name": "wf_bcl2fastq_bwa_qc_release",
+    "name": "SCGPM_bcl2fastq_bwa_qc_release",
+    "status": "production",
     "workflow_dxid": "", 
     "workflow_project_dxid": ""
 }
