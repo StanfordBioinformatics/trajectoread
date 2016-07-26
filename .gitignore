@@ -1,6 +1,6 @@
 
 # Ignore all builder log files
-builders/logs/*
+builder/logs/*
 
 # Ignore applet builds (deprecated)
 applets/*
