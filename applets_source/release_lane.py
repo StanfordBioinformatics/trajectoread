@@ -111,7 +111,11 @@ class FlowcellLane:
 		dxpy.api.project_update(self.release_project_dxid, {"description": text})
 
 	def clone_project(self, clone_project_name):
-		clone_properties = {'library_name': self.library_name}
+		clone_properties = {
+							'library_name': self.library_name,
+							'sequencing_run': self.run_name,
+							'sequencing_lane': self.lane_index
+						   }
 		clone_dx_project = dxpy.api.project_new({
 												 "name": clone_project_name,
 												 "properties": clone_properties
