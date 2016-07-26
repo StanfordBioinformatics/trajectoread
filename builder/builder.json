@@ -1,0 +1,36 @@
+{
+    "workflow_projects": {
+        "production": {
+                       "name": "SCGPM_Workflows_Production",
+                       "dxid": "project-BvfQQpj0x77XYQv2qvXy0Bfz"
+        },
+        "develop": {
+                    "name": "SCGPM_Workflows_Develop",
+                    "dxid": "project-BvfQVV00fvF2504pyjXpxbPP"
+        },
+        "hotfix": {
+                   "name": "SCGPM_Workflows_Hotfix",
+                   "dxid": "project-BvfQVx00YF3XYQv2qvXy0Bg0"
+        }
+    },
+    "external_rscs_project": {
+                              "name": "External Resources",
+                              "dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv"
+    },
+    "applet_projects": {
+        "production": {
+                "name": "SCGPM_Applets_Production",
+                "dxid": "project-Bvq5z8Q0PgK2bQVq6vkkKbv0"
+        },
+        "develop": {
+                    "name": "SCGPM_Applets_Develop",
+                    "dxid": "project-Bvq5y1Q0YxKg54Xf4j9fq94P"
+        },
+        "hotfix": {
+                    "name": "SCGPM_Applets_Hotfix",
+                    "dxid": "project-BvxgxYj0fb89PKx1xJVKvFjx"
+        }
+
+    },
+    "dnanexus_OS": "Ubuntu-12.04"
+} 

@@ -1,0 +1,108 @@
+{
+    "bcl2fastq": {
+        "type": "stand-alone",
+        "external_rscs": [
+            {
+                "name": "bcl2fastq", 
+                "version": "1.8.4"
+            }, 
+            {
+                "name": "bcl2fastq2", 
+                "version": "2.17.1.14"
+            }
+        ], 
+        "internal_rscs": {
+            "python_packages": [
+                "scgpm_lims"
+            ], 
+            "scripts": [
+                "create_sample_sheet.py", 
+                "calculate_use_bases_mask.py"
+            ]
+        }
+    }, 
+    "bwa_controller": {
+        "type": "controller",
+        "worker": "map_sample",
+        "external_rscs": [], 
+        "internal_rscs": {}
+    }, 
+    "generate_qc_report": {
+        "type": "stand-alone",
+        "external_rscs": [
+            {
+                "name": "pdf_reports", 
+                "version": "1.0"
+            }
+        ], 
+        "internal_rscs": {}
+    }, 
+    "map_sample": {
+        "type": "worker",
+        "controller": "bwa_controller",
+        "external_rscs": [
+            {
+                "name": "bwa", 
+                "version": "0.6.2"
+            }, 
+            {
+                "name": "bwa", 
+                "version": "0.7.7"
+            }, 
+            {
+                "name": "picard_tools", 
+                "version": "1.107"
+            }, 
+            {
+                "name": "samtools", 
+                "version": "0.1.19"
+            }
+        ], 
+        "internal_rscs": {}
+    }, 
+    "qc_controller": {
+        "type": "controller",
+        "worker": "qc_sample",
+        "external_rscs": [
+            {
+                "name": "pdf_reports", 
+                "version": "1.0"
+            }
+        ], 
+        "internal_rscs": {}
+    }, 
+    "qc_sample": { 
+        "type": "worker",
+        "controller": "qc_controller",
+        "external_rscs": [
+            {
+                "name": "picard_tools", 
+                "version": "1.107"
+            }, 
+            {
+                "name": "fastqc", 
+                "version": "0.10.1"
+            }
+        ], 
+        "internal_rscs": {
+            "c_programs": [
+                "bwa_mismatches", 
+                "collect_uniqueness_metrics"
+            ]
+        }
+    }, 
+    "release_lane": {
+        "type": "stand-alone",
+        "external_rscs": [], 
+        "internal_rscs": {
+            "python_packages": [
+                "scgpm_lims"
+            ]
+        }
+    },
+    "tar_results": {
+        "type": "stand-alone",
+        "external_rscs": [],
+        "internal_rscs": {}
+    }
+}
