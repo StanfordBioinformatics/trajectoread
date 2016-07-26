@@ -1,6 +1,0 @@
-2016-05-31 10:45:57,085 - build_applet - INFO - Applet path on DNAnexus will be: /1.0/develop
-2016-05-31 10:45:57,085 - build_applet - INFO - Creating resource managers
-2016-05-31 10:45:57,088 - build_applet - INFO - Loading applet resources config file: /Users/pbilling/Documents/GitHub/trajectoread/builders/applet_resources.json
-2016-05-31 10:45:57,094 - build_applet - INFO - Assembling applet tar_results locally
-2016-05-31 10:45:57,106 - build_applet - INFO - Adding applet resources
-2016-05-31 10:45:58,978 - build_applet - INFO - Build complete: tar_results applet id: {u'project': u'project-Bvq5y1Q0YxKg54Xf4j9fq94P', u'id': u'applet-Bx6vqXQ0YxKV4f2bKjzXzYQb'}
