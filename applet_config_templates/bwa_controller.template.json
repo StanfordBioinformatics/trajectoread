@@ -7,7 +7,7 @@
     "inputSpec": [
         {
             "name": "record_dxid",
-            "label": "Lane record ID",
+            "label": "SCGPM record ID",
             "help": "The DNAnexus ID of the dashboard record for the sequencing lane.",
             "class": "string",
             "optional": false

@@ -8,14 +8,14 @@
     "inputSpec": [
         {
             "name": "record_dxid",
-            "label": "Lane record dxid",
+            "label": "SCGPM record ID",
             "help": "The DNAnexus ID of the sequencing lane DXRecord.",
             "class": "string",
             "optional": false
         },
         {
             "name": "dashboard_project_dxid",
-            "label": "Dashboard project dxid",
+            "label": "Dashboard project ID",
             "help": "SCGPM Dashboard Data",
             "class": "string",
             "optional": true,
@@ -149,6 +149,12 @@
         "executionPolicy": {
             "restartOn": {
                 "*": 3
+            }
+        },
+        "timeoutPolicy": {
+            "*": {
+                "hours": 0,
+                "minutes": 5
             }
         },
         "distribution": "Ubuntu",

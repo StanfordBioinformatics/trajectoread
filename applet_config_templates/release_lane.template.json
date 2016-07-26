@@ -8,14 +8,14 @@
     "inputSpec": [	
         {
             "name": "record_dxid",
-            "label": "Lane record dxid",
+            "label": "SCGPM record ID",
             "help": "Dashboard record DXid of sequencing lane project",
             "class": "string",
             "optional": true
         },
         {
             "name": "project_dxid",
-            "label": "Project dxid",
+            "label": "Project ID",
             "help":  "The DXid of the project to be cloned and transferred to the 'recipient'.",
             "class": "string",
             "optional": true

@@ -9,7 +9,7 @@
     "inputSpec": [
         { 
             "name": "record_dxid",
-            "label": "Lane record dxid",
+            "label": "SCGPM record dxid",
             "class": "string",
             "optional": false
         },
