@@ -1,0 +1,99 @@
+{
+    "lims_url": "",
+    "lims_token": "",
+    "dashboard_records": {
+                           "project_id": "project-BY82j6Q0jJxgg986V16FQzjx",
+                           "project_name": ""
+    },
+    "reference_genomes": {
+                                  "project_id": "project-BJJ0GQQ09Vv5Q7GKYGzQ0066",
+                                  "project_name": ""
+    },
+    "production_workflows": {
+                             "SCGPM_bcl2fastq_bwa_qc_release": {
+                                                                "id": "",
+                                                                "json_file": "SCGPM_bcl2fastq_bwa_qc_release.json",
+                                                                "operations": ["bcl2fastq", 
+                                                                               "bwa", 
+                                                                               "qc", 
+                                                                               "release"
+                                                                               ],
+                                                                "project_id": "",
+                                                                "project_name": "SCGPM_Workflows_Production"
+                             },
+                             "SCGPM_bcl2fastq_qc_release": {
+                                                            "id": "",
+                                                            "json_file": "SCGPM_bcl2fastq_qc_release.json",
+                                                            "operations": ["bcl2fastq", 
+                                                                           "qc", 
+                                                                           "release"
+                                                                           ],
+                                                            "project_id": "",
+                                                            "project_name": "SCGPM_Workflows_Production"
+                             }
+    },
+    "development_workflows": {
+                              "project_id": "",
+                              "project_name": "SCGPM_Workflows_Develop",
+                              "SCGPM_bcl2fastq_bwa_qc_release": {
+                                                                 "id": "",
+                                                                 "json_file": "SCGPM_bcl2fastq_bwa_qc_release.json",
+                                                                 "operations": ["bcl2fastq", 
+                                                                                "bwa", 
+                                                                                "qc", 
+                                                                                "release"
+                                                                                ]
+                              },
+                              "SCGPM_bcl2fastq_qc_release": {
+                                                             "id": "",
+                                                             "json_file": "SCGPM_bcl2fastq_qc_release.json",
+                                                             "operations": ["bcl2fastq", 
+                                                                            "qc", 
+                                                                            "release"
+                                                                            ]
+                              }
+    },
+    "external_rscs_project": {
+                              "name": "External Resources",
+                              "dxid": "project-BkYXb580p6fv2VF8bjPYp2Qv"
+    },
+    "applet_projects": {
+        "production": {
+                "name": "SCGPM_Applets_Production",
+                "dxid": "project-Bvq5z8Q0PgK2bQVq6vkkKbv0"
+        },
+        "develop": {
+                    "name": "SCGPM_Applets_Develop",
+                    "dxid": "project-Bvq5y1Q0YxKg54Xf4j9fq94P"
+        },
+        "hotfix": {
+                    "name": "SCGPM_Applets_Hotfix",
+                    "dxid": "project-BvxgxYj0fb89PKx1xJVKvFjx"
+        }
+    },
+    "production_applets": {
+                           "project_id": "",
+                           "project_name": "SCGPM_Applets_Production",
+                           "bcl2fastq": "<ID>"
+    },
+    "development_applets": {
+                            "project_id": "",
+                            "project_name": "SCGPM_Applets_Develop",
+                            "bcl2fastq": "<ID>"
+    },
+    "dnanexus_OS": "Ubuntu-12.04",
+    "trajectoread_local_paths": {
+        "applets_source" : "$home/applets_source",
+        "external_rscs" : "$home/external_resources",
+        "internal_rscs" : "$home/internal_resources",
+        "applet_templates" : "$home/applet_config_templates",
+        "workflow_config_templates" : "$home/workflow_config_templates",
+        "launchpad" : "$home/launchpad",
+        "builder" : "$home/builder/logs",
+        
+        "build_json" : "$builder/builder.json",
+        "applet_rscs" : "$builder/applet_resources.json",
+        "internal_rscs_json" : "$internal_rscs/internal_resources.json",
+        "external_rscs_json" : "$external_rscs/$dnanexus_os/external_resources.json"
+    }
+} 
