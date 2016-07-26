@@ -75,7 +75,9 @@ class WorkflowBuild:
             applet = Applet(name = applet_name, 
                             version = self.current_version, 
                             path_list = path_list,
-                            logger = self.applet_logger
+                            logger = self.applet_logger,
+                            branch = self.branch,
+                            commit = self.commit
                             )
             self.workflow_logger.info('Applet initialized')
             # Add applet internal resources
@@ -410,6 +412,7 @@ class AppletBuild:
         self.project_key = self.environment['project_key']
         self.project_dxid = self.environment['project_dxid']
         self.branch = self.environment['git_branch']
+        self.commit = self.environment['git_commit']
         self.current_version = self.environment['version']
 
         # Logic for choosing applet path in DXProject; used by Applet:write_config_file()
@@ -428,7 +431,9 @@ class AppletBuild:
         self.logger.info('Assembling applet %s locally' % self.applet_name)
         self.applet = Applet(name = self.applet_name, 
                              version = self.current_version,
-                             path_list = path_list
+                             path_list = path_list,
+                             branch = self.branch,
+                             commit = self.commit
                              )
         
         self.logger.info('Adding applet resources')
@@ -499,7 +504,7 @@ class AppletBuild:
 
 class Applet:
 
-    def __init__(self, name, version, path_list, logger=None):
+    def __init__(self, name, version, path_list, branch, commit, logger=None):
         
         self.name = name
         self.version = version
@@ -511,8 +516,19 @@ class Applet:
                                            path_list = path_list,
                                            file_handle = True
                                            )
-        # DEV: Think I'm going to deprecate version_label; moving to project/folder model
-        self.version_label = get_version_label()
+        self.version_label = get_version_label()    # Used for Launchpad setup
+
+        # Create applet details
+        elements = self.version_label.split('_')
+        date = elements[0]
+        git_label = elements[1]
+        self.details = {
+                        'name': self.name,
+                        'branch': branch,
+                        'version': version,
+                        'commit': commit,
+                        'date_created': date,
+                       }
         
         self.internal_rscs = []     # Filled by self.add_rsc()
         self.bundled_depends = []   # External resources
@@ -571,7 +587,8 @@ class Applet:
                                        overwrite = True, 
                                        override_folder = folder_path, 
                                        override_name = self.name,
-                                       description = self.name
+                                       description = self.name,
+                                       details = self.details
                                       )
 
         # Get dxid of newly built applet
@@ -830,7 +847,7 @@ class PathList:
 
     def __init__(self):
         self.builder = os.path.dirname(os.path.abspath(__file__))
-        self.home = os.path.split(self.builders)[0]
+        self.home = os.path.split(self.builder)[0]
         self.dnanexus_os = 'Ubuntu-12.04'
         
         # Specify relative directory paths. Depends on 'self.home'
