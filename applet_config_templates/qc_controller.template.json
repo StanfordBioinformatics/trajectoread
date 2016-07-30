@@ -8,16 +8,11 @@
     "categories": [],
     "inputSpec": [
         { 
-            "name": "record_dxid",
+            "name": "record_id",
             "label": "SCGPM record ID",
+            "help": "Sequencing lane dashboard record in format: project-XXX:record-YYY",
             "class": "string",
             "optional": false
-        },
-        {
-            "name": "dashboard_project_dxid",
-            "label": "Dashboard project ID",
-            "class": "string",
-            "optional": true
         },
         {
             "name": "fastqs",

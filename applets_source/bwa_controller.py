@@ -20,44 +20,35 @@ import dxpy
 
 class FlowcellLane:
 
-    def __init__(self, record_dxid, fastqs=None, dashboard_project_dxid=None):
+    def __init__(self, record_id, fastqs=None):
 
-        self.dashboard_record_dxid = record_dxid
-        self.dashboard_project_dxid = dashboard_project_dxid
-        if not self.dashboard_project_dxid:
-            self.dashboard_project_dxid = 'project-BY82j6Q0jJxgg986V16FQzjx'
-
-        # Get reference genome information and dx references
-        self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
-                                              project = self.dashboard_project_dxid)
+        self.record_id = record_id
+        record_project = self.record_id.split(':')[0]
+        record_dxid = self.record_id.split(':')[1]
+        self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
         
         # Get record details
-        self.details = self.dashboard_record.get_details()
-        self.project_dxid = self.details['laneProject']
+        self.details = self.record.get_details()
+        self.project_id = self.details['laneProject']
         self.mapping_reference = self.details['mappingReference']
         self.lane_index = self.details['lane']
         self.run_name = self.details['run']
         self.run_date = self.run_name.split('_')[0]
-        #self.library_id = self.details['library_id']
-        #self.lane_id = self.details['lane_id']
+        self.library_id = self.details['library_id']
+        self.lane_id = self.details['lane_id']
         
         # Parse library name ("DL_set2_rep1 rcvd 1/4/16")
         library_label = self.details['library']
         elements = library_label.split('rcvd')
         library_name = elements[0].rstrip()
-        library_name = library_name.replace(' ', '-')
-        library_name = library_name.replace('_', '-')
-        library_name = library_name.replace('.', '-')
-        self.library_name = library_name
+        self.library_name = re.sub(r"[^a-zA-Z0-9]+", "-", library_name)
 
         # Get record properties
-        self.properties = self.dashboard_record.get_properties()    
+        self.properties = self.record.get_properties()    
         self.mapper = self.properties['mapper']
         self.reference_genome_dxid = self.properties['reference_genome_dxid']
         self.reference_index_dxid = self.properties['reference_index_dxid']
         self.flowcell_id = self.properties['flowcell_id']
-        self.library_id = self.properties['library_id']
-        self.lane_id = self.properties['lane_id']
 
         self.fastq_dxids = fastqs
 
@@ -74,7 +65,7 @@ class FlowcellLane:
         fastq_files_generator = dxpy.find_data_objects(classname = 'file', 
                                                        name = '*.fastq.gz', 
                                                        name_mode = 'glob', 
-                                                       project = self.project_dxid, 
+                                                       project = self.project_id, 
                                                        folder = '/'
                                                       )
         for fastq_dict in self.fastq_files_generator: 
@@ -193,7 +184,7 @@ class MapperApp:
         print 'DNAnexus app name: %s, version: %s, dxid: %s' % (self.name, self.version, self.dxid)
 
 @dxpy.entry_point("run_map_sample")
-def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file, 
+def run_map_sample(project_id, output_folder, fastq_files, genome_fasta_file, 
     genome_index_file, mapper, applet_id, applet_project, 
     fastq_files2=None, mark_duplicates=False, sample_name=None, properties=None):
     
@@ -218,7 +209,7 @@ def run_map_sample(project_dxid, output_folder, fastq_files, genome_fasta_file,
 
     print 'Running map_sample'
     mapper_input = {
-                    "project_dxid": project_dxid,
+                    "project_id": project_id,
                     "output_folder": output_folder,
                     "fastq_files": fastq_files,
                     "genome_fasta_file": dxpy.dxlink(genome_fasta_file),
@@ -290,7 +281,7 @@ def test_mapping():
         })
 
 @dxpy.entry_point("main")
-def main(record_dxid, worker_id, worker_project, fastqs, output_folder, dashboard_project_id=None, mark_duplicates=False):
+def main(record_id, worker_id, worker_project, fastqs, output_folder, mark_duplicates=False):
 
     output = {
               "bams": [],
@@ -298,9 +289,7 @@ def main(record_dxid, worker_id, worker_project, fastqs, output_folder, dashboar
               "tools_used": []
              }
              
-    lane = FlowcellLane(record_dxid = record_dxid, 
-                        fastqs = fastqs, 
-                        dashboard_project_dxid = dashboard_project_id)
+    lane = FlowcellLane(record_id=record_id, fastqs=fastqs)
     
     fastq_files = [dxpy.DXFile(item) for item in fastqs]
     sample_dict = group_files_by_barcode(fastq_files)
@@ -338,7 +327,7 @@ def main(record_dxid, worker_id, worker_project, fastqs, output_folder, dashboar
                                              barcode
                                             )
         map_sample_job = dxpy.new_dxjob(fn_input={
-                                                  "project_dxid": lane.project_dxid,
+                                                  "project_id": lane.project_id,
                                                   "output_folder": output_folder,
                                                   "fastq_files": fastq_files,
                                                   "fastq_files2": fastq_files2,

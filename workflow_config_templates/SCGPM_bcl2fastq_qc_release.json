@@ -84,7 +84,7 @@
                 "lane_data_tar": "$dnanexus_link-lane_data_tar_id", 
                 "metadata_tar": "$dnanexus_link-metadata_tar_id", 
                 "output_folder": "/stage0_bcl2fastq", 
-                "record_dxid": "$record_dxid",
+                "record_id": "$record_id",
                 "test_mode": "$test_mode",
                 "barcode_mismatches": "$barcode_mismatches"
             }, 
@@ -102,18 +102,14 @@
             "worker_name": "qc_sample",
             "folder": "stage1_qc", 
             "input": {
+                "record_id": "$record_id",
                 "worker_id": "", 
                 "worker_project": "",
-                "output_folder": "/stage1_qc",
+                "output_folder": "/stage1_qc"
             }, 
             "linked_input": {
-                "record_dxid": {
-                    "field": "input_field",
-                    "name": "record_dxid",
-                    "stage": "0"
-                },
                 "fastqs": {
-                    "field": "output_field", 
+                    "field": "outputField", 
                     "name": "fastqs", 
                     "stage": "0"
                 }
@@ -134,40 +130,36 @@
             "type": "stand-alone", 
             "folder": "stage2_qc_report", 
             "input": {
+                "record_id": "$record_id",
                 "output_folder": "/stage2_qc_report",
                 "interop_tar": "$dnanexus_link-interop_tar_id"
             }, 
             "linked_input": {
-                "record_dxid": {
-                    "field": "input_field",
-                    "name": "record_dxid",
-                    "stage": "0"
-                },
                 "fastqs": {
-                    "field": "output_field", 
+                    "field": "outputField", 
                     "name": "fastqs", 
                     "stage": "0"
                 }, 
                 "mismatch_metrics": {
-                    "field": "output_field", 
+                    "field": "outputField", 
                     "name": "mismatch_metrics", 
                     "stage": "1"
                 }, 
                 "qc_stats_jsons": {
-                    "field": "output_field", 
+                    "field": "outputField", 
                     "name": "qc_stats_jsons", 
                     "stage": "1"
                 }, 
                 "tools_used": [
                     {
                         "executable": "bcl2fastq", 
-                        "field": "output_field", 
+                        "field": "outputField", 
                         "name": "tools_used", 
                         "stage": "0"
                     }, 
                     {
                         "executable": "qc_controller", 
-                        "field": "output_field", 
+                        "field": "outputField", 
                         "name": "tools_used", 
                         "stage": "1"
                     }
@@ -183,15 +175,13 @@
             "executable": "release_lane", 
             "type": "stand-alone",
             "folder": "", 
-            "input": {}, 
+            "input": {
+                      "record_id": "$record_id",
+                      "develop": "$develop"
+            }, 
             "linked_input": {
-                "record_dxid": {
-                    "field": "input_field",
-                    "name": "record_dxid",
-                    "stage": "0"
-                },
                 "qc_pdf_report": {
-                    "field": "output_field", 
+                    "field": "outputField", 
                     "name": "qc_pdf_report", 
                     "stage": "2"
                 }

@@ -17,29 +17,22 @@ TOOLS_USED_TXT_FN = 'tools_used.txt'
 
 class FlowcellLane:
 
-    def __init__(self, record_dxid, fastqs=None, interop_tar=None, dashboard_project_dxid=None):
+    def __init__(self, record_id):
 
-        self.dashboard_record_dxid = record_dxid
-        self.dashboard_project_dxid = dashboard_project_dxid
-        if not self.dashboard_project_dxid:
-            self.dashboard_project_dxid = 'project-BY82j6Q0jJxgg986V16FQzjx'
-        self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
-                                              project = self.dashboard_project_dxid
-                                             )
-
-        self.fastq_dxids = fastqs
-        self.interop_dxid = interop_tar
-        self.samples_dicts = None
+        self.record_id = record_id
+        record_project = self.record_id.split(':')[0]
+        record_dxid = self.record_id.split(':')[1]
+        self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
 
         # Get relevant dashboard details
-        self.details = self.dashboard_record.get_details()
+        self.details = self.record.get_details()
         self.run_name = self.details['run']
         self.lane_index = self.details['lane']
         self.library_name = self.details['library']
         self.project_dxid = self.details['laneProject']
 
         # Get relevant dashboard properties
-        self.properties = self.dashboard_record.get_properties()
+        self.properties = self.record.get_properties()
         self.flowcell_id = self.properties['flowcell_id']
         self.lab_name = self.properties['lab_name']
         self.operator = 'None'     # Still need to grab this info
@@ -55,26 +48,27 @@ class FlowcellLane:
             self.reference_genome = self.details['mappingReference']
    
     def update_status(self, status):
+        ## DEV: Not in use
         status_options = ['uploading', 'running_pipeline', 'running_casava', 'ready',
-                          'reviewing', 'released'
-                         ]
+                          'reviewing', 'released']
         if not status in status_options:
             print "Lane status: \"%s\" not a valid status option." % status
             print "Valid status options:"
             print status_options
         else:
             properties = {'status': status}
-            dxpy.api.record_set_properties(object_id = self.dashboard_record_dxid, 
+            dxpy.api.record_set_properties(object_id = self.record.id, 
                                            input_params = {
-                                                           'project': self.dashboard_project_dxid,
+                                                           'project': self.record.project,
                                                            'properties': properties
                                                           }
                                           )
+
     def update_properties(self, properties):
         if isinstance(properties, dict):
-            dxpy.api.record_set_properties(object_id = self.dashboard_record_dxid, 
+            dxpy.api.record_set_properties(object_id = self.record.id, 
                                            input_params = {
-                                                           'project': self.dashboard_project_dxid,
+                                                           'project': self.record.project,
                                                            'properties': properties
                                                           }
                                           )
@@ -163,12 +157,10 @@ def group_files_by_barcode(barcoded_files):
     return sample_dict
 
 @dxpy.entry_point("main")
-def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop_tar, 
-         mismatch_metrics=[], paired_end=True, mark_duplicates=False, 
-         dashboard_project_dxid=None):
+def main(record_id, output_folder, qc_stats_jsons, tools_used, fastqs, interop_tar, 
+         mismatch_metrics=[], paired_end=True, mark_duplicates=False):
 
-    lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, interop_tar=interop_tar, 
-                        dashboard_project_dxid=dashboard_project_dxid)
+    lane = FlowcellLane(record_id=record_id)
     
     # Now handle the generation of the QC PDF report.
     run_details = {'run_name': lane.run_name,
@@ -183,7 +175,6 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
     output_project = lane.project_dxid
 
     # Download and prepare necessary files
-    #if mismatch_metrics != None:
     if len(mismatch_metrics) > 0:
         mismatch_stats_files = [download_file(mismatch_file) for mismatch_file in mismatch_metrics]
     
@@ -263,5 +254,6 @@ def main(record_dxid, output_folder, qc_stats_jsons, tools_used, fastqs, interop
                   'qcReportID': '%s:%s' % (qc_pdf_report.project, qc_pdf_report.id),
                   'analysis_finished': 'true'
                  }
-    lane.update_properties(properties)
+    #lane.update_properties(properties)
+    lane.record.set_properties(properties)
     return output

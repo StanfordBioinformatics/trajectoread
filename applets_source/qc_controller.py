@@ -29,32 +29,22 @@ TOOLS_USED_TXT_FN = 'tools_used.txt'
 
 class FlowcellLane:
 
-    def __init__(self, record_dxid, fastqs=None, bams=None, bais=None, 
-                    interop_tar=None, dashboard_project_dxid=None):
+    def __init__(self, record_id):
 
-        self.dashboard_record_dxid = record_dxid
-        self.dashboard_project_dxid = dashboard_project_dxid
-        if not self.dashboard_project_dxid:
-            self.dashboard_project_dxid = 'project-BY82j6Q0jJxgg986V16FQzjx'
-        self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
-                                              project = self.dashboard_project_dxid
-                                             )
-
-        self.fastq_dxids = fastqs
-        self.bam_dxids = bams
-        self.bai_dxids = bais
-        self.interop_dxid = interop_tar
-        self.samples_dicts = None
+        self.record_id = record_id
+        record_project = self.record_id.split(':')[0]
+        record_dxid = self.record_id.split(':')[1]
+        self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
 
         # Get relevant dashboard details
-        self.details = self.dashboard_record.get_details()
+        self.details = self.record.get_details()
         self.run_name = self.details['run']
         self.lane_index = self.details['lane']
         self.library_name = self.details['library']
-        self.project_dxid = self.details['laneProject']
+        self.project_id = self.details['laneProject']
 
         # Get relevant dashboard properties
-        self.properties = self.dashboard_record.get_properties()
+        self.properties = self.record.get_properties()
         self.flowcell_id = self.properties['flowcell_id']
         self.lab_name = self.properties['lab_name']
         self.operator = 'None'     # Still need to grab this info
@@ -71,6 +61,7 @@ class FlowcellLane:
 
     def find_fastq_files(self):
         '''
+        DEPRECATED 7/29/2016
         Description: Returns a dict of all fastq files in the lane project;
         key = fastq filename, 
         value = fastq dxid
@@ -80,7 +71,7 @@ class FlowcellLane:
         '''
         fastq_dxids = []
         fastq_files_generator = dxpy.find_data_objects(classname='file', 
-            name='*.fastq.gz', name_mode='glob', project=self.project_dxid, 
+            name='*.fastq.gz', name_mode='glob', project=self.project_id, 
             folder='/')
         for fastq_dict in self.fastq_files_generator: 
             fastq_dxid = fastq_dict['id']
@@ -88,12 +79,12 @@ class FlowcellLane:
         return fastq_dxids 
 
     def find_interop_file(self):
-
+        ''' DERECATED '''
         interop_name = '%s.InterOp.tar.gz' % self.run_name
         interop_file = dxpy.find_one_data_object(classname = 'file',
                                                  name = interop_name, 
                                                  name_mode = 'exact', 
-                                                 project = self.project_dxid,
+                                                 project = self.project_id,
                                                  folder = '/', 
                                                  zero_ok = False, 
                                                  more_ok = True
@@ -101,12 +92,13 @@ class FlowcellLane:
         return interop_file['id']
 
     def find_bam_files(self):
-        ''' DEV: add functionality to also find BAI files
+        ''' DEV: DEPRECATED
+                 add functionality to also find BAI files
         '''
 
         bam_dxids = []
         bam_files_generator = dxpy.find_data_objects(classname='file',
-            name='*.bam', name_mode='glob', project=self.project_dxid,
+            name='*.bam', name_mode='glob', project=self.project_id,
             folder='/')
         bam_files = list(bam_files_generator)
         
@@ -121,6 +113,7 @@ class FlowcellLane:
         
     def set_sample_files(self):
         '''
+        DEPRECATED
         Description: Returns a dict of sample fastq files; 
         key = barcode/index, 
         value = dict of fastq dxids;
@@ -163,9 +156,9 @@ class FlowcellLane:
             print status_options
         else:
             properties = {'status': status}
-            dxpy.api.record_set_properties(object_id = self.dashboard_record_dxid, 
+            dxpy.api.record_set_properties(object_id = self.dashboard_record_id, 
                                            input_params = {
-                                                           'project': self.dashboard_project_dxid,
+                                                           'project': self.dashboard_project_id,
                                                            'properties': properties
                                                           }
                                           )
@@ -335,11 +328,9 @@ def qc_sample(fastq_files, sample_name, applet_id, applet_project, output_projec
     return output
 
 @dxpy.entry_point("main")
-def main(record_dxid, worker_id, worker_project, output_folder, fastqs=None, bams=None, dashboard_project_dxid=None):
+def main(record_id, worker_id, worker_project, output_folder, fastqs, bams=None):
 
-    applet_folder = '/builds/%s' % applet_build_version
-    lane = FlowcellLane(record_dxid=record_dxid, fastqs=fastqs, bams=bams, 
-                        dashboard_project_dxid=dashboard_project_dxid)
+    lane = FlowcellLane(record_id=record_id)
 
     output = {
               "alignment_summary_metrics": [], 
@@ -364,14 +355,10 @@ def main(record_dxid, worker_id, worker_project, output_folder, fastqs=None, bam
         fastq_files2 = None
 
         if "1" in read_dict and "2" in read_dict:
-            # Sample is paired; there should be no files without a 'read'
-            # property of "1" or "2"
-            #fastq_files = [dxpy.dxlink(item) for item in read_dict["1"]]
+            # Paired-end sample
             fastq_files = read_dict['1']
-            #fastq_files2 = [dxpy.dxlink(item) for item in read_dict["2"]]
             fastq_files2 = read_dict['2']
         else:
-            #fastq_files = [dxpy.dxlink(item) for item in fastq_files]
             fastq_files = read_dict['1']
 
         print("fastq_files: {}".format(fastq_files))
@@ -382,7 +369,7 @@ def main(record_dxid, worker_id, worker_project, output_folder, fastqs=None, bam
                         'applet_id': worker_id,
                         'applet_project': worker_project,
                         'output_folder': output_folder,
-                        'output_project': lane.project_dxid,
+                        'output_project': lane.project_id,
                         'properties': None
                         }
         # Optional qc job inputs
@@ -400,9 +387,18 @@ def main(record_dxid, worker_id, worker_project, output_folder, fastqs=None, bam
                 qc_job_input['bam_file'] = bam_dict[barcode][0] # sample dict is only fastq files
         qc_job = dxpy.new_dxjob(fn_input=qc_job_input, fn_name="run_qc_sample")
    
-        output["fastqc_reports"].append({"job": qc_job.get_id(), "field": "fastqc_reports"})
-        output["qc_stats_jsons"].append({"job": qc_job.get_id(), "field": "qc_json_file"})
-        output["tools_used"].append({"job": qc_job.get_id(), "field": "tools_used"})
+        output["fastqc_reports"].append({
+                                         "job": qc_job.get_id(), 
+                                         "field": "fastqc_reports"
+                                        })
+        output["qc_stats_jsons"].append({
+                                         "job": qc_job.get_id(), 
+                                         "field": "qc_json_file"
+                                        })
+        output["tools_used"].append({
+                                     "job": qc_job.get_id(), 
+                                     "field": "tools_used"
+                                    })
 
         if bams != None:
             if lane.reference_genome != None:
@@ -416,8 +412,7 @@ def main(record_dxid, worker_id, worker_project, output_folder, fastqs=None, bam
                     error = 'Error: Could not get insert size metrics for %s. ' % barcode
                     error += 'Check distribution of FR vs RF orientation reads in sample. '
                     error += 'May need to increase MINIMUM_PCT option.'
-                    print error
-                
+                    print error             
     return output
 
 

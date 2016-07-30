@@ -6,19 +6,18 @@
     "version": "0.1.0",
     "inputSpec": [
         {
-            "name": "record_dxid",
+            "name": "record_id",
             "label": "SCGPM record ID",
-            "help": "The DNAnexus ID of the dashboard record for the sequencing lane.",
+            "help": "Sequencing lane dashboard record in format: project-XXX:record-YYY",
             "class": "string",
             "optional": false
         },
         {
-            "name": "dashboard_project_id",
-            "label": "Dashboard project ID",
-            "help": "SCGPM Dashboard Data project dxid.",
+            "name": "output_folder",
+            "label": "Output folder",
             "class": "string",
-            "default": "project-BY82j6Q0jJxgg986V16FQzjx",
-            "optional": true
+            "default": "/stage1_bwa",
+            "optional": false
         },
         {
             "name": "worker_id",
@@ -47,13 +46,6 @@
             "default": false,
             "optional": true
 
-        },
-        {
-            "name": "output_folder",
-            "label": "Output Folder",
-            "class": "string",
-            "default": "/stage1_bwa",
-            "optional": false
         }
     ],
     "outputSpec": [

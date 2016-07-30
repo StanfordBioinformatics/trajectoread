@@ -7,19 +7,11 @@
     "version": "0.1.0",
     "inputSpec": [
         {
-            "name": "record_dxid",
+            "name": "record_id",
             "label": "SCGPM record ID",
-            "help": "The DNAnexus ID of the sequencing lane DXRecord.",
+            "help": "Sequencing lane dashboard record in format: project-XXX:record-YYY",
             "class": "string",
             "optional": false
-        },
-        {
-            "name": "dashboard_project_dxid",
-            "label": "Dashboard project ID",
-            "help": "SCGPM Dashboard Data",
-            "class": "string",
-            "optional": true,
-            "default": "project-BY82j6Q0jJxgg986V16FQzjx"
         },
         {
             "name": "lane_data_tar",
@@ -149,12 +141,6 @@
         "executionPolicy": {
             "restartOn": {
                 "*": 3
-            }
-        },
-        "timeoutPolicy": {
-            "*": {
-                "hours": 0,
-                "minutes": 5
             }
         },
         "distribution": "Ubuntu",

@@ -34,7 +34,7 @@ class InputParameters:
         '''
         
         # Required parameters
-        self.record_dxid = params_dict['record_dxid']
+        self.record_id = params_dict['record_id']
         self.lane_data_tar = params_dict['lane_data_tar']
         self.metadata_tar = params_dict['metadata_tar']
 
@@ -43,11 +43,6 @@ class InputParameters:
             self.output_folder = '/stage_bcl2fastq'
         else:
             self.output_folder = params_dict['output_folder']
-
-        if not 'dashboard_project_dxid' in params_dict.keys():
-            self.dashboard_project_dxid = 'project-BY82j6Q0jJxgg986V16FQzjx'
-        else:
-            self.dashboard_project_dxid = params_dict['dashboard_project_dxid']
 
         if not 'test_mode' in params_dict.keys():
             self.test_mode = False
@@ -91,17 +86,18 @@ class InputParameters:
 
 class FlowcellLane:
     
-    def __init__(self, dashboard_record_dxid, dashboard_project_dxid):
+    def __init__(self, record_id):
         
-        self.dashboard_record_dxid = dashboard_record_dxid 
-        self.dashboard_project_dxid = dashboard_project_dxid
-        self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
-                                              project = self.dashboard_project_dxid)
-        self.properties = self.dashboard_record.get_properties()
-        self.details = self.dashboard_record.get_details()
+        self.record_id = record_id
+        record_project = self.record_id.split(':')[0]
+        record_dxid = self.record_id.split(':')[1]
+        self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
+        
+        self.properties = self.record.get_properties()
+        self.details = self.record.get_details()
 
         # Details (Used for Dashboard information)
-        self.lane_project_dxid = self.details['laneProject']
+        self.lane_project_id = self.details['laneProject']
         self.run_name = self.details['run']
         self.run_date = self.run_name.split('_')[0]
         self.lane_index = int(self.details['lane'])
@@ -121,7 +117,7 @@ class FlowcellLane:
         self.flowcell_id = self.properties['flowcell_id']
         self.seq_instrument = self.properties['seq_instrument']
 
-        self.lane_project = dxpy.DXProject(dxid = self.lane_project_dxid)
+        self.lane_project = dxpy.DXProject(dxid = self.lane_project_id)
         self.home = os.getcwd()
 
         self.sample_sheet = None
@@ -160,10 +156,10 @@ class FlowcellLane:
 
         # ('file-dxid', 'project-dxid') = dxpy.get_dxlink_ids(dxlink)
         file_dxid = dxpy.get_dxlink_ids(tar_file_dxlink)[0]
-        project_dxid = dxpy.get_dxlink_ids(tar_file_dxlink)[1]
+        project_id = dxpy.get_dxlink_ids(tar_file_dxlink)[1]
 
         # Download file from DNAnexus objectstore to virtual machine
-        dxpy.download_dxfile(dxid=file_dxid, filename=filename, project=project_dxid)
+        dxpy.download_dxfile(dxid=file_dxid, filename=filename, project=project_id)
 
         # Untar file
         ## DEV: Check if this is even in use anymore; also should have some method for 
@@ -203,7 +199,7 @@ class FlowcellLane:
         lane_html_file = dxpy.upload_local_file(filename = report_html_file,
                                                 name =  lane_html_name,
                                                 properties = properties, 
-                                                project = self.lane_project_dxid, 
+                                                project = self.lane_project_id, 
                                                 folder = misc_subfolder, 
                                                 parents = True
                                                )
@@ -244,7 +240,7 @@ class FlowcellLane:
                         shutil.move(filename, fastq_name_v2)
                     fastq_file = dxpy.upload_local_file(filename = fastq_name_v2, 
                                                         properties = properties, 
-                                                        project = self.lane_project_dxid, 
+                                                        project = self.lane_project_id, 
                                                         folder = fastqs_subfolder, 
                                                         parents = True)
                     fastq_files.append(dxpy.dxlink(fastq_file))
@@ -279,7 +275,7 @@ class FlowcellLane:
                         shutil.move(filename, fastq_name_v2)
                     fastq_file = dxpy.upload_local_file(filename = fastq_name_v2, 
                                                         properties = properties, 
-                                                        project = self.lane_project_dxid, 
+                                                        project = self.lane_project_id, 
                                                         folder = fastqs_subfolder, 
                                                         parents = True)
                     fastq_files.append(dxpy.dxlink(fastq_file))
@@ -310,7 +306,7 @@ class FlowcellLane:
                         shutil.move(filename, fastq_name_v2)
                     fastq_file = dxpy.upload_local_file(filename = fastq_name_v2, 
                                                         properties = properties, 
-                                                        project = self.lane_project_dxid, 
+                                                        project = self.lane_project_id, 
                                                         folder = fastqs_subfolder, 
                                                         parents = True)
                     fastq_files.append(dxpy.dxlink(fastq_file))
@@ -351,7 +347,7 @@ class FlowcellLane:
         #      Also, maybe add it to output?
         dxpy.upload_local_file(filename = self.sample_sheet, 
                                properties = None, 
-                               project = self.lane_project_dxid, 
+                               project = self.lane_project_id, 
                                folder = misc_subfolder, 
                                parents = True
                               )
@@ -385,12 +381,11 @@ class FlowcellLane:
         else:
             # Add flowcell ID as a record property
             input_params = {
-                            'project': self.dashboard_project_dxid, 
+                            'project': self.record.project, 
                             'properties': {'flowcell_id': self.flowcell_id}
                            }
             print input_params
-            print self.dashboard_record_dxid
-            dxpy.api.record_set_properties(object_id = self.dashboard_record_dxid,
+            dxpy.api.record_set_properties(object_id = self.record.id,
                                            input_params = input_params)
             return self.flowcell_id
 
@@ -417,7 +412,7 @@ class FlowcellLane:
             OUT.write(self.use_bases_mask)
         dxpy.upload_local_file(filename = use_bases_mask_file, 
                                properties = None, 
-                               project = self.lane_project_dxid, 
+                               project = self.lane_project_id, 
                                folder = misc_subfolder, 
                                parents = True)
         return self.use_bases_mask
@@ -729,8 +724,7 @@ def main(**applet_input):
     params = InputParameters(applet_input)
     tools_used_dict = {'name': 'Bcl to Fastq Conversion and Demultiplexing', 'commands': []}
 
-    lane = FlowcellLane(dashboard_record_dxid = params.record_dxid,
-                        dashboard_project_dxid = params.dashboard_project_dxid)
+    lane = FlowcellLane(record_id=params.record_id)
     lane.describe()
     
     print 'Downloading lane data'
@@ -769,7 +763,7 @@ def main(**applet_input):
     misc_subfolder = params.output_folder + '/miscellany'
     tools_used_id = dxpy.upload_local_file(filename = tools_used_file, 
                            properties = None, 
-                           project = lane.lane_project_dxid, 
+                           project = lane.lane_project_id, 
                            folder = misc_subfolder, 
                            parents = True
                           )

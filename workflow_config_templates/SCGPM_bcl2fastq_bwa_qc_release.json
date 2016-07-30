@@ -108,10 +108,12 @@
             "type": "stand-alone",
             "folder": "stage0_bcl2fastq", 
             "input": {
-                "lane_data_tar": "", 
-                "metadata_tar": "", 
-                "output_folder": "", 
-                "record_dxid": ""
+                "lane_data_tar": "$dnanexus_link-lane_data_tar_id", 
+                "metadata_tar": "$dnanexus_link-metadata_tar_id", 
+                "output_folder": "/stage0_bcl2fastq", 
+                "record_id": "$record_id",
+                "test_mode": "$test_mode",
+                "barcode_mismatches": "$barcode_mismatches"
             }, 
             "linked_input": {}, 
             "name": "Demultiplex and bcl2fastq", 
@@ -127,9 +129,10 @@
             "worker_name": "map_sample",
             "folder": "stage1_bwa", 
             "input": { 
+                "record_id": "$record_id",
                 "worker_id": "", 
                 "worker_project": "",
-                "record_dxid": ""
+                "output_folder": "/stage1_bwa"
             }, 
             "linked_input": {
                 "fastqs": {
@@ -151,11 +154,11 @@
             "type": "controller",
             "worker_name": "qc_sample",
             "folder": "stage2_qc", 
-            "input": {
-                "applet_build_version": "", 
+            "input": { 
+                "record_id": "$record_id",
                 "worker_id": "", 
                 "worker_project": "",
-                "record_dxid": ""
+                "output_folder": "/stage2_qc"
             }, 
             "linked_input": {
                 "bams": {
@@ -185,7 +188,8 @@
             "type": "stand-alone",
             "folder": "stage3_qc_report", 
             "input": {
-                "record_dxid": ""
+                "record_id": "$record_id",
+                "output_folder": "/stage3_qc_report"
             }, 
             "linked_input": {
                 "fastqs": {
@@ -232,13 +236,7 @@
             "type": "stand-alone",
             "folder": "", 
             "input": {
-                "dx_user_id": "", 
-                "project_dxid": "", 
-                "release_note": "", 
-                "user_email": "", 
-                "user_first_name": "", 
-                "user_last_name": "", 
-                "viewers": ""
+                      "record_id": "$record_id"
             }, 
             "linked_input": {
                 "qc_pdf_report": {

@@ -8,17 +8,11 @@
     "categories": [],
     "inputSpec": [
         { 
-            "name": "record_dxid",
-            "label": "SCGPM record dxid",
+            "name": "record_id",
+            "label": "SCGPM record ID",
+            "help": "Sequencing lane dashboard record in format: project-XXX:record-YYY",
             "class": "string",
             "optional": false
-        },
-        {
-            "name": "dashboard_project_dxid",
-            "label": "Dashboard Project dxid",
-            "class": "string",
-            "default": "project-BY82j6Q0jJxgg986V16FQzjx",
-            "optional": true
         },
         {
             "name": "output_folder",
@@ -72,6 +66,7 @@
             "name": "mark_duplicates",
             "label": "Mark Duplicates",
             "class": "boolean",
+            "default": false,
             "optional": true
         }
     ],

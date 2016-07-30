@@ -7,14 +7,14 @@
     "categories": [],
     "inputSpec": [	
         {
-            "name": "record_dxid",
+            "name": "record_id",
             "label": "SCGPM record ID",
-            "help": "Dashboard record DXid of sequencing lane project",
+            "help": "Sequencing lane dashboard record in format: project-XXX:record-YYY",
             "class": "string",
             "optional": true
         },
         {
-            "name": "project_dxid",
+            "name": "project_id",
             "label": "Project ID",
             "help":  "The DXid of the project to be cloned and transferred to the 'recipient'.",
             "class": "string",
@@ -93,6 +93,14 @@
             "help": "Authorization token for accessing LIMS",
             "class": "string",
             "optional": true
+        },
+        {
+            "name": "develop",
+            "label": "Development",
+            "help": "Flag to mark analysis for development purposes only",
+            "class": "boolean",
+            "default": false,
+            "optional" : false
         }
     ],
     "outputSpec": [],
@@ -106,11 +114,6 @@
             }
         },
         "restartableEntryPoints": "all",
-        "executionPolicy": {
-            "restartOn": {
-                "*": 3
-            }
-        },
         "distribution": "Ubuntu",
         "release": "12.04"
     },
