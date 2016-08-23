@@ -382,6 +382,7 @@ class LaneAnalysis:
                           'status': 'running_pipeline',
                           'library_id': str(self.lane_info['dna_library_id']),
                           'lane_id': str(self.lane_info['id']),
+                          ## NEW STUFF ##r
                           'billing_account': <REFERENCE>,
                           'experiment_type': <REFERENCE>,
                           'organism': <REFERENCE>,
