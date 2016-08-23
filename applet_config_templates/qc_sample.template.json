@@ -120,17 +120,6 @@
                 "instanceType": "mem1_ssd2_x4"
             }
         },
-        "restartableEntryPoints": "all",
-        "executionPolicy": {
-            "restartOn": {
-                "*": 3
-            }
-        },
-        "timeoutPolicy": {
-            "*":{
-                "minutes": 1
-            }
-        },
         "distribution": "Ubuntu",
         "release": "12.04"
     },

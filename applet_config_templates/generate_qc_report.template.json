@@ -113,13 +113,7 @@
             "*": {
                 "instanceType": "mem1_ssd1_x2"
             }
-        },
-        "restartableEntryPoints": "all",
-        "executionPolicy": {
-            "restartOn": {
-                "*": 3
-            }
-        },
+        },  
         "distribution": "Ubuntu",
         "release": "12.04"
     },

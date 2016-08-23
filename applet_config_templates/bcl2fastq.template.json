@@ -137,17 +137,6 @@
                 "instanceType": "mem1_ssd1_x16"
             }
         },
-        "restartableEntryPoints": "all",
-        "executionPolicy": {
-            "restartOn": {
-                "*": 3
-            }
-        },
-        "timeoutPolicy": {
-            "*":{
-                "minutes": 1
-            }
-        },
         "distribution": "Ubuntu",
         "release": "12.04"
     },

@@ -88,7 +88,7 @@ class FlowcellLane:
     
     def __init__(self, record_id):
         
-        self.record_id = record_id
+        self.record_id = record_id.strip()
         record_project = self.record_id.split(':')[0]
         record_dxid = self.record_id.split(':')[1]
         self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
@@ -114,7 +114,6 @@ class FlowcellLane:
         self.lims_url = self.properties['lims_url']
         self.lims_token = self.properties['lims_token']
         self.rta_version = self.properties['rta_version']
-        self.flowcell_id = self.properties['flowcell_id']
         self.seq_instrument = self.properties['seq_instrument']
 
         self.lane_project = dxpy.DXProject(dxid = self.lane_project_id)
@@ -124,6 +123,7 @@ class FlowcellLane:
         self.output_dir = None
         self.bcl2fastq_version = None
         self.lane_barcode = None
+        self.flowcell_id = None
 
         # Choose bcl2fastq version based on rta_version
         ## DEV: Update version to match official documentation: i.e. 1.18.54 or later
@@ -222,10 +222,11 @@ class FlowcellLane:
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.run_date,
-                                                                        self.library_name, 
-                                                                        self.flowcell_id,  
-                                                                        barcode, 
+                    fastq_name_v2 = 'SCGPM_%s_%s_%s_L%d_%s_R%d.fastq.gz' % (self.run_date,
+                                                                        self.library_name,
+                                                                        self.flowcell_id,
+                                                                        self.lane_index,
+                                                                        barcode,
                                                                         int(read_index)
                                                                        )
                     properties = {'barcode': barcode,
@@ -257,9 +258,10 @@ class FlowcellLane:
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.run_date,
+                    fastq_name_v2 = 'SCGPM_%s_%s_%s_L%d_%s_R%d.fastq.gz' % (self.run_date,
                                                                         self.library_name, 
-                                                                        self.flowcell_id,    
+                                                                        self.flowcell_id,
+                                                                        self.lane_index,  
                                                                         barcode, 
                                                                         int(read_index)
                                                                        )
@@ -288,9 +290,10 @@ class FlowcellLane:
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.run_date,
+                    fastq_name_v2 = 'SCGPM_%s_%s_%s_L%d_%s_R%d.fastq.gz' % (self.run_date,
                                                                         self.library_name, 
-                                                                        self.flowcell_id, 
+                                                                        self.flowcell_id,
+                                                                        self.lane_index,
                                                                         barcode, 
                                                                         int(read_index)
                                                                        )
@@ -604,7 +607,7 @@ class FlowcellLane:
         elif len(elements) == 4:
             lane = elements[1]
             read = elements[2]
-            barcode = 'noBarcode'
+            barcode = 'unmatched'
 
             lane_index_match = re.match(r'L00(\d)', lane)
             if lane_index_match:
@@ -689,7 +692,7 @@ class FlowcellLane:
             # No barcode : Undetermined_S1_L001_R1_001.fastq.gz
             lane = elements[2]
             read = elements[3]
-            barcode = 'noBarcode'
+            barcode = 'unmatched'
 
             lane_index_match = re.match(r'L00(\d)', lane)
             if lane_index_match:
@@ -734,8 +737,8 @@ def main(**applet_input):
     print 'Creating sample sheet\n'
     lane.create_sample_sheet(params.output_folder)
 
-    #print 'Parsing sample sheet to get flowcell ID'
-    #lane.get_flowcell_id()
+    print 'Parsing sample sheet to get flowcell ID'
+    lane.get_flowcell_id()
     
     print 'Get use bases mask\n'
     lane.get_use_bases_mask(params.output_folder)

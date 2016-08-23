@@ -15,6 +15,7 @@ Returns :
 Author : pbilling
 '''
 
+import re
 import sys
 import dxpy
 
@@ -31,7 +32,7 @@ class FlowcellLane:
         self.details = self.record.get_details()
         self.project_id = self.details['laneProject']
         self.mapping_reference = self.details['mappingReference']
-        self.lane_index = self.details['lane']
+        self.lane_index = int(self.details['lane'])
         self.run_name = self.details['run']
         self.run_date = self.run_name.split('_')[0]
         self.library_id = self.details['library_id']
@@ -321,9 +322,10 @@ def main(record_id, worker_id, worker_project, fastqs, output_folder, mark_dupli
                                    'library_name': lane.library_name
                                   }
         print 'Initiating map sample job'
-        sample_name = 'SCGPM_%s_%s_%s_%s' % (lane.run_date, 
+        sample_name = 'SCGPM_%s_%s_%s_L%d_%s' % (lane.run_date, 
                                              lane.library_name, 
-                                             lane.flowcell_id, 
+                                             lane.flowcell_id,
+                                             lane.lane_index, 
                                              barcode
                                             )
         map_sample_job = dxpy.new_dxjob(fn_input={

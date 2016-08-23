@@ -33,9 +33,19 @@ class FlowcellLane:
 
         # Get relevant dashboard properties
         self.properties = self.record.get_properties()
+        self.details = self.record.get_details()
+
         self.flowcell_id = self.properties['flowcell_id']
         self.lab_name = self.properties['lab_name']
         self.operator = 'None'     # Still need to grab this info
+        
+        # Boolean indicating whether project is part of production pipeline
+        self.is_production = None
+        production = self.details['production']
+        if production == 'true':
+            self.is_production = True
+        else:
+            self.is_production = False
 
         # Get mapping info for mapped lanes
         self.mapper = self.properties['mapper']
@@ -248,12 +258,18 @@ def main(record_id, output_folder, qc_stats_jsons, tools_used, fastqs, interop_t
     output['barcodes_json'] = dxpy.dxlink(barcodes_json_fid)
     output['sample_stats_json'] = dxpy.dxlink(sample_stats_json_fid)  
 
-    #lane.update_status('ready')
-    properties = {
-                  'status': 'ready',
-                  'qcReportID': '%s:%s' % (qc_pdf_report.project, qc_pdf_report.id),
-                  'analysis_finished': 'true'
-                 }
+    #lane.update_status('ready') DEV: Maybe go back to this 8/22/2016
+    if lane.is_production:
+        properties = {
+                      'status': 'ready',
+                      'qcReportID': '%s:%s' % (qc_pdf_report.project, qc_pdf_report.id),
+                      'analysis_finished': 'true'
+                     }
+    else:
+        properties = {
+                      'qcReportID': '%s:%s' % (qc_pdf_report.project, qc_pdf_report.id),
+                      'analysis_finished': 'true'               
+                     }
     #lane.update_properties(properties)
     lane.record.set_properties(properties)
     return output

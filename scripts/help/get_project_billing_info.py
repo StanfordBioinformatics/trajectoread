@@ -49,10 +49,10 @@ billing_org = 'org-scgpm'
 project_generator = dxpy.find_projects(billed_to=billing_org)
 
 # For every project...
-i = 0
+#i = 0
 for project_info in project_generator:
-    if i >= 50:
-        break
+    #if i >= 50:
+    #    break
     # Get name of project
     project_id = project_info['id']
     project_name = dxpy.DXProject(project_id).describe()['name']
@@ -150,6 +150,6 @@ for project_info in project_generator:
     output_str += '\n'
     OUT.write(output_str)
 
-    i += 1
+    #i += 1
 
     # Update DXRecord
