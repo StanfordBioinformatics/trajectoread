@@ -22,6 +22,10 @@ import subprocess
 
 from distutils.version import StrictVersion
 
+# Use homemade scgpm_lims package to access LIMS
+from scgpm_lims import Connection
+from scgpm_lims import RunInfo
+
 class InputParameters:
 
     def __init__(self, params_dict):
@@ -132,6 +136,18 @@ class FlowcellLane:
         elif StrictVersion(self.rta_version) >= StrictVersion('1.18.54'):
             self.bcl2fastq_version = 2
 
+        # Get barcode information (codepoint + name) from LIMS
+        # Used to add barcode name to FastQ files
+        self.connection = Connection(lims_url=self.lims_url, lims_token=self.lims_token)
+        self.run_info = RunInfo(conn=self.connection, run=self.run_name)
+        self.lane_info = self.run_info.get_lane(self.lane_index)
+        
+        self.barcode_dict = {}
+        barcode_list = self.lane_info['barcodes']
+        for barcode_info in barcode_list:
+            self.barcode_dict[barcode_info['codepoint']] = barcode_info['name']
+
+
     def describe(self):
         print "Sequencing run: %s" % self.run_name
         print "Flowcell lane index: %s" % self.lane_index
@@ -191,11 +207,14 @@ class FlowcellLane:
                       'lane_index': str(self.lane_index),
                       'library_name': str(self.library_name)
                      }
+        '''
         lane_html_name = 'SCGPM_%s_%s_%s_L%d.lane.html' % (self.run_date,
                                                            self.library_name, 
                                                            self.flowcell_id,
                                                            self.lane_index 
                                                           )
+        '''
+        lane_html_name = '%s_L%d.lane.html' % (self.run_name, int(self.lane_index))
         lane_html_file = dxpy.upload_local_file(filename = report_html_file,
                                                 name =  lane_html_name,
                                                 properties = properties, 
@@ -254,24 +273,39 @@ class FlowcellLane:
             os.chdir(lane_dir)
             for filename in os.listdir('.'):
                 if fnmatch.fnmatch(filename, '*.fastq.gz'):
+                    print filename
+
                     scgpm_names = self.get_SCGPM_fastq_name_rta_v2(filename)
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
+                    try:
+                        barcode_name = self.barcode_dict[barcode]
+                    except:
+                        barcode_name = None
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_L%d_%s_R%d.fastq.gz' % (self.run_date,
-                                                                        self.library_name, 
-                                                                        self.flowcell_id,
-                                                                        self.lane_index,  
-                                                                        barcode, 
-                                                                        int(read_index)
-                                                                       )
-                    properties = {'barcode': barcode,
+                    if barcode_name:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                                self.flowcell_id,
+                                                                                self.lane_index,  
+                                                                                barcode,
+                                                                                barcode_name, 
+                                                                                int(read_index))
+                    else:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                             self.flowcell_id,
+                                                                             self.lane_index,  
+                                                                             barcode,
+                                                                             int(read_index))
+                    properties = {
+                                  'barcode': barcode,
                                   'read': str(read_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
                                   'lane_id': self.lane_id,
                                   'library_name': str(self.library_name)
                                  }
+                    if barcode_name:
+                        properties['barcode_name'] = barcode_name
 
                     if not os.path.isfile(fastq_name_v2):
                         shutil.move(filename, fastq_name_v2)
@@ -289,21 +323,34 @@ class FlowcellLane:
                     scgpm_names = self.get_SCGPM_fastq_name_rta_v2(filename)
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
+                    try:
+                        barcode_name = self.barcode_dict[barcode]
+                    except:
+                        barcode_name = None
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_L%d_%s_R%d.fastq.gz' % (self.run_date,
-                                                                        self.library_name, 
-                                                                        self.flowcell_id,
-                                                                        self.lane_index,
-                                                                        barcode, 
-                                                                        int(read_index)
-                                                                       )
-                    properties = {'barcode': barcode,
+                    if barcode_name:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                                self.flowcell_id,
+                                                                                self.lane_index,  
+                                                                                barcode,
+                                                                                barcode_name, 
+                                                                                int(read_index))
+                    else:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                             self.flowcell_id,
+                                                                             self.lane_index,  
+                                                                             barcode,
+                                                                             int(read_index))
+                    properties = {
+                                  'barcode': barcode,
                                   'read': str(read_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
                                   'lane_id': self.lane_id,
                                   'library_name': str(self.library_name)
                                  }
+                    if barcode_name:
+                        properties['barcode_name'] = barcode_name
 
                     if not os.path.isfile(fastq_name_v2):
                         shutil.move(filename, fastq_name_v2)
@@ -775,6 +822,8 @@ def main(**applet_input):
     output['fastqs'] = upload_output['fastqs']
     output['lane_html'] = upload_output['lane_html']
     output['tools_used'] = dxpy.dxlink(tools_used_id)
+
+    #print DEBUG_STOP
 
     print 'Output'
     print output
