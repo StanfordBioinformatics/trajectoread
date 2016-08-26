@@ -1,122 +1,126 @@
 {
-  "name": "generate_qc_report",
-  "title": "Generate QC Report",
-  "summary": "Generate QC PDF Report",
-  "description": "Generate QC PDF Report",
-  "dxapi": "1.0.0",
-  "version": "0.0.1",
-  "categories": [],
-  "inputSpec": [
-    { 
-      "name": "record_dxid",
-      "label": "Lane record dxid",
-      "class": "string",
-      "optional": false
+    "name": "generate_qc_report",
+    "title": "Generate QC Report",
+    "summary": "Generate QC PDF Report",
+    "description": "Generate QC PDF Report",
+    "dxapi": "1.0.0",
+    "version": "0.0.1",
+    "categories": [],
+    "inputSpec": [
+        { 
+            "name": "record_id",
+            "label": "SCGPM record DXLink",
+            "help": "Sequencing lane dashboard record in format: project-XXX:record-YYY",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "output_folder",
+            "label": "Output folder",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "qc_stats_jsons",
+            "label": "Sample QC stats JSONs",
+            "class": "array:file",
+            "patterns": ["*stats.json"],
+            "optional": false
+        },
+        {
+            "name": "tools_used",
+            "label": "Tools used",
+            "class": "array:file",
+            "patterns": ["*tools_used.json"],
+            "optional": false
+        },
+        {
+            "name": "fastqs",
+            "label": "Fastq files",
+            "class": "array:file",
+            "patterns": ["*fastq.gz", "*.fastq"],
+            "optional": false
+        },
+        {
+            "name": "interop_tar",
+            "label": "InterOp tarball",
+            "class": "file",
+            "patterns": ["*.InterOp.tar", "*.InterOp.tar.gz"],
+            "optional": false
+        },
+        {
+            "name": "mismatch_metrics",
+            "label": "Mismatch metrics",
+            "class": "array:file",
+            "patterns": ["*.mm_stats"],
+            "optional": true
+        },
+        {
+            "name": "paired_end",
+            "label": "Paired end",
+            "class": "boolean",
+            "default": true,
+            "optional": true
+        },
+        {
+            "name": "mark_duplicates",
+            "label": "Mark Duplicates",
+            "class": "boolean",
+            "default": false,
+            "optional": true
+        }
+    ],
+    "outputSpec": [
+        {
+            "name": "qc_pdf_report",
+            "label": "QC PDF Report",
+            "class": "file",
+            "optional": false
+        },
+        {
+            "name": "run_details_json",
+            "label": "Run details JSON",
+            "class": "file",
+            "optional": false
+        },
+        {
+            "name": "barcodes_json",
+            "label": "Barcodes JSON",
+            "class": "file",
+            "optional": false
+        },
+        {
+            "name": "sample_stats_json",
+            "label": "Sample stats JSON",
+            "class": "file",
+            "optional": false
+        }
+    ],
+    "runSpec": {
+        "interpreter": "python2.7",
+        "file": "src/generate_qc_report.py",
+        "bundledDepends": [],
+        "execDepends": [
+            {"name": "pdftk"},
+            {"name": "imagemagick"},
+            {"name": "ghostscript"},
+            {"name": "openjdk-7-jre-headless"},
+            {"name": "requests", "package_manager": "pip"},
+            {"name": "pyPdf", "package_manager": "pip"},
+            {"name": "pytz", "package_manager": "pip"}
+        ],
+        "systemRequirements": {
+            "*": {
+                "instanceType": "mem1_ssd1_x2"
+            }
+        },  
+        "distribution": "Ubuntu",
+        "release": "12.04"
     },
-    {
-      "name": "dashboard_project_dxid",
-      "label": "Dashboard Project dxid",
-      "class": "string",
-      "optional": true
+    "access": {
+        "project": "ADMINISTER",
+        "allProjects": "ADMINISTER",
+        "network": ["*"]
     },
-    {
-      "name": "output_folder",
-      "label": "Output folder",
-      "class": "string",
-      "optional": false
-    },
-    {
-      "name": "qc_stats_jsons",
-      "label": "Sample QC stats JSONs",
-      "class": "array:file",
-      "patterns": ["*stats.json"],
-      "optional": false
-    },
-    {
-      "name": "tools_used",
-      "label": "Tools used",
-      "class": "array:file",
-      "patterns": ["*tools_used.json"],
-      "optional": false
-    },
-    {
-      "name": "fastqs",
-      "label": "Fastq files",
-      "class": "array:file",
-      "patterns": ["*fastq.gz", "*.fastq"],
-      "optional": false
-    },
-    {
-      "name": "interop_tar",
-      "label": "InterOp tarball",
-      "class": "file",
-      "patterns": ["*.InterOp.tar", "*.InterOp.tar.gz"],
-      "optional": false
-    },
-    {
-      "name": "mismatch_metrics",
-      "label": "Mismatch metrics",
-      "class": "array:file",
-      "patterns": ["*.mm_stats"],
-      "optional": true
-    },
-    {
-      "name": "paired_end",
-      "label": "Paired end",
-      "class": "boolean",
-      "optional": true
-    },
-    {
-      "name": "mark_duplicates",
-      "label": "Mark Duplicates",
-      "class": "boolean",
-      "optional": true
-    }
-  ],
-  "outputSpec": [
-    {
-      "name": "qc_pdf_report",
-      "label": "QC PDF Report",
-      "class": "file",
-      "optional": false
-    },
-    {
-      "name": "run_details_json",
-      "label": "Run details JSON",
-      "class": "file",
-      "optional": false
-    },
-    {
-      "name": "barcodes_json",
-      "label": "Barcodes JSON",
-      "class": "file",
-      "optional": false
-    },
-    {
-      "name": "sample_stats_json",
-      "label": "Sample stats JSON",
-      "class": "file",
-      "optional": false
-    }
-  ],
-  "runSpec": {
-    "interpreter": "python2.7",
-    "file": "src/generate_qc_report.py",
-    "bundledDepends": [],
-    "execDepends": [
-      {"name": "pdftk"},
-      {"name": "imagemagick"},
-      {"name": "ghostscript"},
-      {"name": "openjdk-7-jre-headless"},
-      {"name": "requests", "package_manager": "pip"},
-      {"name": "pyPdf", "package_manager": "pip"},
-      {"name": "pytz", "package_manager": "pip"}
-    ]
-  },
-  "access": {
-    "project": "ADMINISTER",
-    "allProjects": "ADMINISTER",
-    "network": ["*"]
-  },
-  "authorizedUsers": []
+    "authorizedUsers": []
 }

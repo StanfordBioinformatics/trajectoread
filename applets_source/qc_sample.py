@@ -176,9 +176,8 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
            "MINIMUM_PCT=0.4")
     run_cmd(cmd, logger)
 
-    json_info = extract_json_from_ism("sample.insert_size_metrics")
-
     try:
+        json_info = extract_json_from_ism("sample.insert_size_metrics")
         cmd = ("tar czvf sample_insert_size_metrics.tar.gz " +
                "sample.insert_size_metrics sample.insert_size_histogram")
         subprocess.check_call(cmd, shell=True)
@@ -199,10 +198,28 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
     except:
         print 'Could not generate sample_insert_size_metrics.tar.gz'
         print 'Possibly large number of RF read pairs.'
+
+        ism_file = dxpy.upload_local_file(filename = "sample.insert_size_metrics",
+                                          name = sample_name + "_insert_size_metrics", 
+                                          properties = properties,
+                                          project = output_project,
+                                          folder = misc_subfolder,
+                                          parents = True
+                                         )
+
+        json_info = {
+                     'Minimum Insert Size': 0, 
+                     'Median Absolute Deviation': 0, 
+                     'Mean Insert Size': 0, 
+                     'Standard Deviation': 0, 
+                     'Median Insert Size': 0, 
+                     'Maximum Insert Size': 0, 
+                     'Total Insert Reads': 0
+                    }
         return {
-                "insert_size_metrics": None,
-                "json_insert_size_metrics": None,
-                "tools_used": None
+                "insert_size_metrics": dxpy.dxlink(ism_file),
+                "json_insert_size_metrics": json_info,
+                "tools_used": logger,
                }
 
 @dxpy.entry_point('collect_uniqueness_metrics')
@@ -362,13 +379,13 @@ def main(fastq_files, sample_name, output_project, output_folder, properties=Non
                     "output_project": output_project,
                     "output_folder": output_folder
                    }
-    if fastq_files2 == None:
+    if not fastq_files2:
         fastqc_input["output_name"] = sample_name + "_fastqc.zip"
     else:
         fastqc_input["output_name"] = sample_name + "_fastqc_left.zip"
     fastqc_jobs.append(dxpy.new_dxjob(fastqc_input, "run_fastqc"))
 
-    if fastq_files2 != None:
+    if fastq_files2:
         fastqc_input2 = {"fastq_files": fastq_files2, 
                          "output_name": sample_name + "_fastqc_right.zip",
                          "properties": properties,
@@ -430,7 +447,8 @@ def main(fastq_files, sample_name, output_project, output_folder, properties=Non
                       "output_folder": output_folder
                      }
         cism_job = dxpy.new_dxjob(cism_input, "collect_insert_size_metrics")
-        output["insert_size_metrics"] = cism_job.get_output_ref("insert_size_metrics")
+
+        output["insert_size_metrics"] = cism_job.get_output_ref("insert_size_metrics")    
         json_outputs += [cism_job.get_output_ref("json_insert_size_metrics")]
         tools_used += [cism_job.get_output_ref("tools_used")]
 
@@ -451,6 +469,7 @@ def main(fastq_files, sample_name, output_project, output_folder, properties=Non
     tools_used_job = dxpy.new_dxjob(tools_used_input, "create_tools_used_json_file")
     output['tools_used'] = tools_used_job.get_output_ref('tools_used_json_file')
 
+    print 'QC sample output: %s' % output
     return output
 
 dxpy.run()

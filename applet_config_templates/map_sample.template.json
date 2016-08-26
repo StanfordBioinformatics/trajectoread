@@ -1,117 +1,119 @@
 {
-  "name": "map_sample",
-  "title": "Map Sample",
-  "summary": "Maps reads to a reference genome",
-  "description": "This app maps reads to a reference genome using either the BWA-backtrack or the BWA-MEM algorithm. Both paired-end and unpaired samples are supported. The output is a coordinate-sorted BAM file which has been run through the Picard CleanSam and samtools calmd commands, and optionally Picard MarkDuplicates.",
-  "dxapi": "1.0.0",
-  "version": "0.0.1",
-  "categories": [],
-  "inputSpec": [
-    {
-      "name": "project_dxid",
-      "label": "Project dxid",
-      "class": "string",
-      "optional": false
-    },
-    {
-      "name": "output_folder",
-      "label": "Output folder",
-      "class": "string",
-      "optional": false
-    },
-    {
-      "name": "fastq_files",
-      "label": "FASTQ files (read 1)",
-      "class": "array:file",
-      "optional": false,
-      "patterns": ["*.fq.gz", "*.fastq.gz", "*.fastq"]
-    },
-    {
-      "name": "genome_fasta_file",
-      "label": "Genome FASTA file",
-      "class": "file",
-      "optional": false,
-      "patterns": ["genome.fa.gz"]
-    },
-    {
-      "name": "genome_index_file",
-      "label": "Genome index file",
-      "class": "file",
-      "optional": false,
-      "patterns": ["bwa_index.tar.gz"]
-    },
-    {
-      "name": "mapper",
-      "label": "Mapper",
-      "class": "string",
-      "optional": false,
-      "choices": ["bwa", "bwa_aln", "bwa_mem"],
-      "default": "bwa"
-    },
-    {
-      "name": "fastq_files2",
-      "label": "FASTQ files (read 2)",
-      "class": "array:file",
-      "optional": true,
-      "patterns": ["*.fq.gz", "*.fastq.gz"]
-    },
-    {
-      "name": "sample_name",
-      "label": "Sample name",
-      "class": "string",
-      "optional": true,
-      "default": "sample"
-    },
-    {
-      "name": "mark_duplicates",
-      "label": "Mark Duplicates",
-      "class": "boolean",
-      "optional": true,
-      "default": false
-    },
-    {
-      "name": "properties",
-      "label": "Properties",
-      "class": "hash",
-      "optional": true,
-      "default": {}
-    }
-  ],
-  "outputSpec": [
-    {
-      "name": "bam",
-      "label": "BAM file",
-      "class": "file"
-    },
-    {
-      "name": "bai",
-      "label": "BAI file",
-      "class": "file"
-    },
-    {
-      "name": "tools_used",
-      "label": "JSON file with tools and command lines used in this module.",
-      "class": "file"
-    }
-  ],
-  "runSpec": {
-    "interpreter": "python2.7",
-    "file": "src/map_sample.py",
-    "bundledDepends": [],
-    "execDepends": [
-      {
-        "name": "openjdk-6-jre-headless"
-      }
+    "name": "map_sample",
+    "title": "Map Sample",
+    "summary": "Maps reads to a reference genome",
+    "description": "This app maps reads to a reference genome using either the BWA-backtrack or the BWA-MEM algorithm. Both paired-end and unpaired samples are supported. The output is a coordinate-sorted BAM file which has been run through the Picard CleanSam and samtools calmd commands, and optionally Picard MarkDuplicates.",
+    "dxapi": "1.0.0",
+    "version": "0.0.1",
+    "categories": [],
+    "inputSpec": [
+        {
+            "name": "project_id",
+            "label": "Project ID",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "output_folder",
+            "label": "Output folder",
+            "class": "string",
+            "optional": false
+        },
+        {
+            "name": "fastq_files",
+            "label": "FASTQ files (read 1)",
+            "class": "array:file",
+            "optional": false,
+            "patterns": ["*.fq.gz", "*.fastq.gz", "*.fastq"]
+        },
+        {
+            "name": "genome_fasta_file",
+            "label": "Genome FASTA file",
+            "class": "file",
+            "optional": false,
+            "patterns": ["genome.fa.gz"]
+        },
+        {
+            "name": "genome_index_file",
+            "label": "Genome index file",
+            "class": "file",
+            "optional": false,
+            "patterns": ["bwa_index.tar.gz"]
+        },
+        {
+            "name": "mapper",
+            "label": "Mapper",
+            "class": "string",
+            "optional": false,
+            "choices": ["bwa", "bwa_aln", "bwa_mem"],
+            "default": "bwa"
+        },
+        {
+            "name": "fastq_files2",
+            "label": "FASTQ files (read 2)",
+            "class": "array:file",
+            "optional": true,
+            "patterns": ["*.fq.gz", "*.fastq.gz"]
+        },
+        {
+            "name": "sample_name",
+            "label": "Sample name",
+            "class": "string",
+            "optional": true,
+            "default": "sample"
+        },
+        {
+            "name": "mark_duplicates",
+            "label": "Mark Duplicates",
+            "class": "boolean",
+            "optional": true,
+            "default": false
+        },
+        {
+            "name": "properties",
+            "label": "Properties",
+            "class": "hash",
+            "optional": true,
+            "default": {}
+        }
     ],
-    "systemRequirements": {
-      "*": {
-        "instanceType": "mem1_ssd2_x8"
-      }
-    }
-  },
-  "authorizedUsers": [],
-  "access": {
+    "outputSpec": [
+        {
+            "name": "bam",
+            "label": "BAM file",
+            "class": "file"
+        },
+        {
+            "name": "bai",
+            "label": "BAI file",
+            "class": "file"
+        },
+        {
+            "name": "tools_used",
+            "label": "JSON file with tools and command lines used in this module.",
+            "class": "file"
+        }
+    ],
+    "runSpec": {
+        "interpreter": "python2.7",
+        "file": "src/map_sample.py",
+        "bundledDepends": [],
+        "execDepends": [
+            {
+                "name": "openjdk-6-jre-headless"
+            }
+        ],
+        "systemRequirements": {
+            "*": {
+            "instanceType": "mem1_ssd2_x8"
+            }
+        },
+        "distribution": "Ubuntu",
+        "release": "12.04"
+    },
+    "authorizedUsers": [],
+    "access": {
     "allProjects": "CONTRIBUTE",
     "network": ["*"]
-  }
+    }
 }

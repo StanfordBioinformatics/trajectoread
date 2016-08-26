@@ -27,7 +27,7 @@ def get_app_title():
     return title
 
 @dxpy.entry_point("postprocess")
-def postprocess(project_dxid, output_folder, bam_files, sample_name=None, properties=None):
+def postprocess(project_id, output_folder, bam_files, sample_name=None, properties=None):
     """Downloads the BAM files produced by mapping each of the input FASTQ
     files. Merge them into a single BAM file."""
 
@@ -51,7 +51,7 @@ def postprocess(project_dxid, output_folder, bam_files, sample_name=None, proper
     merged_bam_file = dxpy.upload_local_file(filename = "sample.bam", 
                                              name = sample_name + ".bam", 
                                              properties = properties,
-                                             project = project_dxid,
+                                             project = project_id,
                                              folder = bams_subfolder,
                                              parents = True
                                             )
@@ -59,7 +59,7 @@ def postprocess(project_dxid, output_folder, bam_files, sample_name=None, proper
     merged_bai_file = dxpy.upload_local_file(filename = "sample.bam.bai", 
                                              name = sample_name + ".bai", 
                                              properties = properties,
-                                             project = project_dxid,
+                                             project = project_id,
                                              folder = bams_subfolder,
                                              parents = True
                                             )
@@ -189,7 +189,7 @@ def run_samtools_calmd(logger):
     subprocess.check_call("mv -v sample.calmd.bam sample.bam", shell=True)
 
 @dxpy.entry_point("process")
-def process(project_dxid, output_folder, fastq_file, genome_fasta_file, genome_index_file, mapper, mark_duplicates, fastq_file2=None,
+def process(project_id, output_folder, fastq_file, genome_fasta_file, genome_index_file, mapper, mark_duplicates, fastq_file2=None,
             sample_name=None, properties=None):
     """Download a single FASTQ file, map it, and output a coordinate-sorted
     BAM file."""
@@ -225,7 +225,7 @@ def process(project_dxid, output_folder, fastq_file, genome_fasta_file, genome_i
     bam_file = dxpy.upload_local_file(filename = "sample.bam", 
                                       name = sample_name + ".bam", 
                                       properties = properties,
-                                      project = project_dxid,
+                                      project = project_id,
                                       folder = bams_subfolder,
                                       parents = True
                                      )
@@ -233,7 +233,7 @@ def process(project_dxid, output_folder, fastq_file, genome_fasta_file, genome_i
     bai_file = dxpy.upload_local_file(filename = "sample.bam.bai", 
                                       name = sample_name + ".bai", 
                                       properties = properties,
-                                      project = project_dxid,
+                                      project = project_id,
                                       folder = bams_subfolder,
                                       parents = True
                                      )
@@ -245,7 +245,7 @@ def process(project_dxid, output_folder, fastq_file, genome_fasta_file, genome_i
            }
 
 @dxpy.entry_point('create_tools_used_json_file')
-def create_tools_used_json_file(project_dxid, output_folder, tools_used):
+def create_tools_used_json_file(project_id, output_folder, tools_used):
     ''' Description: 
     '''
 
@@ -263,14 +263,14 @@ def create_tools_used_json_file(project_dxid, output_folder, tools_used):
         fh.write(json.dumps(tools_used_dict))
     
     tools_used_json_file = dxpy.upload_local_file(filename = fn,
-                                                  project = project_dxid,
+                                                  project = project_id,
                                                   folder = misc_subfolder,
                                                   parents = True
                                                  )
     return {'tools_used_json_file': tools_used_json_file}
 
 @dxpy.entry_point("main")
-def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_dxid, 
+def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_id, 
          output_folder, mark_duplicates=False, fastq_files2=None, sample_name=None, 
          properties=None):
     """Spawn subjobs to map each of the FASTQ files (and their pairs,
@@ -284,7 +284,7 @@ def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_dxid
     subjobs = []
     for i in xrange(len(fastq_files)):
         subjob_input = { 
-                        "project_dxid" : project_dxid,
+                        "project_id" : project_id,
                         "output_folder": output_folder,
                         "fastq_file": fastq_files[i],
                         "genome_fasta_file": genome_fasta_file,
@@ -300,7 +300,7 @@ def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_dxid
 
     if len(fastq_files) > 1:
         postprocess_input = { 
-                             "project_dxid": project_dxid,
+                             "project_id": project_id,
                              "output_folder": output_folder,
                              "bam_files": [subjob.get_output_ref("bam") for subjob in subjobs],
                              "sample_name": sample_name, 
@@ -311,7 +311,7 @@ def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_dxid
                                          depends_on=subjobs
                                         )
         tools_used_input = {
-                            "project_dxid": project_dxid,
+                            "project_id": project_id,
                             "output_folder": output_folder,
                             "tools_used": [job.get_output_ref("tools_used") for job in (subjobs + [postprocess_job])]
                            }
@@ -323,7 +323,7 @@ def main(fastq_files, genome_fasta_file, genome_index_file, mapper, project_dxid
                }
     else:
         tools_used_input = {
-                            "project_dxid": project_dxid,
+                            "project_id": project_id,
                             "output_folder": output_folder,
                             "tools_used": [job.get_output_ref('tools_used') for job in subjobs]
                            }

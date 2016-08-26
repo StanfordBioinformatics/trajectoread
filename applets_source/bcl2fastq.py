@@ -22,6 +22,10 @@ import subprocess
 
 from distutils.version import StrictVersion
 
+# Use homemade scgpm_lims package to access LIMS
+from scgpm_lims import Connection
+from scgpm_lims import RunInfo
+
 class InputParameters:
 
     def __init__(self, params_dict):
@@ -34,7 +38,7 @@ class InputParameters:
         '''
         
         # Required parameters
-        self.record_dxid = params_dict['record_dxid']
+        self.record_id = params_dict['record_id']
         self.lane_data_tar = params_dict['lane_data_tar']
         self.metadata_tar = params_dict['metadata_tar']
 
@@ -44,20 +48,15 @@ class InputParameters:
         else:
             self.output_folder = params_dict['output_folder']
 
-        if not 'dashboard_project_dxid' in params_dict.keys():
-            self.dashboard_project_dxid = 'project-BY82j6Q0jJxgg986V16FQzjx'
-        else:
-            self.dashboard_project_dxid = params_dict['dashboard_project_dxid']
-
         if not 'test_mode' in params_dict.keys():
             self.test_mode = False
         else:
             self.test_mode = params_dict['test_mode']
 
-        if not 'mismatches' in params_dict.keys():
+        if not 'barcode_mismatches' in params_dict.keys():
             self.mismatches = 1
         else:
-            self.mismatches = params_dict['mismatches']
+            self.mismatches = params_dict['barcode_mismatches']
 
         if not 'ignore_missing_stats' in params_dict.keys():
             self.ignore_missing_stats = True
@@ -91,17 +90,19 @@ class InputParameters:
 
 class FlowcellLane:
     
-    def __init__(self, dashboard_record_dxid, dashboard_project_dxid):
+    def __init__(self, record_link):
         
-        self.dashboard_record_dxid = dashboard_record_dxid 
-        self.dashboard_project_dxid = dashboard_project_dxid
-        self.dashboard_record = dxpy.DXRecord(dxid = self.dashboard_record_dxid, 
-                                              project = self.dashboard_project_dxid)
-        self.properties = self.dashboard_record.get_properties()
-        self.details = self.dashboard_record.get_details()
+        self.record_link = record_link.strip()
+        link_elements = self.record_link.split(':')
+        record_project = link_elements[0]
+        record_dxid = link_elements[1]
+        self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
+        
+        self.properties = self.record.get_properties()
+        self.details = self.record.get_details()
 
         # Details (Used for Dashboard information)
-        self.lane_project_dxid = self.details['laneProject']
+        self.lane_project_id = self.details['laneProject']
         self.run_name = self.details['run']
         self.run_date = self.run_name.split('_')[0]
         self.lane_index = int(self.details['lane'])
@@ -112,7 +113,8 @@ class FlowcellLane:
         library_label = self.details['library']
         elements = library_label.split('rcvd')
         library_name = elements[0].rstrip()
-        self.library_name = re.sub(r"[^a-zA-Z0-9]", "-", library_name)
+        self.library_name = re.sub(r"[^a-zA-Z0-9]+", "-", library_name)
+
 
         # Properties
         self.lims_url = self.properties['lims_url']
@@ -121,14 +123,14 @@ class FlowcellLane:
         self.seq_instrument = self.properties['seq_instrument']
         self.flowcell_id = self.properties['flowcell_id']
 
-        self.lane_project = dxpy.DXProject(dxid = self.lane_project_dxid)
+        self.lane_project = dxpy.DXProject(dxid = self.lane_project_id)
         self.home = os.getcwd()
 
         self.sample_sheet = None
         self.output_dir = None
-        self.flowcell_id = None
         self.bcl2fastq_version = None
         self.lane_barcode = None
+        self.flowcell_id = None
 
         # Choose bcl2fastq version based on rta_version
         ## DEV: Update version to match official documentation: i.e. 1.18.54 or later
@@ -136,6 +138,18 @@ class FlowcellLane:
             self.bcl2fastq_version = 1
         elif StrictVersion(self.rta_version) >= StrictVersion('1.18.54'):
             self.bcl2fastq_version = 2
+
+        # Get barcode information (codepoint + name) from LIMS
+        # Used to add barcode name to FastQ files
+        self.connection = Connection(lims_url=self.lims_url, lims_token=self.lims_token)
+        self.run_info = RunInfo(conn=self.connection, run=self.run_name)
+        self.lane_info = self.run_info.get_lane(self.lane_index)
+        
+        self.barcode_dict = {}
+        barcode_list = self.lane_info['barcodes']
+        for barcode_info in barcode_list:
+            self.barcode_dict[barcode_info['codepoint']] = barcode_info['name']
+
 
     def describe(self):
         print "Sequencing run: %s" % self.run_name
@@ -161,10 +175,10 @@ class FlowcellLane:
 
         # ('file-dxid', 'project-dxid') = dxpy.get_dxlink_ids(dxlink)
         file_dxid = dxpy.get_dxlink_ids(tar_file_dxlink)[0]
-        project_dxid = dxpy.get_dxlink_ids(tar_file_dxlink)[1]
+        project_id = dxpy.get_dxlink_ids(tar_file_dxlink)[1]
 
         # Download file from DNAnexus objectstore to virtual machine
-        dxpy.download_dxfile(dxid=file_dxid, filename=filename, project=project_dxid)
+        dxpy.download_dxfile(dxid=file_dxid, filename=filename, project=project_id)
 
         # Untar file
         ## DEV: Check if this is even in use anymore; also should have some method for 
@@ -196,15 +210,18 @@ class FlowcellLane:
                       'lane_index': str(self.lane_index),
                       'library_name': str(self.library_name)
                      }
+        '''
         lane_html_name = 'SCGPM_%s_%s_%s_L%d.lane.html' % (self.run_date,
                                                            self.library_name, 
                                                            self.flowcell_id,
                                                            self.lane_index 
                                                           )
+        '''
+        lane_html_name = '%s_L%d.lane.html' % (self.run_name, int(self.lane_index))
         lane_html_file = dxpy.upload_local_file(filename = report_html_file,
                                                 name =  lane_html_name,
                                                 properties = properties, 
-                                                project = self.lane_project_dxid, 
+                                                project = self.lane_project_id, 
                                                 folder = misc_subfolder, 
                                                 parents = True
                                                )
@@ -227,10 +244,11 @@ class FlowcellLane:
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.run_date,
-                                                                        self.library_name, 
-                                                                        self.flowcell_id,  
-                                                                        barcode, 
+                    fastq_name_v2 = 'SCGPM_%s_%s_%s_L%d_%s_R%d.fastq.gz' % (self.run_date,
+                                                                        self.library_name,
+                                                                        self.flowcell_id,
+                                                                        self.lane_index,
+                                                                        barcode,
                                                                         int(read_index)
                                                                        )
                     properties = {'barcode': barcode,
@@ -245,7 +263,7 @@ class FlowcellLane:
                         shutil.move(filename, fastq_name_v2)
                     fastq_file = dxpy.upload_local_file(filename = fastq_name_v2, 
                                                         properties = properties, 
-                                                        project = self.lane_project_dxid, 
+                                                        project = self.lane_project_id, 
                                                         folder = fastqs_subfolder, 
                                                         parents = True)
                     fastq_files.append(dxpy.dxlink(fastq_file))
@@ -258,29 +276,45 @@ class FlowcellLane:
             os.chdir(lane_dir)
             for filename in os.listdir('.'):
                 if fnmatch.fnmatch(filename, '*.fastq.gz'):
+                    print filename
+
                     scgpm_names = self.get_SCGPM_fastq_name_rta_v2(filename)
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
+                    try:
+                        barcode_name = self.barcode_dict[barcode]
+                    except:
+                        barcode_name = None
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.run_date,
-                                                                        self.library_name, 
-                                                                        self.flowcell_id,    
-                                                                        barcode, 
-                                                                        int(read_index)
-                                                                       )
-                    properties = {'barcode': barcode,
+                    if barcode_name:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                                self.flowcell_id,
+                                                                                self.lane_index,  
+                                                                                barcode,
+                                                                                barcode_name, 
+                                                                                int(read_index))
+                    else:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                             self.flowcell_id,
+                                                                             self.lane_index,  
+                                                                             barcode,
+                                                                             int(read_index))
+                    properties = {
+                                  'barcode': barcode,
                                   'read': str(read_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
                                   'lane_id': self.lane_id,
                                   'library_name': str(self.library_name)
                                  }
+                    if barcode_name:
+                        properties['barcode_name'] = barcode_name
 
                     if not os.path.isfile(fastq_name_v2):
                         shutil.move(filename, fastq_name_v2)
                     fastq_file = dxpy.upload_local_file(filename = fastq_name_v2, 
                                                         properties = properties, 
-                                                        project = self.lane_project_dxid, 
+                                                        project = self.lane_project_id, 
                                                         folder = fastqs_subfolder, 
                                                         parents = True)
                     fastq_files.append(dxpy.dxlink(fastq_file))
@@ -292,26 +326,40 @@ class FlowcellLane:
                     scgpm_names = self.get_SCGPM_fastq_name_rta_v2(filename)
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
+                    try:
+                        barcode_name = self.barcode_dict[barcode]
+                    except:
+                        barcode_name = None
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_%s_R%d.fastq.gz' % (self.run_date,
-                                                                        self.library_name, 
-                                                                        self.flowcell_id, 
-                                                                        barcode, 
-                                                                        int(read_index)
-                                                                       )
-                    properties = {'barcode': barcode,
+                    if barcode_name:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                                self.flowcell_id,
+                                                                                self.lane_index,  
+                                                                                barcode,
+                                                                                barcode_name, 
+                                                                                int(read_index))
+                    else:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                             self.flowcell_id,
+                                                                             self.lane_index,  
+                                                                             barcode,
+                                                                             int(read_index))
+                    properties = {
+                                  'barcode': barcode,
                                   'read': str(read_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
                                   'lane_id': self.lane_id,
                                   'library_name': str(self.library_name)
                                  }
+                    if barcode_name:
+                        properties['barcode_name'] = barcode_name
 
                     if not os.path.isfile(fastq_name_v2):
                         shutil.move(filename, fastq_name_v2)
                     fastq_file = dxpy.upload_local_file(filename = fastq_name_v2, 
                                                         properties = properties, 
-                                                        project = self.lane_project_dxid, 
+                                                        project = self.lane_project_id, 
                                                         folder = fastqs_subfolder, 
                                                         parents = True)
                     fastq_files.append(dxpy.dxlink(fastq_file))
@@ -359,7 +407,7 @@ class FlowcellLane:
         #      Also, maybe add it to output?
         dxpy.upload_local_file(filename = self.sample_sheet, 
                                properties = None, 
-                               project = self.lane_project_dxid, 
+                               project = self.lane_project_id, 
                                folder = misc_subfolder, 
                                parents = True
                               )
@@ -443,12 +491,11 @@ class FlowcellLane:
         else:
             # Add flowcell ID as a record property
             input_params = {
-                            'project': self.dashboard_project_dxid, 
+                            'project': self.record.project, 
                             'properties': {'flowcell_id': self.flowcell_id}
                            }
             print input_params
-            print self.dashboard_record_dxid
-            dxpy.api.record_set_properties(object_id = self.dashboard_record_dxid,
+            dxpy.api.record_set_properties(object_id = self.record.id,
                                            input_params = input_params)
             return self.flowcell_id
 
@@ -475,7 +522,7 @@ class FlowcellLane:
             OUT.write(self.use_bases_mask)
         dxpy.upload_local_file(filename = use_bases_mask_file, 
                                properties = None, 
-                               project = self.lane_project_dxid, 
+                               project = self.lane_project_id, 
                                folder = misc_subfolder, 
                                parents = True)
         return self.use_bases_mask
@@ -515,8 +562,7 @@ class FlowcellLane:
         # bcl2fastq version 2 for HiSeq 4000s
         if self.bcl2fastq_version == 2:
             self.output_dir = 'Unaligned_L%d' % self.lane_index
-            #command = 'bcl2fastq --output-dir %s --sample-sheet %s --barcode-mismatches %d --use-bases-mask %d:%s' % (
-            #    self.output_dir, self.sample_sheet, 1, int(self.lane_index), self.use_bases_mask)
+            
             command = 'bcl2fastq ' 
             command += '--output-dir %s ' % self.output_dir
             command += '--sample-sheet %s ' % self.sample_sheet
@@ -667,7 +713,7 @@ class FlowcellLane:
         elif len(elements) == 4:
             lane = elements[1]
             read = elements[2]
-            barcode = 'noBarcode'
+            barcode = 'unmatched'
 
             lane_index_match = re.match(r'L00(\d)', lane)
             if lane_index_match:
@@ -752,7 +798,7 @@ class FlowcellLane:
             # No barcode : Undetermined_S1_L001_R1_001.fastq.gz
             lane = elements[2]
             read = elements[3]
-            barcode = 'noBarcode'
+            barcode = 'unmatched'
 
             lane_index_match = re.match(r'L00(\d)', lane)
             if lane_index_match:
@@ -791,8 +837,7 @@ def main(**applet_input):
     params = InputParameters(applet_input)
     tools_used_dict = {'name': 'Bcl to Fastq Conversion and Demultiplexing', 'commands': []}
 
-    lane = FlowcellLane(dashboard_record_dxid = params.record_dxid,
-                        dashboard_project_dxid = params.dashboard_project_dxid)
+    lane = FlowcellLane(record_id=params.record_id)
     lane.describe()
     
     print 'Downloading lane data'
@@ -831,7 +876,7 @@ def main(**applet_input):
     misc_subfolder = params.output_folder + '/miscellany'
     tools_used_id = dxpy.upload_local_file(filename = tools_used_file, 
                            properties = None, 
-                           project = lane.lane_project_dxid, 
+                           project = lane.lane_project_id, 
                            folder = misc_subfolder, 
                            parents = True
                           )
@@ -840,6 +885,8 @@ def main(**applet_input):
     output['fastqs'] = upload_output['fastqs']
     output['lane_html'] = upload_output['lane_html']
     output['tools_used'] = dxpy.dxlink(tools_used_id)
+
+    #print DEBUG_STOP
 
     print 'Output'
     print output
