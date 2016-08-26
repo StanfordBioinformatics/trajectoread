@@ -7,11 +7,18 @@
     "version": "0.1.0",
     "inputSpec": [
         {
-            "name": "record_id",
+            "name": "record_link",
             "label": "SCGPM record DXLink",
             "help": "Sequencing lane record in format: project-XXX:record-YYY",
             "class": "string",
             "optional": false
+        },
+        {
+            "name": "output_folder",
+            "label": "Output folder",
+            "class": "string",
+            "optional": false,
+            "default": "/stage0_bcl2fastq"
         },
         {
             "name": "lane_data_tar",
@@ -28,13 +35,6 @@
             "optional": false
         },
         {
-            "name": "output_folder",
-            "label": "Output folder",
-            "class": "string",
-            "optional": false,
-            "default": "/stage0_bcl2fastq"
-        },
-        {
             "name": "test_mode",
             "help": "Demultiplexes a single tile to speed things up in test mode.",
             "class": "boolean",
@@ -44,7 +44,7 @@
         {
             "name": "barcode_mismatches",
             "label": "Barcode Mismatches",
-            "help": "Number of allowed mismatches",
+            "help": "Number of barcode mismatches allowed",
             "class": "int",
             "optional": true,
             "default": 1
@@ -74,7 +74,7 @@
         {
             "name": "ignore_missing_filter",
             "label": "Ignore missing filter files",
-            "help": "(bcl2fastq2) Missing or corrupt filter files are ignored. Assumes Passing Filter for all clusters in tiles where filter files are missing.",
+            "help": "Missing or corrupt filter files are ignored. Assumes Passing Filter for all clusters in tiles where filter files are missing.",
             "class": "boolean",
             "optional": true,
             "default": true
