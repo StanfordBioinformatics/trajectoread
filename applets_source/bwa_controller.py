@@ -23,7 +23,7 @@ class FlowcellLane:
 
     def __init__(self, record_id, fastqs=None):
 
-        self.record_id = record_id
+        self.record_id = record_id.strip()
         record_project = self.record_id.split(':')[0]
         record_dxid = self.record_id.split(':')[1]
         self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
@@ -188,23 +188,6 @@ class MapperApp:
 def run_map_sample(project_id, output_folder, fastq_files, genome_fasta_file, 
     genome_index_file, mapper, applet_id, applet_project, 
     fastq_files2=None, mark_duplicates=False, sample_name=None, properties=None):
-    
-    applet_name = 'map_sample'
-    applet_folder = '/builds/%s' % applet_build_version
-    
-    '''
-    mapper_applet_id = dxpy.find_one_data_object(classname = 'applet',
-                                                 name = applet_name,
-                                                 name_mode = 'exact',
-                                                 project = applet_project,
-                                                 folder = applet_folder,
-                                                 zero_ok = False,
-                                                 more_ok = False
-                                                )
-    mapper_applet = dxpy.DXApplet(dxid = mapper_applet_id['id'], 
-                                  project = mapper_applet_id['project']
-                                 )
-    '''
 
     mapper_applet = dxpy.DXApplet(dxid=applet_id, project=applet_project)
 
