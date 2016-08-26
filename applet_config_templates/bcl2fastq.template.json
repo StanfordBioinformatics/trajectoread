@@ -8,8 +8,8 @@
     "inputSpec": [
         {
             "name": "record_id",
-            "label": "SCGPM record ID",
-            "help": "Sequencing lane dashboard record in format: project-XXX:record-YYY",
+            "label": "SCGPM record DXLink",
+            "help": "Sequencing lane record in format: project-XXX:record-YYY",
             "class": "string",
             "optional": false
         },
