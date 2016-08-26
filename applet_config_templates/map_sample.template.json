@@ -8,8 +8,8 @@
     "categories": [],
     "inputSpec": [
         {
-            "name": "project_dxid",
-            "label": "Project dxid",
+            "name": "project_id",
+            "label": "Project ID",
             "class": "string",
             "optional": false
         },

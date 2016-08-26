@@ -18,18 +18,19 @@ from scgpm_lims import Connection,RunInfo
 
 class FlowcellLane:
 
-    def __init__(self, project_id, record_id, dx_user_id, user_first_name, 
+    def __init__(self, project_dxid, record_link, dx_user_id, user_first_name, 
                  user_last_name, user_email, viewers, release_note, lims_url, lims_token):
         # This is lane level stuff. Most of this info will be stored in dxrecord.
-        if record_id:
-            self.record_id = record_id.strip()
-            record_project = self.record_id.split(':')[0]
-            record_dxid = self.record_id.split(':')[1]
+        if record_link:
+            self.record_link = record_link.strip()
+            link_elements = self.record_link.split(':')
+            record_project = link_elements[0]
+            record_dxid = link_elements[1]
             self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
         else:
             self.record = None
 
-        self.project_id = project_id
+        self.project_dxid = project_dxid
         self.dx_user_id = dx_user_id
         self.user_first_name = user_first_name
         self.user_last_name = user_last_name
@@ -41,8 +42,8 @@ class FlowcellLane:
 
         # Values assigned during project transfer
         self.sponsored_datetime = None
-        self.release_project_id = None
-        self.clone_project_id = None
+        self.release_project_dxid = None
+        self.clone_project_dxid = None
 
         # Values gotten from DXRecord
         self.properties = None
@@ -69,24 +70,21 @@ class FlowcellLane:
         # Get user first & last name
         if not self.user_first_name or not self.user_last_name:
             self.user = self.details['user']
-            user_elements = self.user.split()
+            user_elements = self.user.strip().split()
             self.user_first_name = user_elements[0]
             self.user_last_name = user_elements[1]
 
-        if not self.project_id:
-            self.project_id = self.details['laneProject']
+        if not self.project_dxid:
+            self.project_dxid = self.details['laneProject']
 
         if not self.user_email:
-            self.user_email = self.details['email']
+            self.user_email = self.details['email'].strip()
 
         if not self.library_name:
             library_label = self.details['library']
             elements = library_label.split('rcvd')
-            library_name = elements[0].rstrip()
-            library_name = library_name.replace(' ', '-')
-            library_name = library_name.replace('_', '-')
-            library_name = library_name.replace('.', '-')
-            self.library_name = library_name
+            raw_library_name = elements[0].strip()
+            self.library_name = re.sub(r"[^a-zA-Z0-9]+", "-", raw_library_name)
 
         self.lane_index = int(self.details['lane'])
         self.run_name = self.details['run']
@@ -99,14 +97,14 @@ class FlowcellLane:
         sponsored_milli_datetime = (sponsored_datetime - epoch).total_seconds() * 1000
         self.sponsored_datetime = sponsored_milli_datetime
 
-        print 'Info: Sponsoring project %s for %d days' % (self.project_id, int(days))
+        print 'Info: Sponsoring project %s for %d days' % (self.project_dxid, int(days))
         dx_sponsorship_input = {'sponsoredUntil': self.sponsored_datetime}
-        dxpy.api.project_update_sponsorship(self.project_id, dx_sponsorship_input)
+        dxpy.api.project_update_sponsorship(self.project_dxid, dx_sponsorship_input)
         # Specifying null (or any time in the past) terminates the sponsorship effective immediately.
         # Specifying a different number of (positive) days will update the time the sponsorship terminates.
 
     def update_project_description(self, text):
-        dxpy.api.project_update(self.release_project_id, {"description": text})
+        dxpy.api.project_update(self.release_project_dxid, {"description": text})
 
     def clone_project(self, clone_project_name):
         clone_properties = {
@@ -119,22 +117,22 @@ class FlowcellLane:
                                                  "name": clone_project_name,
                                                  "properties": clone_properties
                                                 }) 
-        self.clone_project_id = clone_dx_project["id"]
-        print 'Created project %s: %s' % (clone_project_name, self.clone_project_id)
+        self.clone_project_dxid = clone_dx_project["id"]
+        print 'Created project %s: %s' % (clone_project_name, self.clone_project_dxid)
 
-        print 'Cloning root folder from %s into %s' % (self.project_id, 
-                                                       self.clone_project_id)
-        dxpy.api.project_clone(self.project_id, {
+        print 'Cloning root folder from %s into %s' % (self.project_dxid, 
+                                                       self.clone_project_dxid)
+        dxpy.api.project_clone(self.project_dxid, {
                                                    "folders": ["/"], 
-                                                   "project": self.clone_project_id, 
+                                                   "project": self.clone_project_dxid, 
                                                    "destination": "/"
                                                   })
 
     def transfer_clone_project(self, email, develop):
         email = email.rstrip()
 
-        print 'Transferring project %s to user %s' % (self.clone_project_id, email)
-        dxpy.api.project_transfer(self.clone_project_id, {"invitee": email, "suppressEmailNotification": False})
+        print 'Transferring project %s to user %s' % (self.clone_project_dxid, email)
+        dxpy.api.project_transfer(self.clone_project_dxid, {"invitee": email, "suppressEmailNotification": False})
         
         if self.record and not develop:
             # Get UTC time in milliseconds
@@ -198,9 +196,6 @@ class FlowcellLane:
 
 class User:
 
-    #def __init__(self, record_id, dashboard_project_id, dx_user_id, first_name, 
-    #            last_name, email, sunet_id, lims_url, lims_token):
-
     def __init__(self, dx_id, first_name, last_name, email, sunet_id, 
                  lims_url=None, lims_token=None):
     
@@ -209,15 +204,6 @@ class User:
         self.sunet_id = sunet_id
         self.first_name = first_name.strip()
         self.last_name = last_name.strip()
-        #self.record_id = record_id
-        #self.dashboard_project_id = dashboard_project_id
-        
-        #self.details = None
-        #self.properties = None
-
-        #if self.record_id and self.dashboard_project_id:
-        #   self.record = dxpy.DXRecord(dxid=record_id, project=dashboard_project_id)
-        #   self.get_record_properties_details()
 
         if not self.email:
             print 'Error: No email address provided. Required to transfer to user'
@@ -225,21 +211,6 @@ class User:
         if not self.dx_id:
             self.create_dx_id()
             self.set_lims_dx_id(self.email, self.dx_id, lims_url, lims_token)
-    '''
-    def get_record_properties_details(self):
-        ## DEV: Use this to get record details if creating user_id fails
-        self.properties = self.record.get_properties()
-        self.details = self.record.get_details()
-
-        if not self.email:
-            self.email = self.details['email']
-
-        if not self.first_name or not self.last_name:
-            user = self.details['user']
-            user_elements = user.split()
-            self.first_name = user_elements[0]
-            self.last_name = user_elements[1]
-    '''
 
     def create_dx_id(self):
 
@@ -264,17 +235,6 @@ class User:
                 print 'Cannot transfer project.'
                 print 'Check details in project record.'
                 sys.exit()
-        #else:
-            # Go get the record.
-        #   self.get_record_properties_details()
-        #   self.create_dx_id()
-
-        #if not self.first_name or not self.last_name:
-        #   # Get user name information
-        #   self.user = self.details['user']
-        #   user_elements = self.user.split()
-        #   self.first_name = user_elements[0]
-        #   self.last_name = user_elements[1]
 
         # Create DX User ID
         self.dx_id = self.ensure_new_user(email = self.email, 
@@ -282,9 +242,6 @@ class User:
                                                first_name = self.first_name, 
                                                last_name = self.last_name
                                               )
-        #except EmailTakenError:
-        #   print 'Warning: DNAnexus user already associated with email.' 
-        #   print 'Using email %s to transfer project to user' % self.email
 
     def legalize_dx_id(self, proposed_dx_id):
         """
@@ -389,7 +346,7 @@ class User:
             print warning
 
 @dxpy.entry_point('main')
-def main(project_id=None, record_id=None, dx_user_id=None, user_first_name=None, 
+def main(project_dxid=None, record_dxid=None, dx_user_id=None, user_first_name=None, 
          user_last_name=None, user_email=None, user_sunet_id=None, viewers=None, 
          days=30, release_note=None, lims_url=None, lims_token=None, 
          qc_pdf_report=None, develop=False):
@@ -420,14 +377,13 @@ def main(project_id=None, record_id=None, dx_user_id=None, user_first_name=None,
         lims_url=None
         lims_token=None
 
-    print 'Info: Creating lane object associated with project: %s' % project_id
+    print 'Info: Creating lane object associated with project: %s' % project_dxid
     # FlowcellLane object can act as a filter for all this information. Pass
     # FlowcellLane variables to User instead of raw inputs
-    lane = FlowcellLane(project_id, record_id, dx_user_id, user_first_name, 
+    lane = FlowcellLane(project_dxid, record_dxid, dx_user_id, user_first_name, 
                         user_last_name, user_email, viewers, release_note, lims_url, lims_token)
+    
     print 'Info: Creating user object associated with email: %s' % user_email
-    #user = User(record_id, dashboard_project_id, dx_user_id, user_first_name, 
-    #           user_last_name, user_email, user_sunet_id, lims_url, lims_token)
     user = User(dx_id=dx_user_id, first_name=lane.user_first_name, 
                 last_name=lane.user_last_name, email=lane.user_email, 
                 sunet_id=user_sunet_id, lims_url=lims_url, lims_token=lims_token)
@@ -439,7 +395,7 @@ def main(project_id=None, record_id=None, dx_user_id=None, user_first_name=None,
     #   lane.update_project_description(release_note)
     
     # Create clone of project for release to user
-    dx_project = dxpy.DXProject(dxid=lane.project_id)
+    dx_project = dxpy.DXProject(dxid=lane.project_dxid)
     release_project_name = '%s_%s' % (dx_project.name, lane.library_name)
     print 'Cloning project'
     lane.clone_project(release_project_name)

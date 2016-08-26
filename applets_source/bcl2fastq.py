@@ -22,6 +22,10 @@ import subprocess
 
 from distutils.version import StrictVersion
 
+# Use homemade scgpm_lims package to access LIMS
+from scgpm_lims import Connection
+from scgpm_lims import RunInfo
+
 class InputParameters:
 
     def __init__(self, params_dict):
@@ -86,11 +90,12 @@ class InputParameters:
 
 class FlowcellLane:
     
-    def __init__(self, record_id):
+    def __init__(self, record_link):
         
-        self.record_id = record_id.strip()
-        record_project = self.record_id.split(':')[0]
-        record_dxid = self.record_id.split(':')[1]
+        self.record_link = record_link.strip()
+        link_elements = self.record_link.split(':')
+        record_project = link_elements[0]
+        record_dxid = link_elements[1]
         self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
         
         self.properties = self.record.get_properties()
@@ -110,11 +115,13 @@ class FlowcellLane:
         library_name = elements[0].rstrip()
         self.library_name = re.sub(r"[^a-zA-Z0-9]+", "-", library_name)
 
+
         # Properties
         self.lims_url = self.properties['lims_url']
         self.lims_token = self.properties['lims_token']
         self.rta_version = self.properties['rta_version']
         self.seq_instrument = self.properties['seq_instrument']
+        self.flowcell_id = self.properties['flowcell_id']
 
         self.lane_project = dxpy.DXProject(dxid = self.lane_project_id)
         self.home = os.getcwd()
@@ -131,6 +138,18 @@ class FlowcellLane:
             self.bcl2fastq_version = 1
         elif StrictVersion(self.rta_version) >= StrictVersion('1.18.54'):
             self.bcl2fastq_version = 2
+
+        # Get barcode information (codepoint + name) from LIMS
+        # Used to add barcode name to FastQ files
+        self.connection = Connection(lims_url=self.lims_url, lims_token=self.lims_token)
+        self.run_info = RunInfo(conn=self.connection, run=self.run_name)
+        self.lane_info = self.run_info.get_lane(self.lane_index)
+        
+        self.barcode_dict = {}
+        barcode_list = self.lane_info['barcodes']
+        for barcode_info in barcode_list:
+            self.barcode_dict[barcode_info['codepoint']] = barcode_info['name']
+
 
     def describe(self):
         print "Sequencing run: %s" % self.run_name
@@ -191,11 +210,14 @@ class FlowcellLane:
                       'lane_index': str(self.lane_index),
                       'library_name': str(self.library_name)
                      }
+        '''
         lane_html_name = 'SCGPM_%s_%s_%s_L%d.lane.html' % (self.run_date,
                                                            self.library_name, 
                                                            self.flowcell_id,
                                                            self.lane_index 
                                                           )
+        '''
+        lane_html_name = '%s_L%d.lane.html' % (self.run_name, int(self.lane_index))
         lane_html_file = dxpy.upload_local_file(filename = report_html_file,
                                                 name =  lane_html_name,
                                                 properties = properties, 
@@ -254,24 +276,39 @@ class FlowcellLane:
             os.chdir(lane_dir)
             for filename in os.listdir('.'):
                 if fnmatch.fnmatch(filename, '*.fastq.gz'):
+                    print filename
+
                     scgpm_names = self.get_SCGPM_fastq_name_rta_v2(filename)
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
+                    try:
+                        barcode_name = self.barcode_dict[barcode]
+                    except:
+                        barcode_name = None
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_L%d_%s_R%d.fastq.gz' % (self.run_date,
-                                                                        self.library_name, 
-                                                                        self.flowcell_id,
-                                                                        self.lane_index,  
-                                                                        barcode, 
-                                                                        int(read_index)
-                                                                       )
-                    properties = {'barcode': barcode,
+                    if barcode_name:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                                self.flowcell_id,
+                                                                                self.lane_index,  
+                                                                                barcode,
+                                                                                barcode_name, 
+                                                                                int(read_index))
+                    else:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                             self.flowcell_id,
+                                                                             self.lane_index,  
+                                                                             barcode,
+                                                                             int(read_index))
+                    properties = {
+                                  'barcode': barcode,
                                   'read': str(read_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
                                   'lane_id': self.lane_id,
                                   'library_name': str(self.library_name)
                                  }
+                    if barcode_name:
+                        properties['barcode_name'] = barcode_name
 
                     if not os.path.isfile(fastq_name_v2):
                         shutil.move(filename, fastq_name_v2)
@@ -289,21 +326,34 @@ class FlowcellLane:
                     scgpm_names = self.get_SCGPM_fastq_name_rta_v2(filename)
                     scgpm_fastq_name = scgpm_names[0]
                     barcode = scgpm_names[1]
+                    try:
+                        barcode_name = self.barcode_dict[barcode]
+                    except:
+                        barcode_name = None
                     read_index = scgpm_names[2]
-                    fastq_name_v2 = 'SCGPM_%s_%s_%s_L%d_%s_R%d.fastq.gz' % (self.run_date,
-                                                                        self.library_name, 
-                                                                        self.flowcell_id,
-                                                                        self.lane_index,
-                                                                        barcode, 
-                                                                        int(read_index)
-                                                                       )
-                    properties = {'barcode': barcode,
+                    if barcode_name:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                                self.flowcell_id,
+                                                                                self.lane_index,  
+                                                                                barcode,
+                                                                                barcode_name, 
+                                                                                int(read_index))
+                    else:
+                        fastq_name_v2 = 'SCGPM_%s_%s_L%d_%s_R%d.fastq.gz' % (self.library_name, 
+                                                                             self.flowcell_id,
+                                                                             self.lane_index,  
+                                                                             barcode,
+                                                                             int(read_index))
+                    properties = {
+                                  'barcode': barcode,
                                   'read': str(read_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
                                   'lane_id': self.lane_id,
                                   'library_name': str(self.library_name)
                                  }
+                    if barcode_name:
+                        properties['barcode_name'] = barcode_name
 
                     if not os.path.isfile(fastq_name_v2):
                         shutil.move(filename, fastq_name_v2)
@@ -346,6 +396,13 @@ class FlowcellLane:
         self.sample_sheet = stdout_elements[1]
         print 'This is the self.sample_sheet: %s' % self.sample_sheet
         
+        # DEV: This is a dirty hack. Need to fix issue in LIMS ASAP -PBR 6/6/2016
+        if self.seq_instrument not in ['Cooper', 'Gadget']:
+            print 'This is not a HiSeq 4000 run: need to RC i5s'
+            self.reverse_complement_i5(self.sample_sheet)
+        else:
+            print 'This is a HiSeq 4000 run; indexes are fine'
+
         # DEV: insert check so that samplesheet is only uploaded if does not exist.
         #      Also, maybe add it to output?
         dxpy.upload_local_file(filename = self.sample_sheet, 
@@ -356,6 +413,56 @@ class FlowcellLane:
                               )
         return self.sample_sheet
         
+    def reverse_complement_i5(self, sample_sheet):
+
+        # Read in samplesheet
+        # For line in file
+        # Reverse complement any i5 barcodes
+        print 'Reverse complementing any i5 indexes'
+        dual_index = False
+
+        rci5_sample_sheet = '%s_L%d_rci5_samplesheet.csv' % (self.run_name, self.lane_index)
+        OUT = open(rci5_sample_sheet, 'w')
+
+        with open(sample_sheet, 'r') as IN:
+            for line in IN:
+                line = line.rstrip()
+                elements = line.split(',')
+                print elements
+                if len(elements) == 6 and elements[0] != 'Sample_Project' and elements[5]:
+                    dual_index = True
+                    print 'Found i5 indexes, replacing sample sheet'
+                    # reverse-complement Sample_Name
+                    sample_id = elements[2]
+                    id_elements = sample_id.split('_')
+                    i5_index = id_elements[2]
+                    rc_i5_index = reverse_complement(i5_index)
+                    id_elements[2] = rc_i5_index
+                    sample_id_rc_i5 = '_'.join(id_elements)
+                    elements[2] = sample_id_rc_i5
+
+                    # reverse-complement Sample_ID
+                    sample_name = elements[3]
+                    name_elements = sample_name.split('_')
+                    name_elements[2] = rc_i5_index
+                    sample_name_rc_i5 = '_'.join(name_elements)
+                    elements[3] = sample_name_rc_i5
+
+                    # reverse-complement index element
+                    elements[5] = rc_i5_index
+
+                    # Join revised elements back into string
+                    new_line = ','.join(elements)
+                    new_line += '\n'
+                    OUT.write(new_line)
+                else:
+                    line += '\n'
+                    OUT.write(line)
+        OUT.close()
+
+        if dual_index == True:
+            self.sample_sheet = rci5_sample_sheet
+
     def get_flowcell_id(self):
         ''' Description: Get flowcell ID from samplesheet generated from LIMS.
         '''
@@ -455,8 +562,7 @@ class FlowcellLane:
         # bcl2fastq version 2 for HiSeq 4000s
         if self.bcl2fastq_version == 2:
             self.output_dir = 'Unaligned_L%d' % self.lane_index
-            #command = 'bcl2fastq --output-dir %s --sample-sheet %s --barcode-mismatches %d --use-bases-mask %d:%s' % (
-            #    self.output_dir, self.sample_sheet, 1, int(self.lane_index), self.use_bases_mask)
+            
             command = 'bcl2fastq ' 
             command += '--output-dir %s ' % self.output_dir
             command += '--sample-sheet %s ' % self.sample_sheet
@@ -713,6 +819,10 @@ class FlowcellLane:
             pass
         return (new_fastq_filename, barcode, read_index)
 
+def reverse_complement(seq):
+    seq_dict = {'A':'T','T':'A','G':'C','C':'G'}
+    return "".join([seq_dict[base] for base in reversed(seq)])
+
 @dxpy.entry_point("main")
 def main(**applet_input):
     ''' Description: Use illumina bcl2fastq applet to perform demultiplex and 
@@ -775,6 +885,8 @@ def main(**applet_input):
     output['fastqs'] = upload_output['fastqs']
     output['lane_html'] = upload_output['lane_html']
     output['tools_used'] = dxpy.dxlink(tools_used_id)
+
+    #print DEBUG_STOP
 
     print 'Output'
     print output

@@ -31,7 +31,7 @@ class FlowcellLane:
 
     def __init__(self, record_id):
 
-        self.record_id = record_id
+        self.record_id = record_id.strip()
         record_project = self.record_id.split(':')[0]
         record_dxid = self.record_id.split(':')[1]
         self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
