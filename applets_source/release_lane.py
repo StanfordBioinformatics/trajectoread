@@ -346,7 +346,7 @@ class User:
             print warning
 
 @dxpy.entry_point('main')
-def main(project_dxid=None, record_dxid=None, dx_user_id=None, user_first_name=None, 
+def main(project_dxid=None, record_link=None, dx_user_id=None, user_first_name=None, 
          user_last_name=None, user_email=None, user_sunet_id=None, viewers=None, 
          days=30, release_note=None, lims_url=None, lims_token=None, 
          qc_pdf_report=None, develop=False):
@@ -380,7 +380,7 @@ def main(project_dxid=None, record_dxid=None, dx_user_id=None, user_first_name=N
     print 'Info: Creating lane object associated with project: %s' % project_dxid
     # FlowcellLane object can act as a filter for all this information. Pass
     # FlowcellLane variables to User instead of raw inputs
-    lane = FlowcellLane(project_dxid, record_dxid, dx_user_id, user_first_name, 
+    lane = FlowcellLane(project_dxid, record_link, dx_user_id, user_first_name, 
                         user_last_name, user_email, viewers, release_note, lims_url, lims_token)
     
     print 'Info: Creating user object associated with email: %s' % user_email
