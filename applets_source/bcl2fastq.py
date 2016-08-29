@@ -251,11 +251,11 @@ class FlowcellLane:
                                                                         barcode,
                                                                         int(read_index)
                                                                        )
-                    properties = {'barcode': barcode,
+                    properties = {'barcode': str(barcode),
                                   'read': str(read),
-                                  'run_date': self.run_date,
-                                  'library_id': self.library_id,
-                                  'lane_id': self.lane_id,
+                                  'run_date': str(self.run_date),
+                                  'library_id': str(self.library_id),
+                                  'lane_id': str(self.lane_id),
                                   'library_name': str(self.library_name)
                                  }
 
@@ -300,13 +300,13 @@ class FlowcellLane:
                                                                              barcode,
                                                                              int(read_index))
                     properties = {
-                                  'barcode': barcode,
+                                  'run_date': str(self.run_date),
+                                  'run_name': str(self.run_name),
+                                  'library_id': str(self.library_id),
+                                  'barcode': str(barcode),
                                   'read': str(read_index),
-                                  'run_name': self.run_name,
-                                  'lane_index': int(self.lane_index),
-                                  'run_date': self.run_date,
-                                  'library_id': self.library_id,
-                                  'lane_id': self.lane_id,
+                                  'lane_index': str(self.lane_index),
+                                  'lane_id': str(self.lane_id),
                                   'library_name': str(self.library_name)
                                  }
                     if barcode_name:
@@ -347,17 +347,17 @@ class FlowcellLane:
                                                                              barcode,
                                                                              int(read_index))
                     properties = {
-                                  'barcode': barcode,
+                                  'barcode': str(barcode),
                                   'read': str(read_index),
-                                  'run_name': self.run_name,
-                                  'lane_index': int(self.lane_index),
-                                  'run_date': self.run_date,
-                                  'library_id': self.library_id,
-                                  'lane_id': self.lane_id,
+                                  'run_name': str(self.run_name),
+                                  'lane_index': str(self.lane_index),
+                                  'run_date': str(self.run_date),
+                                  'library_id': str(self.library_id),
+                                  'lane_id': str(self.lane_id),
                                   'library_name': str(self.library_name)
                                  }
                     if barcode_name:
-                        properties['barcode_name'] = barcode_name
+                        properties['barcode_name'] = str(barcode_name)
 
                     if not os.path.isfile(fastq_name_v2):
                         shutil.move(filename, fastq_name_v2)
