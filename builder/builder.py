@@ -146,9 +146,12 @@ class WorkflowBuild:
         git_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).rstrip()
         git_commit = subprocess.check_output(['git', 'describe', '--always']).rstrip()
         git_tag = subprocess.check_output(['git', 'describe', '--abbrev=0']).rstrip()
-        version = git_tag.split('v')[1] 
+        try:
+            version = git_tag.split('v')[1]
+        except:
+            version = git_tag
 
-        git_branch_base = git_branch.split('_')[0]
+        git_branch_base = git_branch.split('-')[0]
         #pdb.set_trace()
         if git_branch_base == 'master':
             project_dxid = build_config['workflow_projects']['production']['dxid']
