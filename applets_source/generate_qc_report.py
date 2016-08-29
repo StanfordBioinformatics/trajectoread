@@ -17,11 +17,12 @@ TOOLS_USED_TXT_FN = 'tools_used.txt'
 
 class FlowcellLane:
 
-    def __init__(self, record_id):
+    def __init__(self, record_link):
 
-        self.record_id = record_id
-        record_project = self.record_id.split(':')[0]
-        record_dxid = self.record_id.split(':')[1]
+        self.record_link = record_link.strip()
+        link_elements = self.record_link.split(':')
+        record_project = link_elements[0]
+        record_dxid = link_elements[1]
         self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
 
         # Get relevant dashboard details
@@ -167,10 +168,10 @@ def group_files_by_barcode(barcoded_files):
     return sample_dict
 
 @dxpy.entry_point("main")
-def main(record_id, output_folder, qc_stats_jsons, tools_used, fastqs, interop_tar, 
+def main(record_link, output_folder, qc_stats_jsons, tools_used, fastqs, interop_tar, 
          mismatch_metrics=[], paired_end=True, mark_duplicates=False):
 
-    lane = FlowcellLane(record_id=record_id)
+    lane = FlowcellLane(record_link=record_link)
     
     # Now handle the generation of the QC PDF report.
     run_details = {'run_name': lane.run_name,

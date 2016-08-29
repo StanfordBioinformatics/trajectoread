@@ -38,7 +38,7 @@ class InputParameters:
         '''
         
         # Required parameters
-        self.record_id = params_dict['record_id']
+        self.record_link = params_dict['record_link']
         self.lane_data_tar = params_dict['lane_data_tar']
         self.metadata_tar = params_dict['metadata_tar']
 
@@ -302,6 +302,8 @@ class FlowcellLane:
                     properties = {
                                   'barcode': barcode,
                                   'read': str(read_index),
+                                  'run_name': self.run_name,
+                                  'lane_index': int(self.lane_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
                                   'lane_id': self.lane_id,
@@ -347,6 +349,8 @@ class FlowcellLane:
                     properties = {
                                   'barcode': barcode,
                                   'read': str(read_index),
+                                  'run_name': self.run_name,
+                                  'lane_index': int(self.lane_index),
                                   'run_date': self.run_date,
                                   'library_id': self.library_id,
                                   'lane_id': self.lane_id,
@@ -837,7 +841,7 @@ def main(**applet_input):
     params = InputParameters(applet_input)
     tools_used_dict = {'name': 'Bcl to Fastq Conversion and Demultiplexing', 'commands': []}
 
-    lane = FlowcellLane(record_id=params.record_id)
+    lane = FlowcellLane(record_link=params.record_link)
     lane.describe()
     
     print 'Downloading lane data'
