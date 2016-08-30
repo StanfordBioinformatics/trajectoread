@@ -42,7 +42,7 @@ class FlowcellLane:
         
         # Boolean indicating whether project is part of production pipeline
         self.is_production = None
-        production = self.details['production']
+        production = self.properties['production']
         if production == 'true':
             self.is_production = True
         else:
