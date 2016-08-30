@@ -29,11 +29,12 @@ TOOLS_USED_TXT_FN = 'tools_used.txt'
 
 class FlowcellLane:
 
-    def __init__(self, record_id):
+    def __init__(self, record_link):
 
-        self.record_id = record_id.strip()
-        record_project = self.record_id.split(':')[0]
-        record_dxid = self.record_id.split(':')[1]
+        self.record_link = record_link.strip()
+        link_elements = self.record_link.split(':')
+        self.record_project = link_elements[0]
+        self.record_dxid = link_elements[1]
         self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
 
         # Get relevant dashboard details
@@ -156,12 +157,11 @@ class FlowcellLane:
             print status_options
         else:
             properties = {'status': status}
-            dxpy.api.record_set_properties(object_id = self.dashboard_record_id, 
+            dxpy.api.record_set_properties(object_id = self.record_dxid, 
                                            input_params = {
-                                                           'project': self.dashboard_project_id,
+                                                           'project': self.record_project,
                                                            'properties': properties
-                                                          }
-                                          )
+                                                          })
 
 def download_file(file_dxid):
     """
@@ -328,9 +328,9 @@ def qc_sample(fastq_files, sample_name, applet_id, applet_project, output_projec
     return output
 
 @dxpy.entry_point("main")
-def main(record_id, worker_id, worker_project, output_folder, fastqs, bams=None):
+def main(record_link, worker_id, worker_project, output_folder, fastqs, bams=None):
 
-    lane = FlowcellLane(record_id=record_id)
+    lane = FlowcellLane(record_link=record_link)
 
     output = {
               "alignment_summary_metrics": [], 

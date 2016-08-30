@@ -6,7 +6,7 @@
     "version": "0.1.0",
     "inputSpec": [
         {
-            "name": "record_id",
+            "name": "record_link",
             "label": "SCGPM record DXLink",
             "help": "Sequencing lane dashboard record in format: project-XXX:record-YYY",
             "class": "string",
