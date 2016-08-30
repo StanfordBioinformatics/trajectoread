@@ -150,7 +150,6 @@ class FlowcellLane:
         for barcode_info in barcode_list:
             self.barcode_dict[barcode_info['codepoint']] = barcode_info['name']
 
-
     def describe(self):
         print "Sequencing run: %s" % self.run_name
         print "Flowcell lane index: %s" % self.lane_index
@@ -406,6 +405,16 @@ class FlowcellLane:
             self.reverse_complement_i5(self.sample_sheet)
         else:
             print 'This is a HiSeq 4000 run; indexes are fine'
+            # Reverse complement i5 index keys in barcode_dict
+            barcode_dict_rci5 = {}
+            for key in self.barcode_dict.keys():
+                indexes = key.split('-')
+                index_i7 = indexes[0]
+                index_rci5 = reverse_complement(indexes[1])
+                barcode_rci5 = '-'.join([index_i7,index_rci5])
+                barcode_dict_rci5[barcode_rci5] = self.barcode_dict[key]
+            self.barcode_dict = barcode_dict_rci5
+
 
         # DEV: insert check so that samplesheet is only uploaded if does not exist.
         #      Also, maybe add it to output?
