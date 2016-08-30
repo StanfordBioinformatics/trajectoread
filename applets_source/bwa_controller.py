@@ -21,11 +21,12 @@ import dxpy
 
 class FlowcellLane:
 
-    def __init__(self, record_id, fastqs=None):
+    def __init__(self, record_link, fastqs=None):
 
-        self.record_id = record_id.strip()
-        record_project = self.record_id.split(':')[0]
-        record_dxid = self.record_id.split(':')[1]
+        self.record_link = record_link.strip()
+        link_elements = self.record_link.split(':')
+        record_project = link_elements[0]
+        record_dxid = link_elements[1]
         self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
         
         # Get record details
@@ -265,7 +266,7 @@ def test_mapping():
         })
 
 @dxpy.entry_point("main")
-def main(record_id, worker_id, worker_project, fastqs, output_folder, mark_duplicates=False):
+def main(record_link, worker_id, worker_project, fastqs, output_folder, mark_duplicates=False):
 
     output = {
               "bams": [],
@@ -273,7 +274,7 @@ def main(record_id, worker_id, worker_project, fastqs, output_folder, mark_dupli
               "tools_used": []
              }
              
-    lane = FlowcellLane(record_id=record_id, fastqs=fastqs)
+    lane = FlowcellLane(record_link=record_link, fastqs=fastqs)
     
     fastq_files = [dxpy.DXFile(item) for item in fastqs]
     sample_dict = group_files_by_barcode(fastq_files)
