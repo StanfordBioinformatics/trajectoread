@@ -35,7 +35,7 @@ class FlowcellLane:
         link_elements = self.record_link.split(':')
         self.record_project = link_elements[0]
         self.record_dxid = link_elements[1]
-        self.record = dxpy.DXRecord(dxid=record_dxid, project=record_project)
+        self.record = dxpy.DXRecord(dxid=self.record_dxid, project=self.record_project)
 
         # Get relevant dashboard details
         self.details = self.record.get_details()

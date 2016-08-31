@@ -282,6 +282,7 @@ class FlowcellLane:
                     barcode = scgpm_names[1]
                     try:
                         barcode_name = self.barcode_dict[barcode]
+                        barcode_name = re.sub(r"[^a-zA-Z0-9]+", "-", barcode_name)
                     except:
                         barcode_name = None
                     read_index = scgpm_names[2]
