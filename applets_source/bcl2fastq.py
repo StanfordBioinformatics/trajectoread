@@ -407,14 +407,18 @@ class FlowcellLane:
         else:
             print 'This is a HiSeq 4000 run; indexes are fine'
             # Reverse complement i5 index keys in barcode_dict
+            dual_index = False
             barcode_dict_rci5 = {}
             for key in self.barcode_dict.keys():
                 indexes = key.split('-')
-                index_i7 = indexes[0]
-                index_rci5 = reverse_complement(indexes[1])
-                barcode_rci5 = '-'.join([index_i7,index_rci5])
-                barcode_dict_rci5[barcode_rci5] = self.barcode_dict[key]
-            self.barcode_dict = barcode_dict_rci5
+                if len(indexes) > 1:
+                    dual_index = True
+                    index_i7 = indexes[0]
+                    index_rci5 = reverse_complement(indexes[1])
+                    barcode_rci5 = '-'.join([index_i7,index_rci5])
+                    barcode_dict_rci5[barcode_rci5] = self.barcode_dict[key]
+            if dual_index == True:
+                self.barcode_dict = barcode_dict_rci5
 
 
         # DEV: insert check so that samplesheet is only uploaded if does not exist.
