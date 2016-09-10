@@ -542,7 +542,6 @@ class Applet:
         ## DEV: Change this to dynamically search for files with prefix matching name
         matching_files = []
         for source_file in os.listdir(path_list.applets_source):
-            #if source_file.startswith(self.name):
             if fnmatch.fnmatch(source_file, '%s.*' % self.name):
                 matching_files.append(source_file)
             else:
