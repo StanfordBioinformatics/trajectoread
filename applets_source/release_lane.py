@@ -52,6 +52,7 @@ class FlowcellLane:
         self.run_name = None
         self.library_name = None
         self.production = None
+        self.lab = None
 
         if self.record:
             self.properties = self.record.get_properties()
@@ -65,6 +66,14 @@ class FlowcellLane:
             self.lims_url = self.properties['lims_url']
         if not self.lims_token:
             self.lims_token = self.properties['lims_token']
+
+        self.lab = self.properties['lab']
+        self.queue = self.properties['queue']
+        self.sequencer_type = self.properties['sequencer_type']
+        self.seq_instrument = self.properties['seq_instrument']
+        self.experiment_type = self.properties['experiment_type']
+        self.paired_end = self.properties['paired_end']
+        self.organism = self.properties['organism']
 
     def parse_record_details(self):
         # Get user first & last name
@@ -111,11 +120,20 @@ class FlowcellLane:
                             'library_name': self.library_name,
                             'seq_lane_name': '%s_L%d' % (self.run_name, self.lane_index),
                             'seq_run_name': self.run_name,
-                            'seq_lane_index': str(self.lane_index)
+                            'seq_lane_index': str(self.lane_index),
+                            'lab': self.lab,
+                            'queue': self.queue,
+                            'sequencer_type': self.sequencer_type,
+                            'seq_instrument': self.seq_instrument,
+                            'experiment_type': self.experiment_type,
+                            'paired_end': self.paired_end,
+                            'organism': self.organism
                            }
+        clone_tags = [self.queue, self.experiment_type]
         clone_dx_project = dxpy.api.project_new({
                                                  "name": clone_project_name,
-                                                 "properties": clone_properties
+                                                 "properties": clone_properties,
+                                                 "tags": clone_tags
                                                 }) 
         self.clone_project_dxid = clone_dx_project["id"]
         print 'Created project %s: %s' % (clone_project_name, self.clone_project_dxid)
@@ -130,6 +148,10 @@ class FlowcellLane:
 
     def transfer_clone_project(self, email, develop):
         email = email.rstrip()
+
+        # Temporary hack because CESCG has to go through USCS first
+        if self.queue == 'CESCG':
+            email = 'nathankw@stanford.edu'
 
         print 'Transferring project %s to user %s' % (self.clone_project_dxid, email)
         dxpy.api.project_transfer(self.clone_project_dxid, {"invitee": email, "suppressEmailNotification": False})
@@ -200,14 +222,16 @@ class User:
                  lims_url=None, lims_token=None):
     
         self.dx_id = dx_id
-        self.email = email.strip()
+        self.email = None
         self.sunet_id = sunet_id
         self.first_name = first_name.strip()
         self.last_name = last_name.strip()
 
-        if not self.email:
+        if not email:
             print 'Error: No email address provided. Required to transfer to user'
             sys.exit()
+        else:
+            self.email = email.strip()
         if not self.dx_id:
             self.create_dx_id()
             self.set_lims_dx_id(self.email, self.dx_id, lims_url, lims_token)
