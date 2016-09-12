@@ -15,7 +15,8 @@
         },
         {
             "name": "output_folder",
-            "label": "Output folder",
+            "label": "Output location",
+            "help": "Project and folder location for output files: [project-XXX:]/folder",
             "class": "string",
             "optional": false,
             "default": "/stage0_bcl2fastq"
@@ -32,6 +33,14 @@
             "label": "Metadata tar file",
             "class": "file",
             "patterns": ["*metadata.tar", "*metadata.tar.gz"],
+            "optional": false
+        },
+        {
+            "name": "barcodes_file",
+            "label": "Barcodes file",
+            "help": "Text file with one barcode per line: 'ATCGT-GTACT A1'",
+            "class": "file",
+            "patterns": ["*barcodes.txt"],
             "optional": false
         },
         {
