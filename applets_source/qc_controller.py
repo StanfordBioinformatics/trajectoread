@@ -47,7 +47,7 @@ class FlowcellLane:
         # Get relevant dashboard properties
         self.properties = self.record.get_properties()
         self.flowcell_id = self.properties['flowcell_id']
-        self.lab_name = self.properties['lab_name']
+        self.lab = self.properties['lab']
         self.operator = 'None'     # Still need to grab this info
 
         # Get mapping info for mapped lanes
