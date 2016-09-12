@@ -37,7 +37,7 @@ class FlowcellLane:
         self.details = self.record.get_details()
 
         self.flowcell_id = self.properties['flowcell_id']
-        self.lab_name = self.properties['lab_name']
+        self.lab = self.properties['lab']
         self.operator = 'None'     # Still need to grab this info
         
         # Boolean indicating whether project is part of production pipeline
@@ -180,7 +180,7 @@ def main(record_link, output_folder, qc_stats_jsons, tools_used, fastqs, interop
                    'library': lane.library_name,
                    'operator': lane.operator,
                    'genome_name': lane.reference_genome,
-                   'lab_name': lane.lab_name,
+                   'lab': lane.lab,
                    'mapper': lane.mapper}     # DEV: change this to be 'aligner' in 'create_pdf_reports.py' for consistency
 
     output_project = lane.project_dxid
