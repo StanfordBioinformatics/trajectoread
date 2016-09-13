@@ -32,6 +32,7 @@ def download_file(file_dxid):
     dxpy.download_dxfile(dxid=dx_file.get_id(), filename=filename)
     return filename
 
+
 def upload_files(pattern, location, record_link):
     ''' DEV: Look into using glob.glob to find all fastq files instead of 
              manually listing the directories and searching them, a la 
@@ -185,31 +186,58 @@ def upload_files(pattern, location, record_link):
              }
     return(output)
 
+
 def sponsor_project():
 
+
 def write_tools_used():
+
 
 class Bcl2fastqJob:
     """Converts illumina intensity files to fastqs.
 
     Args:
-        barcodes_file (str): Text file with each barcode and name on separate line.
         bcl2fastq_args (dict): bcl2fastq command-line arguments.
         lane_index (int): Index of illumina flowcell lane.
     """
 
-    
-    def __init__(self, barcodes_file, command_line_args, lane_index):
+    def __init__(self, lane_index):
 
-        self.barcodes_file = barcodes_file
-        self.command_line_args = command_line_args
         self.lane_index = lane_index
 
-        self.barcodes = None
+        self.barcodes = {}
+        self.command_line_args = None
 
-    def parse_barcodes(self):
+    def parse_barcodes_file(self, barcodes_file, lane_index):
+        """Parse barcode sequences and names from text file.
 
-    def create_sample_sheet(self):
+        This function should also include lane index so that users could 
+        process an entire run.
+
+        Args:
+            barcodes_file (str): Path to text file with each set of barcodes 
+                & names on separate lines.
+        """
+
+        with open(barcodes_file, 'r') as BARCODES:
+            n = 0
+            for line in BARCODES:
+                n += 1
+                elements = line.split()
+                if len(elements) == 2:
+                    barcode = elements[0].upper()
+                    name = elements[1]
+                    self.barcodes[barcode] = name
+                elif len(elements) == 1:
+                    barcode = elements[0].upper()
+                    self.barcodes[barcode] = None
+                else:
+                    err_msg = 'Error: %s ' % barcodes_file
+                    err_msg += 'has %d barcodes on line %d' % (len(elements), n)
+                    print err_msg
+                    sys.exit()
+
+    def create_sample_sheet(self, barcodes):
         """Creates sample sheet for bcl2fastq.
         """
 
@@ -217,8 +245,9 @@ class Bcl2fastqJob:
         i5 = None
         name = None
         sample_id = None
+        sample_sheet_path = 'samplesheet.csv'
 
-        SHEET = open('samplesheet.csv', 'w')
+        SHEET = open(sample_sheet_path, 'w')
         samplesheet.write('[Data]')
         SHEET.write('Lane,Sample_ID,index,index2')
 
@@ -253,33 +282,7 @@ class Bcl2fastqJob:
                     SHEET.write('%d,%s,%s' % (self.lane_index, sample_id, i7))
         SHEET.close()
 
-    def calculate_use_bases_mask(self):
-
-            def parse_run_info(run_info_file):
-        """Parses the RunInfo.xml file. Returns a list of dicts, each
-        describing the configuration of one read. """
-
-        reads = []
-
-        tree = ET.parse(run_info_file)
-
-        for read_elt in tree.findall(".//Read"):
-            read_desc = {}
-
-            read_desc['Number'] = int(read_elt.get('Number'))
-            read_desc['NumCycles'] = int(read_elt.get('NumCycles'))
-
-            is_indexed = read_elt.get('IsIndexedRead')
-            if is_indexed == 'Y':
-                read_desc['IsIndexedRead'] = True
-            elif is_indexed == 'N':
-                read_desc['IsIndexedRead'] = False
-            else:
-                raise RuntimeError('Invalid value for IsIndexedRead: %s' % is_indexed)
-
-            reads.append(read_desc)
-
-        return sorted(reads, key=lambda read_desc: read_desc['Number'])
+        return(sample_sheet_path)
 
     def run(self, command_line_args):
         '''Run bcl2fastq program.
@@ -325,6 +328,188 @@ class Bcl2fastqJob:
             stdout,stderr = self.createSubprocess(cmd=command, pipeStdout=True)
 
 
+class GetUseBasesMaskJob:
+    """Calculates use_bases_mask value from barcodes & RunInfo.xml.
+
+    Args:
+        barcodes (dict): Key: barcode sequence, Value: barcode name.
+        lane_index (int): Index of illumina flowcell lane.
+        runinfo (str): Path to RunInfo.xml file.
+    """
+
+    def __init__(self, sample_sheet_file, run_info_file, lane_index):
+
+        self.sample_sheet_file = sample_sheet_file
+        self.run_info_file = run_info_file
+        self.lane_index = int(lane_index)
+
+        self.barcodes = None
+        self.read_config = None
+        self.barcode_length = None
+        self.use_bases_mask = None
+
+    def parse_run_info(self, run_info_file):
+        """Parses the RunInfo.xml file. Returns a list of dicts, each
+        describing the configuration of one read. """
+
+        reads = []
+
+        tree = ET.parse(run_info_file)
+
+        for read_elt in tree.findall(".//Read"):
+            read_desc = {}
+
+            read_desc['Number'] = int(read_elt.get('Number'))
+            read_desc['NumCycles'] = int(read_elt.get('NumCycles'))
+
+            is_indexed = read_elt.get('IsIndexedRead')
+            if is_indexed == 'Y':
+                read_desc['IsIndexedRead'] = True
+            elif is_indexed == 'N':
+                read_desc['IsIndexedRead'] = False
+            else:
+                raise RuntimeError('Invalid value for IsIndexedRead: %s' % is_indexed)
+
+            reads.append(read_desc)
+
+        print >> sys.stderr, 'read_config: %s' % read_config
+        return sorted(reads, key=lambda read_desc: read_desc['Number'])
+
+    def parse_sample_sheet(self, sample_sheet_file, lane_index):
+        """Parses the sample sheet CSV file and returns a list of the
+        barcode(s) for the given lane."""
+
+        barcodes = []
+
+        with open(sample_sheet_file, 'r') as sfile:
+            for line in sfile:
+                line = line.strip()
+                if line == '[Data]':
+                    continue    # first line
+                fields = line.split(',')
+
+                assert len(fields) == 6, "Expected 6 fields but found %s; line '%s'" % (len(fields), line)
+
+                if fields[0] == 'Sample_Project':
+                    # header line
+                    continue
+                elif int(fields[1]) != lane_index:
+                    # wrong lane
+                    continue
+                else:
+                    barcode_pattern = '-'.join(fields[4:6])
+                    barcodes.append(barcode_pattern)
+
+        return barcodes
+
+    def get_use_bases_mask(self, read_config, barcode_length):
+        """Calculates the correct value of --use-bases-mask, given the read
+        configuration and barcode length(s) determined from the sample
+        sheet."""
+
+        components = []
+
+        for read_desc in read_config:
+            if read_desc['IsIndexedRead'] == False:
+                # non-index read: keep all bases
+                components.append('y%d' % read_desc['NumCycles'])
+            else:
+                # index read: construct based on barcode length
+                read_len = read_desc['NumCycles']
+                barcode_len = None
+                if read_desc['Number'] == 2:
+                    # first index
+                    barcode_len = barcode_length[0]
+                elif read_desc['Number'] == 3:
+                    # second index
+                    barcode_len = barcode_length[1]
+                else:
+                    sys.exit('Invalid read number for index read: %d' % read_desc['Number'])
+
+                icomp = ''
+                if barcode_len != 0:
+                    icomp = 'I%d' % barcode_len
+
+                ncomp = ''
+                if read_len - barcode_len != 0:
+                    ncomp = 'n%d' % (read_len - barcode_len)
+
+                components.append(icomp + ncomp)
+
+        print >> sys.stderr, 'use_bases_mask: %s' % self.use_bases_mask
+        return ','.join(components)
+
+    def get_true_barcode_length(self, barcodes):
+        """Get actual barcode length based on barcode sequence composition.
+        (I think)
+        """
+        barcode_lengths = [self._get_barcode_length(bc) for bc in barcodes]
+        print >> sys.stderr, 'barcode_lengths: %s' % barcode_lengths
+
+        distinct_lengths = self._get_distinct_lengths(barcode_lengths)
+        print >> sys.stderr, 'distinct_lengths: %s' % distinct_lengths
+
+        barcode_length = self._get_actual_barcode_length(distinct_lengths)
+        print >> sys.stderr, 'barcode_length: %s' % (barcode_length,)
+
+        if barcode_length == None:
+            print >> sys.stderr, 'Found no barcodes'
+            barcode_length = (0, 0)
+        elif isinstance(barcode_length, int):
+            print >> sys.stderr, 'Found single-index barcodes of length %s' % barcode_length
+            barcode_length = (barcode_length, 0)
+        elif isinstance(barcode_length, tuple):
+            print >> sys.stderr, 'Found dual-index barcodes of lengths %s and %s' % barcode_length
+
+        print >> sys.stderr, 'barcode_length: %s' % (self.barcode_length,)
+        return barcode_length
+
+    def run(self):
+
+        self.read_config = self.parse_run_info(self.run_info_file)
+        
+        self.barcodes = self.parse_sample_sheet(self.sample_sheet_file, self.lane_index)
+        
+        self.barcode_length = self.get_true_barcode_length(self.barcodes)
+        
+        self.use_bases_mask = self.get_use_bases_mask(self.read_config, self.barcode_length)
+        
+        return self.use_bases_mask
+
+    def _get_barcode_length(self, barcode):
+        """Returns the length of the given barcode. If the barcode is empty or
+        'Undetermined', returns None. If the barcode is a dual-indexed barcode,
+        returns a tuple containing the lengths of the two parts. Otherwise,
+        returns the length of the barcode."""
+
+        if barcode == '' or barcode == 'Undetermined':
+            return None
+        elif '-' in barcode:
+            barcodes = barcode.split('-')
+            assert len(barcodes) == 2
+            return (len(barcodes[0]), len(barcodes[1]))
+        else:
+            return len(barcode)
+
+    def _get_distinct_length(self, barcode_lengths):
+        """Given a list of barcode lengths, possibly including None, returns a
+        list of the distinct lengths, excluding None."""
+
+        len_set = {bc_len for bc_len in barcode_lengths if bc_len != None}
+        return list(len_set)
+
+    def _get_actual_barcode_length(self, barcode_lengths):
+        """Verify that the given list of barcode lengths contains a single
+        element, and return it."""
+
+        if len(barcode_lengths) == 0:
+            return None
+        elif len(barcode_lengths) == 1:
+            return barcode_lengths[0]
+        else:
+            sys.exit('Found multiple barcode lengths (%s) in sample sheet; exiting...')
+
+
 def get_lane_barcode(self):
     run_params_file = 'runParameters.xml'
     if not os.path.isfile(run_params_file):
@@ -338,6 +523,7 @@ def get_lane_barcode(self):
                 return lane_barcode
     print 'Error: Could not determine lane barcode from %s' % run_params_file
     sys.exit()
+
 
 def get_flowcell_id(self):
     ''' Description: Get flowcell ID from samplesheet generated from LIMS.
@@ -375,6 +561,7 @@ def get_flowcell_id(self):
                                        input_params = input_params)
         return self.flowcell_id
 
+
 def get_use_bases_mask(self, output_folder):
     '''
     command = "python calculate_use_bases_mask.py {runinfoFile} {sampleSheet} {lane}"
@@ -402,6 +589,7 @@ def get_use_bases_mask(self, output_folder):
                            folder = misc_subfolder, 
                            parents = True)
     return self.use_bases_mask
+
 
 @dxpy.entry_point("main")
 def main(**applet_input):
