@@ -180,7 +180,7 @@ def main(record_link, output_folder, qc_stats_jsons, tools_used, fastqs, interop
                    'library': lane.library_name,
                    'operator': lane.operator,
                    'genome_name': lane.reference_genome,
-                   'lab': lane.lab,
+                   'lab_name': lane.lab,
                    'mapper': lane.mapper}     # DEV: change this to be 'aligner' in 'create_pdf_reports.py' for consistency
 
     output_project = lane.project_dxid
