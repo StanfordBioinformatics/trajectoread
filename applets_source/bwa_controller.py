@@ -306,12 +306,10 @@ def main(record_link, worker_id, worker_project, fastqs, output_folder, mark_dup
                                    'library_name': lane.library_name
                                   }
         print 'Initiating map sample job'
-        sample_name = 'SCGPM_%s_%s_%s_L%d_%s' % (lane.run_date, 
-                                             lane.library_name, 
-                                             lane.flowcell_id,
-                                             lane.lane_index, 
-                                             barcode
-                                            )
+        sample_name = 'SCGPM_%s_%s_L%d_%s' % (lane.library_name, 
+                                              lane.flowcell_id,
+                                              lane.lane_index, 
+                                              barcode)
         map_sample_job = dxpy.new_dxjob(fn_input={
                                                   "project_id": lane.project_id,
                                                   "output_folder": output_folder,
