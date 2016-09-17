@@ -106,13 +106,14 @@
         "interpreter": "python2.7",
         "file": "src/qc_sample.py",
         "bundledDepends": [],
+        "assetDepends": [
+            {
+                "id": "record-BzK4BpQ03BQvZjY33v3FpxG5"
+            }
+        ],           
         "execDepends": [
             {
                 "name": "openjdk-6-jre-headless"
-            },
-            {
-                "name": "pysam",
-                "package_manager": "pip"
             }
         ],
         "systemRequirements": {
