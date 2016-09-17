@@ -136,13 +136,13 @@ class FlowcellLane:
                             'paired_end': self.paired_end,
                             'organism': self.organism
                            }
-        clone_tags = [self.queue, self.experiment_type, 'release']
-        clone_dx_project = dxpy.api.project_new({
+        clone_tags = [self.queue, self.experiment_type, 'Release']
+        clone_project_dict = dxpy.api.project_new({
                                                  "name": clone_project_name,
                                                  "properties": clone_properties,
                                                  "tags": clone_tags
                                                 }) 
-        self.clone_project_dxid = clone_dx_project["id"]
+        self.clone_project_dxid = clone_project_dict["id"]
         print 'Created project %s: %s' % (clone_project_name, self.clone_project_dxid)
 
         print 'Cloning root folder from %s into %s' % (self.project_dxid, 
@@ -152,18 +152,21 @@ class FlowcellLane:
                                                    "project": self.clone_project_dxid, 
                                                    "destination": "/"
                                                   })
+        '''This is not viable because any Viewer can cancel transfer
         # Invite secondary email addresses as Viewers
-        viewer_emails = viewers.strip().split(',')
-        for email in viewer_emails:
+        clone_project = dxpy.DXProject(dxid=self.clone_project_dxid)
+        for email in viewers:
             # Check whether email has DNAnexus account; create if needed
-            dnanexus_user = User(email=email)
-            clone_dx_project.invite(invitee = email, 
-                                    level = 'VIEWER',
-                                    send_email = True)
+            # dnanexus_user = User(email=email.strip()) # Not viable w/o name info
+            print 'Inviting %s to project %s' % (email, self.clone_project_dxid)
+            clone_project.invite(invitee = email, 
+                                 level = 'VIEW',
+                                 send_email = True)
+        '''
 
 
     def transfer_clone_project(self, email, develop):
-        email = email.rstrip()
+        email = email.strip()
 
         # Temporary hack because CESCG has to go through USCS first
         if self.queue == 'CESCG':
@@ -278,10 +281,9 @@ class User:
 
         # Create DX User ID
         self.dx_id = self.ensure_new_user(email = self.email, 
-                                               dx_id = legal_dx_id, 
-                                               first_name = self.first_name, 
-                                               last_name = self.last_name
-                                              )
+                                          dx_id = legal_dx_id, 
+                                          first_name = self.first_name, 
+                                          last_name = self.last_name)
 
     def legalize_dx_id(self, proposed_dx_id):
         """
