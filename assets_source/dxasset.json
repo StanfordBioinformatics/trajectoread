@@ -1,0 +1,20 @@
+{
+  "name": "PysamAsset",
+
+  "title": "Python pysam package",
+
+  "description": "Python pysam package",
+
+  "version": "0.0.1",
+
+  "distribution": "Ubuntu",
+
+  "instanceType": "mem2_ssd1_x4",
+
+  "release": "12.04",
+
+  "execDepends": [
+    {"name": "pysam","package_manager": "pip"}
+  ]
+
+}
