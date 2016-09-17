@@ -115,7 +115,14 @@ class FlowcellLane:
     def update_project_description(self, text):
         dxpy.api.project_update(self.release_project_dxid, {"description": text})
 
-    def clone_project(self, clone_project_name):
+    def clone_project(self, clone_project_name, viewers):
+        '''Create release project and clone all data into it.
+
+        Args:
+            clone_project_name (str): Name of release project
+            viewers (list): List of email addresses to add as project viewers
+        '''
+
         clone_properties = {
                             'library_name': self.library_name,
                             'seq_lane_name': '%s_L%d' % (self.run_name, self.lane_index),
@@ -129,7 +136,7 @@ class FlowcellLane:
                             'paired_end': self.paired_end,
                             'organism': self.organism
                            }
-        clone_tags = [self.queue, self.experiment_type]
+        clone_tags = [self.queue, self.experiment_type, 'release']
         clone_dx_project = dxpy.api.project_new({
                                                  "name": clone_project_name,
                                                  "properties": clone_properties,
@@ -145,6 +152,15 @@ class FlowcellLane:
                                                    "project": self.clone_project_dxid, 
                                                    "destination": "/"
                                                   })
+        # Invite secondary email addresses as Viewers
+        viewer_emails = viewers.strip().split(',')
+        for email in viewer_emails:
+            # Check whether email has DNAnexus account; create if needed
+            dnanexus_user = User(email=email)
+            clone_dx_project.invite(invitee = email, 
+                                    level = 'VIEWER',
+                                    send_email = True)
+
 
     def transfer_clone_project(self, email, develop):
         email = email.rstrip()
@@ -422,7 +438,7 @@ def main(project_dxid=None, record_link=None, dx_user_id=None, user_first_name=N
     dx_project = dxpy.DXProject(dxid=lane.project_dxid)
     release_project_name = '%s_%s' % (dx_project.name, lane.library_name)
     print 'Cloning project'
-    lane.clone_project(release_project_name)
+    lane.clone_project(release_project_name, viewers)
     print 'Transferring clone project to %s' % user.email
     lane.transfer_clone_project(user.email, develop)
     print 'Updating run in LIMS'
