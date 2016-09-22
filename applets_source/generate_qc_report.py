@@ -231,9 +231,12 @@ def main(record_link, output_folder, qc_stats_jsons, tools_used, fastqs, interop
     subprocess.check_call(cmd, shell=True)
 
     # Upload files
+    run_details['file_type'] = 'qc_report'
+
     misc_subfolder = output_folder + '/miscellany'
     qc_pdf_report = dxpy.upload_local_file(filename = qc_report_file, 
                                            project = output_project,
+                                           properites = run_details,
                                            folder = output_folder,
                                            parents = True
                                           )

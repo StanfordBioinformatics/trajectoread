@@ -34,6 +34,7 @@ def postprocess(project_id, output_folder, bam_files, sample_name=None, properti
 
     logger = []
     bams_subfolder = output_folder + '/bams'
+    properties['file_type'] = None
 
     bam_files = [dxpy.DXFile(f) for f in bam_files]
     for i, bam_file in enumerate(bam_files):
@@ -48,6 +49,7 @@ def postprocess(project_id, output_folder, bam_files, sample_name=None, properti
     index_cmd = 'samtools index sample.bam'
     run_cmd(index_cmd, logger)
 
+    properties['file_type'] = 'bam'
     merged_bam_file = dxpy.upload_local_file(filename = "sample.bam", 
                                              name = sample_name + ".bam", 
                                              properties = properties,
@@ -56,6 +58,7 @@ def postprocess(project_id, output_folder, bam_files, sample_name=None, properti
                                              parents = True
                                             )
 
+    properties['file_type'] = 'bai'
     merged_bai_file = dxpy.upload_local_file(filename = "sample.bam.bai", 
                                              name = sample_name + ".bai", 
                                              properties = properties,

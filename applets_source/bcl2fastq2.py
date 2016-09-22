@@ -54,7 +54,8 @@ def upload_files(pattern, location, record_link):
                   'library_id': str(self.library_id),
                   'lane_id':    str(self.lane_id),
                   'lane_index': str(self.lane_index),
-                  'library_name': str(self.library_name)
+                  'library_name': str(self.library_name),
+                  'file_type': 'bcl2fastq_html'
                  }
     '''
     lane_html_name = 'SCGPM_%s_%s_%s_L%d.lane.html' % (self.run_date,
@@ -112,7 +113,8 @@ def upload_files(pattern, location, record_link):
                               'read': str(read_index),
                               'lane_index': str(self.lane_index),
                               'lane_id': str(self.lane_id),
-                              'library_name': str(self.library_name)
+                              'library_name': str(self.library_name),
+                              'file_type': 'fastq'
                              }
                 if barcode_name:
                     properties['barcode_name'] = barcode_name
@@ -159,7 +161,8 @@ def upload_files(pattern, location, record_link):
                               'run_date': str(self.run_date),
                               'library_id': str(self.library_id),
                               'lane_id': str(self.lane_id),
-                              'library_name': str(self.library_name)
+                              'library_name': str(self.library_name),
+                              'file_type': 'fastq'
                              }
                 if barcode_name:
                     properties['barcode_name'] = str(barcode_name)
