@@ -1,6 +1,6 @@
 # Setting up trajectoread builder
 
-This will guide you through the steps of installing trajectoread, configuring the environment files, and building workflows on DNAnexus.
+This will guide you through the steps of installing trajectoread builder, configuring the environment files, and building workflows on DNAnexus.
 
 ## 1. Install the DNAnexus SDK
 Go to https://wiki.dnanexus.com/Downloads and follow the instruction, there, to install the latest version of the DNAnexus SDK.
