@@ -1,0 +1,42 @@
+{
+    "name": "fastqc_bwa-mem_gatk-genotyper",
+    "status": "production",
+    "version": "0.0.1",
+    "stages": {
+        "0": {
+            "executable": "fastqc", 
+            "type": "stand-alone",
+            "folder": "/stage0_fastqc",
+            "input": {}, 
+            "linked_input": {}
+        }, 
+        "1": {
+            "executable": "bwa_mem_fastq_read_mapper",
+            "type": "stand-alone", 
+            "folder": "/stage1_bwa-mem", 
+            "input": {},
+            "linked_input": {
+                "reads_fastqgz": {
+                    "field": "inputField", 
+                    "name": "reads", 
+                    "stage": "0"
+                }
+            }
+        }, 
+        "2": {
+            "executable": "gatk_lite_unified_genotyper", 
+            "type": "stand-alone",
+            "folder": "/stage2_gatk-genotyper", 
+            "input": {
+                "genome_fastagz": {"$dnanexus_link": {"project": "project-BQpp3Y804Y0xbyG4GJPQ01xv", "id": "file-B6ZXxfG2J35Vfvpkj8y0KXF5"}}
+            },
+            "linked_input": {
+                "sorted_bams": {
+                    "field": "outputField", 
+                    "name": "sorted_bam", 
+                    "stage": "1"
+                }
+            }
+        }
+    }
+}

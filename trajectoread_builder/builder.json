@@ -1,0 +1,28 @@
+{
+    "workflow": {
+        "production": {
+                       "name": "Workflows_Production",
+                       "folder": "/builder",
+                       "dxid": ""
+        },
+        "develop": {
+                    "name": "Workflows_Develop",
+                    "folder": "/builder",
+                    "dxid": "project-BvfQVV00fvF2504pyjXpxbPP"
+        }
+    },
+    "applet": {
+        "production": {
+                       "name": "Applets_Production",
+                       "folder": "/builder",
+                       "dxid": ""
+        },
+        "develop": {
+                    "name": "Applets_Develop",
+                    "folder": "/builder",
+                    "dxid": "project-Bvq5y1Q0YxKg54Xf4j9fq94P"
+        }
+    },
+    "dnanexus_OS": "Ubuntu-12.04",
+    "dx_sdk_version": "0.197.0"
+} 

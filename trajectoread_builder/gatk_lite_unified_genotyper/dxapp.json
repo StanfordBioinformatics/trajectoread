@@ -1,0 +1,104 @@
+{
+  "name": "gatk_lite_unified_genotyper",
+  "title": "GATK-Lite Variant Caller (Unified Genotyper)",
+  "summary": "Calls SNPs and/or indels (using GATK-lite Unified Genotyper)",
+  "tags": [
+    "Variation Calling"
+  ],
+  "dxapi": "1.0.0",
+  "inputSpec": [
+    {
+      "name": "sorted_bams",
+      "label": "Sorted mappings",
+      "help": "One or more coordinate-sorted BAM files containing mappings to call variants for.",
+      "class": "array:file",
+      "patterns": ["*.bam"]
+    },
+    {
+      "name": "genome_fastagz",
+      "label": "Genome",
+      "help": "A file, in gzipped FASTA format, with the reference genome that the reads were mapped against.",
+      "class": "file",
+      "patterns": ["*.fa.gz", "*.fasta.gz"],
+      "suggestions": [
+        {
+          "project": "project-BQpp3Y804Y0xbyG4GJPQ01xv",
+          "path": "/",
+          "name": "DNAnexus Reference Genomes"
+        }
+      ]
+    },
+    {
+      "name": "dbsnp_vcfgz",
+      "label": "dbSNP annotation",
+      "help": "(Optional) A gzipped VCF file containing dbSNP, if you want variants to be dbSNP-annotated.",
+      "class": "file",
+      "patterns": ["*dbsnp*.vcf.gz"],
+      "optional": true,
+      "suggestions": [
+        {
+          "project": "project-B6JG85Z2J35vb6Z7pQ9Q02j8",
+          "path": "/gatk.resources.b37",
+          "name": "GRCh37/hs37d5/b37 (1000G Phase I/II)"
+        },
+        {
+          "project": "project-B6JG85Z2J35vb6Z7pQ9Q02j8",
+          "path": "/gatk.resources.hg19",
+          "name": "UCSC hg19"
+        }
+      ]
+    },
+    {
+      "name": "glm",
+      "label": "Call SNPs, indels, or both?",
+      "help": "The genotype likelihoods calculation model to use. Choose BOTH to call both SNPs and indels; choose SNP to only call SNPs, or choose INDEL to only call indels. This will supply the '-glm' option to GATK UnifiedGenotyper.",
+      "class": "string",
+      "default": "BOTH",
+      "choices": [
+        "SNP",
+        "INDEL",
+        "BOTH"
+      ],
+      "group": "Common"
+    },
+    {
+      "name": "advanced_options",
+      "label": "Advanced command line options",
+      "help": "Advanced command line options that will be supplied directly to the GATK UnifiedGenotyper execution. WARNING: if provided, these advanced options will be used INSTEAD of the common options. Example: -glm BOTH -dcov 40",
+      "class": "string",
+      "optional": true,
+      "group": "Advanced"
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "variants_vcfgz",
+      "label": "Variants",
+      "help": "A gzipped VCF file with the called variants.",
+      "class": "file",
+      "patterns": ["*.vcf.gz"]
+    }
+  ],
+  "runSpec": {
+    "execDepends": [
+      {
+        "name": "openjdk-6-jre-headless"
+      }
+    ],
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem2_hdd2_x2"
+      }
+    },
+    "file": "src/code.sh",
+    "interpreter": "bash"
+  },
+  "details": {
+    "upstreamUrl": "http://www.broadinstitute.org/gatk/",
+    "upstreamVersion": "2.3",
+    "upstreamLicenses": [
+      "MIT License"
+    ],
+    "whatsNew": "* 1.0.3: Updated suggestions for reference genomes\n* 1.0.2: Devote 90% of instance memory to java\n* 1.0.1: Added GRCh38 to suggestions"
+  }
+}

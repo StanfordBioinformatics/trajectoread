@@ -1,0 +1,6 @@
+2016-09-29 10:21:41,386 - AppletBuild - INFO - Folder '/builder' in project: 'project-BvfQVV00fvF2504pyjXpxbPP' already exists.
+2016-09-29 10:21:41,387 - AppletBuild - INFO - ['dx', 'build', u'fastqc', u'-d=project-BvfQVV00fvF2504pyjXpxbPP:/builder/fastqc', '-f']
+2016-09-29 10:22:35,379 - AppletBuild - INFO - Build complete: fastqc applet id: applet-BzfZqfj0fvF8z4JBg4f867YZ
+2016-09-29 10:22:36,165 - AppletBuild - INFO - Folder '/builder' in project: 'project-BvfQVV00fvF2504pyjXpxbPP' already exists.
+2016-09-29 10:22:36,165 - AppletBuild - INFO - ['dx', 'build', u'gatk_lite_unified_genotyper', u'-d=project-BvfQVV00fvF2504pyjXpxbPP:/builder/gatk_lite_unified_genotyper', '-f']
+2016-09-29 10:23:08,527 - AppletBuild - INFO - Build complete: gatk_lite_unified_genotyper applet id: applet-BzfZqz00fvF8z4JBg4f867Yp
