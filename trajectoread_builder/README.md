@@ -11,11 +11,10 @@ Go to https://wiki.dnanexus.com/Downloads and follow the instruction, there, to 
 git clone git@github.com:StanfordBioinformatics/trajectoread_builder.git
 ```
 
-## 3. Configure builder.json
+## 3. Configure builder.json configuration file
 Add your own project dxids to the production and/or development workflow and applet JSON entried.
 
 ```r
-cd trajectoread_builder
 vi builder.json
 ```
 
