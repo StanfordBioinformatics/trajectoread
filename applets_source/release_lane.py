@@ -14,6 +14,9 @@ import dxpy
 import time
 import datetime
 import subprocess
+
+from collections import defaultdict
+
 from scgpm_lims import Connection,RunInfo
 
 class FlowcellLane:
@@ -115,7 +118,7 @@ class FlowcellLane:
     def update_project_description(self, text):
         dxpy.api.project_update(self.release_project_dxid, {"description": text})
 
-    def clone_project(self, clone_project_name, viewers):
+    def clone_project(self, clone_project_name, viewers, primary_email=None):
         '''Create release project and clone all data into it.
 
         Args:
@@ -134,9 +137,11 @@ class FlowcellLane:
                             'seq_instrument': self.seq_instrument,
                             'experiment_type': self.experiment_type,
                             'paired_end': self.paired_end,
-                            'organism': self.organism
+                            'organism': self.organism,
+                            'release': 'true'
                            }
-        clone_tags = [self.queue, self.experiment_type, 'Release']
+        # Dev: Add project name & organism as tags
+        clone_tags = [self.experiment_type]
         clone_project_dict = dxpy.api.project_new({
                                                  "name": clone_project_name,
                                                  "properties": clone_properties,
@@ -152,18 +157,39 @@ class FlowcellLane:
                                                    "project": self.clone_project_dxid, 
                                                    "destination": "/"
                                                   })
-        '''This is not viable because any Viewer can cancel transfer
+
         # Invite secondary email addresses as Viewers
         clone_project = dxpy.DXProject(dxid=self.clone_project_dxid)
-        for email in viewers:
-            # Check whether email has DNAnexus account; create if needed
-            # dnanexus_user = User(email=email.strip()) # Not viable w/o name info
-            print 'Inviting %s to project %s' % (email, self.clone_project_dxid)
-            clone_project.invite(invitee = email, 
-                                 level = 'VIEW',
-                                 send_email = True)
-        '''
 
+        # Set permissions & email preference for all recipients
+        recipients = defaultdict()
+        for viewer in viewers:
+            recipients[viewer] = {
+                                  'level': 'VIEW', 
+                                  'send_email': True
+                                 }
+
+        if self.queue == 'ENCODE':
+            recipients['nathankw@stanford.edu'] = {
+                                                   'level': 'ADMINISTER',
+                                                   'send_email': True
+                                                  }
+            recipients[primary_email] = {
+                                         'level': 'VIEW',
+                                         'send_email': True
+            }
+
+        # Add additional emails as VIEWERS
+        for email in recipients:
+            print 'Inviting %s to project %s' % (email, self.clone_project_dxid)
+            try:
+                clone_project.invite(
+                                     invitee = email, 
+                                     level = recipients[email]['level'],
+                                     send_email = recipients[email]['send_email'])
+            except:
+                print('WARNING: Could not invite %s to project. ' % email +
+                      'Confirm they have a DNAnexus account.')
 
     def transfer_clone_project(self, email, develop):
         email = email.strip()
@@ -171,6 +197,8 @@ class FlowcellLane:
         # Temporary hack because CESCG has to go through USCS first
         if self.queue == 'CESCG':
             email = 'nathankw@stanford.edu'
+        elif self.queue == 'ENCODE':
+            email = 'jadrian@stanford.edu'
 
         print 'Transferring project %s to user %s' % (self.clone_project_dxid, email)
         dxpy.api.project_transfer(self.clone_project_dxid, {"invitee": email, "suppressEmailNotification": False})
@@ -440,7 +468,7 @@ def main(project_dxid=None, record_link=None, dx_user_id=None, user_first_name=N
     dx_project = dxpy.DXProject(dxid=lane.project_dxid)
     release_project_name = '%s_%s' % (dx_project.name, lane.library_name)
     print 'Cloning project'
-    lane.clone_project(release_project_name, viewers)
+    lane.clone_project(release_project_name, viewers, user.email)
     print 'Transferring clone project to %s' % user.email
     lane.transfer_clone_project(user.email, develop)
     print 'Updating run in LIMS'
