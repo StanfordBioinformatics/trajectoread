@@ -1,0 +1,68 @@
+{
+    "applets": {
+        "generate_qc_report": {
+            "dxid": "", 
+            "external_rscs": [
+                {
+                    "name": "pdf_reports", 
+                    "version": "1.0"
+                }
+            ], 
+            "internal_rscs": {}
+        }, 
+        "release_lane": {
+            "dxid": "", 
+            "external_rscs": [], 
+            "internal_rscs": {
+                "python_packages": [
+                    "scgpm_lims"
+                ]
+            }
+        }
+    }, 
+    "date_created": "", 
+    "dx_OS": "", 
+    "edit_version": 0, 
+    "stages": {
+        "0": {
+            "dxid": "", 
+            "executable": "generate_qc_report",
+            "type": "stand-alone", 
+            "folder": "stage2_qc_report", 
+            "input": {
+                "record_id": "$record_id",
+                "output_folder": "",
+                "interop_tar": "$dnanexus_link-interop_tar_id"
+            }, 
+            "linked_input": {}, 
+            "name": "Generate QC Report", 
+            "output": [
+                "qc_pdf_report"
+            ]
+        }, 
+        "1": {
+            "dxid": "", 
+            "executable": "release_lane", 
+            "type": "stand-alone",
+            "folder": "", 
+            "input": {
+                      "record_id": "$record_id",
+                      "develop": "$develop",
+                      "viewers": "$viewers"
+            }, 
+            "linked_input": {
+                "qc_pdf_report": {
+                    "field": "outputField", 
+                    "name": "qc_pdf_report", 
+                    "stage": "0"
+                }
+            }, 
+            "name": "Release Lane Project", 
+            "tools_used": []
+        }
+    }, 
+    "name": "SCGPM_report_release",
+    "status": "production",
+    "workflow_dxid": "", 
+    "workflow_project_dxid": ""
+}
