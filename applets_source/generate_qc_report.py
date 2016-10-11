@@ -174,14 +174,16 @@ def main(record_link, output_folder, qc_stats_jsons, tools_used, fastqs, interop
     lane = FlowcellLane(record_link=record_link)
     
     # Now handle the generation of the QC PDF report.
-    run_details = {'run_name': lane.run_name,
+    run_details = {
+                   'run_name': lane.run_name,
                    'flow_cell': lane.flowcell_id, #should be the same for all fq files
                    'lane': lane.lane_index,
                    'library': lane.library_name,
                    'operator': lane.operator,
                    'genome_name': lane.reference_genome,
                    'lab_name': lane.lab,
-                   'mapper': lane.mapper}     # DEV: change this to be 'aligner' in 'create_pdf_reports.py' for consistency
+                   'mapper': lane.mapper
+                  }     # DEV: change this to be 'aligner' in 'create_pdf_reports.py' for consistency
 
     output_project = lane.project_dxid
 
@@ -234,27 +236,26 @@ def main(record_link, output_folder, qc_stats_jsons, tools_used, fastqs, interop
     run_details['file_type'] = 'qc_report'
 
     misc_subfolder = output_folder + '/miscellany'
-    qc_pdf_report = dxpy.upload_local_file(filename = qc_report_file, 
+    qc_pdf_report = dxpy.upload_local_file(
+                                           filename = qc_report_file, 
                                            project = output_project,
-                                           properites = run_details,
                                            folder = output_folder,
-                                           parents = True
-                                          )
-    run_details_json_fid = dxpy.upload_local_file(filename = RUN_DETAILS_JSON_FN,
+                                           parents = True)
+    run_details_json_fid = dxpy.upload_local_file(
+                                                  filename = RUN_DETAILS_JSON_FN,
                                                   project = output_project,
                                                   folder = misc_subfolder,
-                                                  parents = True
-                                                 )
-    barcodes_json_fid = dxpy.upload_local_file(filename = BARCODES_JSON_FN,
+                                                  parents = True)
+    barcodes_json_fid = dxpy.upload_local_file(
+                                               filename = BARCODES_JSON_FN,
                                                project = output_project,
                                                folder = misc_subfolder,
-                                               parents = True
-                                              )
-    sample_stats_json_fid = dxpy.upload_local_file(filename = SAMPLE_STATS_JSON_FN,
+                                               parents = True)
+    sample_stats_json_fid = dxpy.upload_local_file(
+                                                   filename = SAMPLE_STATS_JSON_FN,
                                                    project = output_project,
                                                    folder = misc_subfolder,
-                                                   parents = True
-                                                  )
+                                                   parents = True)
 
     output= {}
     output['qc_pdf_report'] = dxpy.dxlink(qc_pdf_report)

@@ -124,7 +124,7 @@ def extract_json_from_ism(fname):
     return output
 
 @dxpy.entry_point('collect_alignment_summary_metrics')
-def collect_alignment_summary_metrics(bam_file, genome_fasta_file, output_project, output_folder, sample_name=None, properties=None):
+def collect_alignment_summary_metrics(bam_file, genome_fasta_file, output_project, output_folder, sample_name=None, properties={}):
     """Run Picard CollectAlignmentSummaryMetrics"""
     logger = []
     misc_subfolder = output_folder + '/miscellany'
@@ -142,6 +142,7 @@ def collect_alignment_summary_metrics(bam_file, genome_fasta_file, output_projec
            "REFERENCE_SEQUENCE=genome.fa.gz")
     run_cmd(cmd, logger)
 
+    properties['file_type'] = 'alignment_stats'
     asm_file = dxpy.upload_local_file("sample.alignment_summary_metrics",
                                       name = sample_name + ".alignment_summary_metrics", 
                                       properties = properties,
@@ -157,7 +158,7 @@ def collect_alignment_summary_metrics(bam_file, genome_fasta_file, output_projec
 
 @dxpy.entry_point('collect_insert_size_metrics')
 def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, output_folder, 
-    sample_name=None, properties=None):
+    sample_name=None, properties={}):
     """Run Picard CollectInsertSizeMetrics"""
     logger = []
     misc_subfolder = output_folder + '/miscellany'
@@ -182,13 +183,14 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
                "sample.insert_size_metrics sample.insert_size_histogram")
         subprocess.check_call(cmd, shell=True)
 
-        ism_file = dxpy.upload_local_file(filename = "sample_insert_size_metrics.tar.gz",
+        properties['file_type'] = 'insert_stats'
+        ism_file = dxpy.upload_local_file(
+                                          filename = "sample_insert_size_metrics.tar.gz",
                                           name = sample_name + "_insert_size_metrics.tar.gz", 
                                           properties = properties,
                                           project = output_project,
                                           folder = misc_subfolder,
-                                          parents = True
-                                         )
+                                          parents = True)
 
         return {
                 "insert_size_metrics": dxpy.dxlink(ism_file),
@@ -199,6 +201,7 @@ def collect_insert_size_metrics(bam_file, genome_fasta_file, output_project, out
         print 'Could not generate sample_insert_size_metrics.tar.gz'
         print 'Possibly large number of RF read pairs.'
 
+        properties['file_type'] = 'insert_stats'
         ism_file = dxpy.upload_local_file(filename = "sample.insert_size_metrics",
                                           name = sample_name + "_insert_size_metrics", 
                                           properties = properties,
@@ -246,7 +249,7 @@ def collect_uniqueness_metrics(bam_file, aligner):
     return output
 
 @dxpy.entry_point('run_fastqc')
-def run_fastqc(fastq_files, output_name, output_project, output_folder, properties=None):
+def run_fastqc(fastq_files, output_name, output_project, output_folder, properties={}):
     """Run FastQC"""
     logger = []
     fastqc_subfolder = output_folder + '/fastqc_reports'
@@ -274,6 +277,7 @@ def run_fastqc(fastq_files, output_name, output_project, output_folder, properti
            " uk.ac.babraham.FastQC.FastQCApplication " + (" ".join(fastq_filenames)))
     run_cmd(cmd, logger)
 
+    properties['file_type'] = 'fastqc'
     fastqc_report = dxpy.upload_local_file(filename = "sample_fastqc.zip", 
                                            name = output_name, 
                                            properties = properties,
@@ -286,7 +290,8 @@ def run_fastqc(fastq_files, output_name, output_project, output_folder, properti
             "tools_used": logger}
 
 @dxpy.entry_point('produce_qc_report')
-def produce_qc_report(individual_json_outputs, sample_name, output_project, output_folder):
+def produce_qc_report(individual_json_outputs, sample_name, 
+                      output_project, output_folder, properties = {}):
     """Combine the various statistics collected into a single dict for
     output."""
 
@@ -304,16 +309,18 @@ def produce_qc_report(individual_json_outputs, sample_name, output_project, outp
     with open(ofn, 'w') as output_fh:
         output_fh.write(json.dumps(output))
 
+    properties['file_type'] = 'qc_stats'
     output_json_file = dxpy.upload_local_file(filename = ofn,
                                               project = output_project,
+                                              properties = properties,
                                               folder = misc_subfolder,
-                                              parents = True
-                                             )
+                                              parents = True)
 
     return {'combined_json_file': dxpy.dxlink(output_json_file)}
 
 @dxpy.entry_point('calc_mismatch_per_cycle_stats')
-def calc_mismatch_per_cycle_stats(bam_file, aligner, output_project, output_folder):
+def calc_mismatch_per_cycle_stats(bam_file, aligner, output_project, 
+                                  output_folder, properties = {}):
     logger = []
     misc_subfolder = output_folder + '/miscellany'
 
@@ -328,17 +335,19 @@ def calc_mismatch_per_cycle_stats(bam_file, aligner, output_project, output_fold
     cmd = '/bwa_mismatches -o {0} -m {1} {2}'.format(ofn, ALIGNERS[aligner], bam_filename)
     run_cmd(cmd, logger)
 
+    properties['file_type'] = 'mismatch_stats'
     mismatch_per_cycle_stats = dxpy.upload_local_file(filename = ofn,
                                                       project = output_project,
                                                       folder = misc_subfolder,
-                                                      parents = True
-                                                     )
+                                                      properties = properties,
+                                                      parents = True)
 
     return {'mismatch_per_cycle_stats': mismatch_per_cycle_stats,
             "tools_used": logger}
 
 @dxpy.entry_point('create_tools_used_json_file')
-def create_tools_used_json_file(tools_used, output_project, output_folder):
+def create_tools_used_json_file(tools_used, output_project, 
+                                output_folder, properties = {}):
 
     misc_subfolder = output_folder + '/miscellany'
 
@@ -353,16 +362,17 @@ def create_tools_used_json_file(tools_used, output_project, output_folder):
     with open(fn, 'w') as fh:
         fh.write(json.dumps(tools_used_dict))
 
+    properties['file_type'] = 'tools_used'
     tools_used_json_file = dxpy.upload_local_file(filename = fn,
                                                   project = output_project,
                                                   folder = misc_subfolder,
-                                                  parents = True
-                                                 )
+                                                  properties = properties,
+                                                  parents = True)
 
     return {'tools_used_json_file': tools_used_json_file}
 
 @dxpy.entry_point('main')
-def main(fastq_files, sample_name, output_project, output_folder, properties=None, aligner=None, genome_fasta_file = None,
+def main(fastq_files, sample_name, output_project, output_folder, properties={}, aligner=None, genome_fasta_file = None,
          fastq_files2=None, bam_file=None):
     """Run the various QC programs and output the report files that they
     produce."""
