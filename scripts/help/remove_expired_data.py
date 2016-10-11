@@ -69,32 +69,64 @@ def parse_args(args):
                         type=str,
                         help="Find objects created after date. i.e. 2016-04-03")
     parser.add_argument(
+                        "--cron",
+                        "-c",
+                        action="store_true",
+                        help="Flag indicates that script is being run periodically "
+                             "by cron job. Overwrites 'created-before' arg.")
+    parser.add_argument(
                         "--dry-run",
                         "-d",
-                        action='store_true',
+                        action="store_true",
                         help="Flag indicates not to change any DNAnexus objects")
-    return parser.parse_args(args)
+    if len(args) < 1:
+        parser.print_help()
+        sys.exit()
+    else:
+        return parser.parse_args(args)
 
 def main():
 
     args = parse_args(sys.argv[1:])
     print args
 
-    if args.created_before:
-        before_date_str = args.created_before
-    else:
-        before = datetime.datetime.now() - datetime.timedelta(days=40)
+    # Specify --created-before DNAnexus parameter
+    if args.cron:
+        # Set parameters for automatic removal of data from DNAnexus
+        before = datetime.datetime.now() - datetime.timedelta(days=45)
         before_date_str = '%d-%d-%d' % (before.year, before.month, before.day)
 
+        source_before = datetime.datetime.now() - datetime.timedelta(days=90)
+        source_before_date_str = '%d-%d-%d' % (source_before.year, 
+                                               source_before.month,
+                                               source_before.day)
+    elif args.created_before:
+        before_date_str = args.created_before
+        source_before_date_str = args.created_before
+    else:
+        # Default is to remove anything created over 2 months ago
+        before = datetime.datetime.now() - datetime.timedelta(days=60)
+        before_date_str = '%d-%d-%d' % (before.year, before.month, before.day)
+
+    # Specify --created-after DNAnexus parameter
     if args.created_after:
         after_date_str = args.created_after
     else:
         after_date_str = '2016-04-04' # Launch date
 
+    # Dry run will log would-be changes, but not make them
     if args.dry_run:
         dry_run = True
     else:
         dry_run = False
+
+    print "-------"
+    print "Removing DNAnexus data with following parameters..."
+    print "-------"
+    print "Data created before: %s" % before_date_str
+    print "Source data created before: %s" % source_before_date_str
+    print "Data created after: %s" % after_date_str
+    print "Dry run: %s" % str(dry_run)
 
     # Check to make sure before data is not within 31 days
     date_elements = before_date_str.split('-')
@@ -120,12 +152,14 @@ def main():
     for project in project_generator:
         project_counter += 1
         #print project['describe']['name']
-        leave_result = leave_delivered_project(project, dry_run)
-        if leave_result:
-            print leave_result
-        destroy_result = destroy_pending_transfer_project(project, dry_run)
-        if destroy_result:
-            print destroy_result
+        #leave_result = leave_delivered_project(project, dry_run)
+        #if leave_result:
+        #    print leave_result
+        #destroy_result = destroy_pending_transfer_project(project, dry_run)
+        #if destroy_result:
+        #   print destroy_result
+        leave_result = None
+        destroy_result = None
         if not leave_result and not destroy_result:
             project_counter +=1
         if leave_result and destroy_result:
@@ -134,6 +168,7 @@ def main():
     print 'Total count of projects: %d' % project_counter
 
     total_size_removed_gb = 0
+    
     # Remove old BAM files
     print 'Info: Removing old bam files'
     bams_size_removed = 0
@@ -155,8 +190,30 @@ def main():
     print 'Total size of bams removed: %d GB' % bams_size_removed_gb
     total_size_removed_gb += bams_size_removed_gb
 
+    # Remove old BAI files
+    print 'Info: Removing old bai files'
+    bais_size_removed = 0
+    bais_file_count = 0
+    bai_generator = dxpy.find_data_objects(
+                                  classname = 'file', 
+                                  name = "SCGPM*.bai", 
+                                  name_mode = "glob", 
+                                  created_after = after_date_str,
+                                  created_before = before_date_str, 
+                                  describe=True)
+    for bai in bai_generator:
+        result = remove_file(bai, dry_run)
+        if result:
+            bais_file_count += 1
+            bais_size_removed += int(result[2])
+    bais_size_removed_gb = bais_size_removed / 1000000000
+    print 'Count of bais removed: %d' % bais_file_count
+    print 'Total size of bais removed: %d GB' % bais_size_removed_gb
+    total_size_removed_gb += bais_size_removed_gb
+
     # Remove old source files
     print 'Info: Removing source files'
+    # Add an extra 30 days for source files. There is no coming back from this.
     source_size_removed = 0
     source_file_count = 0
     source_generator = dxpy.find_data_objects(
@@ -164,7 +221,7 @@ def main():
                                               name = '.+_L\d.tar',
                                               name_mode = "regexp",
                                               created_after = after_date_str,
-                                              created_before = before_date_str,
+                                              created_before = source_before_date_str,
                                               describe = True)
     for source in source_generator:
         result = remove_file(source, dry_run)
