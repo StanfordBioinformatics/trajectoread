@@ -108,6 +108,11 @@
         "interpreter": "python2.7",
         "file": "src/release_lane.py",
         "bundledDepends": [],
+        "assetDepends": [
+            {
+                "id": "record-BzyXQ9j03JVP80bYZ51XYFv6"
+            }
+        ],
         "systemRequirements": {
             "*": {
                 "instanceType": "mem1_ssd1_x2"

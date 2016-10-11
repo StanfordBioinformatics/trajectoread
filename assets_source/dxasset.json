@@ -1,7 +1,7 @@
 {
   "name": "PysamAsset",
 
-  "title": "Python pysam package",
+  "title": "Trajectoread python packages",
 
   "description": "Python pysam package",
 
@@ -14,7 +14,8 @@
   "release": "12.04",
 
   "execDepends": [
-    {"name": "pysam","package_manager": "pip"}
+    {"name": "pysam", "package_manager": "pip"},
+    {"name": "urllib3", "package_manager": "pip"}
   ]
 
 }

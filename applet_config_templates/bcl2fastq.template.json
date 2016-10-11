@@ -118,6 +118,11 @@
         "interpreter": "python2.7",
         "file": "src/bcl2fastq.py",
         "bundledDepends": [],
+        "assetDepends": [
+            {
+                "id": "record-BzyXQ9j03JVP80bYZ51XYFv6"
+            }
+        ],
         "execDepends": [
             {"name": "libxml-simple-perl"},
             {"name": "xsltproc"},
