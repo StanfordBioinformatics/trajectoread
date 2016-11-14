@@ -44,12 +44,6 @@ class WorkflowBuild:
                                                 name = workflow_config_name, 
                                                 source_type = 'BuildWorkflow',
                                                 file_handle = True)
-        '''
-        applet_logger = configure_logger(
-                                         name = workflow_config_name, 
-                                         source_type = 'Applet',
-                                         file_handle = True)
-        '''
 
         # Logic for choosing applet path in DXProject; used by Applet:write_config_file()
         self.workflow_logger.info('Workflow path on DNAnexus will be: %s:%s' % (project_dxid, dx_folder))
@@ -106,33 +100,6 @@ class WorkflowBuild:
             the production environment, throw an error. Never delete an existing 
             production workflow or writing two production workflows to the same project 
             folder.
-        '''
-
-        '''
-        # Find existing workflow(s) in project folder
-        generator = dxpy.find_data_objects(classname = 'workflow',
-                                           name = self.name,
-                                           project = self.project_dxid,
-                                           folder = self.dx_folder
-                                           )
-        existing_workflows = list(generator)
-        
-        # Remove old development workflow(s)
-        if existing_workflows and environment in ['hotfix', 'develop']:
-            for workflow in existing_workflows:
-                self.logger.warning(
-                                    'Removing existing development workflow: ' +
-                                    '%s' % workflow)
-                dxpy.remove(dxpy.dxlink(workflow))
-
-        # Throw error if there is already workflow in production environment
-        elif existing_workflows and environment == 'production':
-            self.logger.error('Existing workflow(s) in production environment: '  +
-                              'count: %s, ' % len(existing_workflows) +
-                              'project: %s, ' % self.project_dxid + 
-                              'path: %s, ' % path + 
-                              'name: %s' % self.name)
-            sys.exit()
         '''
 
         # Create new workflow
@@ -222,154 +189,6 @@ class WorkflowBuild:
                                  stage_input = stage_input
                                 )
 
-class WorkflowConfig:
-
-    def __init__(self, path_list, project_dxid, workflow_config, dx_folder,):
-        ''' Dev: Eventually only rebuild applets/workflows if the applet source
-                 has changed.
-        '''
-
-        self.logger = configure_logger(
-                                       name = 'Workflow', 
-                                       source_type = 'WorkflowConfig',
-                                       path_list = path_list,
-                                       file_handle = True)
-
-        workflow_config
-        
-        # DEV: future project will be to just update exiting development workflows
-        #self.new_workflow = True    # Always building new applets/workflows, now
-
-        self.attributes = None
-        self.object = None
-        self.object_dxid = None
-        self.edit_version = None
-
-        self.stages = {}
-        self.applets = {}
-
-        ## Get workflow attributes - should be part of __init__ I think
-        self.dx_login_check()
-        self.read_workflow_template()
-
-        if not self.project_dxid and not self.object_dxid:
-            self.project_dxid = self.create_new_workflow_project()
-
-    def dx_login_check(self):
-        try:
-            dxpy.api.system_whoami()
-        except:
-            self.logger.error('You must login to DNAnexus before proceeding ($ dx login)')
-            sys.exit()
-
-    def create_new_workflow_project(self):
-        ''' Description: Only called if workflow project does not exist. Should only
-            be used when chaning development framework.
-        '''
-
-        project_dxid = dxpy.api.project_new(input_params={'name' : self.name})['id']
-        return project_dxid
-
-    def read_workflow_template(self):
-        
-        with open(self.template_path, 'r') as CONFIG:
-            self.attributes = json.load(CONFIG)
-
-        self.applets = self.attributes['applets']
-        self.stages = self.attributes['stages']
-
-    def update_stage_executable(self, stage_index):
-        ''' Description: Not in use since current strategy is to always create
-            new workflow objects.
-        '''
-
-        self.edit_version = self.object.describe()['editVersion']
-        
-        output_folder = self.stages[stage_index]['folder']
-        applet_name = self.stages[stage_index]['executable']
-        applet_dxid = self.applets[applet_name]['dxid']
-        self.object.update_stage(stage = stage_index,
-                                 edit_version = self.edit_version, 
-                                 executable = applet_dxid, 
-                                 folder = output_folder
-                                )
-
-    def add_stage_executable(self, stage_index):
-
-        self.edit_version = self.object.describe()['editVersion']
-    
-        output_folder = self.stages[stage_index]['folder']
-        applet_name = self.stages[stage_index]['executable']
-        applet_dxid = self.applets[applet_name]['dxid']
-        stage_dxid = self.object.add_stage(edit_version = self.edit_version,
-                                           executable = applet_dxid,
-                                           folder = output_folder
-                                          )
-        self.stages[stage_index]['dxid'] = stage_dxid
-
-    def set_stage_inputs(self, stage_index):
-        if not self.stages[stage_index]['dxid']:
-            logger.error('Stage %s has not yet been created' % stage_index)
-        stage_input = {}
-
-        '''
-        standard_inputs = self.stages[stage_index]['input']
-        for name in standard_inputs:
-            if name == 'applet_build_version':
-                version_label = get_version_label()
-                self.stages[stage_index]['input']['applet_build_version'] = version_label
-                stage_input[name] = version_label
-            elif name == 'applet_project':
-                self.stages[stage_index]['input']['applet_project'] = self.project_dxid
-                stage_input[name] = self.project_dxid
-        '''
-
-        if self.stages[stage_index]['type'] == 'controller':
-            worker_name = self.stages[stage_index]['worker_name']
-            worker_id = self.applets[worker_name]['dxid']
-            worker_project = self.project_dxid
-            
-            self.stages[stage_index]['input']['worker_id'] = worker_id
-            self.stages[stage_index]['input']['worker_project'] = worker_project
-            
-            stage_input['worker_id'] = worker_id
-            stage_input['worker_project'] = worker_project
-
-        linked_inputs = self.stages[stage_index]['linked_input']
-        ## DEV: Change linked input from dict to LIST of dicts. 
-        ##      If length of linked_input == 1 stage_input = dict (as is)
-        ##      Elif length of linked_input > 1 stage_input = list
-        ##          append input of dicts
-        for field_name in linked_inputs:
-            linked_input = linked_inputs[field_name]
-            if type(linked_input) is dict:
-                field_type = linked_input['field']
-                input_stage_index = linked_input['stage']
-                input_stage_dxid = self.stages[input_stage_index]['dxid']
-                stage_input[field_name] = {'$dnanexus_link': {
-                                                              'stage': input_stage_dxid,
-                                                              field_type: field_name
-                                                             }
-                                          }
-            elif type(linked_input) is list:
-                stage_input[field_name] = []
-                for list_input in linked_input:
-                    #pdb.set_trace()
-                    field_type = list_input['field']
-                    input_stage_index = list_input['stage']
-                    input_stage_dxid = self.stages[input_stage_index]['dxid']
-                    stage_input[field_name].append({'$dnanexus_link': {
-                                                                  'stage': input_stage_dxid,
-                                                                  field_type: field_name
-                                                                 }
-                                                    })
-
-        self.edit_version = self.object.describe()['editVersion']
-        self.object.update_stage(stage = stage_index,
-                                 edit_version = self.edit_version,
-                                 stage_input = stage_input
-                                )
-
 class AppletBuild:
 
     def __init__(self, applet_path, project_dxid, dx_folder, dry_run):
@@ -407,7 +226,7 @@ class AppletBuild:
                       '%s' % applet_path, 
                       '-d=%s:%s' % (project_dxid, dx_applet_path),
                       '-f']
-                      #'--remote']
+
         if dry_run:
             build_args.append('-n')
         self.logger.info(build_args)
@@ -422,75 +241,6 @@ class AppletBuild:
         else:
             self.logger.info('Build complete: %s applet id: %s' % (name, result['id']))
 
-class Applet:
-
-    def __init__(self, name, version, path_list, branch, commit, logger=None):
-        
-        self.name = name
-        self.version = version
-        if logger:
-            self.logger = logger
-        else:
-            self.logger = configure_logger(name = self.name, 
-                                           source_type = 'Applet',
-                                           path_list = path_list,
-                                           file_handle = True
-                                           )
-        self.version_label = get_version_label()    # Used for Launchpad setup
-
-        # Create applet details
-        elements = self.version_label.split('_')
-        date = elements[0]
-        git_label = elements[1]
-        self.details = {
-                        'name': self.name,
-                        'branch': branch,
-                        'version': version,
-                        'commit': commit,
-                        'date_created': date,
-                       }
-        
-        self.internal_rscs = []     # Filled by self.add_rsc()
-        self.bundled_depends = []   # External resources
-        # List of dictionaries: [{'filename':<filename>, 'dxid':<dxid>}, {...}, ...]
-
-        ## Find applet code
-        ## DEV: Change this to dynamically search for files with prefix matching name
-        matching_files = []
-        for source_file in os.listdir(path_list.applets_source):
-            if fnmatch.fnmatch(source_file, '%s.*' % self.name):
-                matching_files.append(source_file)
-            else:
-                pass
-
-        if len(matching_files) == 1:
-            code_basename = matching_files[0]
-            self.logger.info('Found source file for %s: %s' % (self.name, code_basename))
-        elif len(matching_files) == 0:
-            self.logger.error('Could not find source file for %s' % self.name)
-            sys.exit()
-        elif len(matching_files) > 1: 
-            self.logger.error('Found multiple source files for %s' % self.name)
-            print matching_files
-            sys.exit()
-
-        self.code_path = os.path.join(path_list.applets_source, code_basename)
-        # Find applet configuration file
-        config_basename = self.name + '.template.json'
-        self.config_path = os.path.join(path_list.applet_templates, config_basename)
-        
-        # Make applet directory structure because it is necessary for adding internal rscs
-        # All directories are made in 'home' directory, which should usually be base of repo
-        self.applet_path = '%s/%s/%s' % (path_list.launchpad, self.name, self.version_label)
-        self.src_path = '%s/%s/%s/src' % (path_list.launchpad, self.name, self.version_label)
-        self.rscs_path = '%s/%s/%s/resources' % (path_list.launchpad, self.name, self.version_label) 
-
-        _make_new_dir(self.src_path)
-        _make_new_dir(self.rscs_path)
-
-        # Copy source code into applet directory
-        shutil.copy(self.code_path, '%s/%s' % (self.src_path, code_basename))
-
 class PathList:
 
     def __init__(self):
@@ -498,31 +248,10 @@ class PathList:
         #self.dnanexus_os = 'Ubuntu-12.04'
         
         # Specify relative directory paths. Depends on 'self.home'
-        #self.applets_source = os.path.join(self.home, 'applets_source')
-        #self.external_rscs = os.path.join(self.home, 'external_resources')
-        #self.internal_rscs = os.path.join(self.home, 'internal_resources')
-        #self.applet_templates = os.path.join(self.home, 'applet_config_templates')
-        #self.workflow_config_templates = os.path.join(self.home, 'workflow_config_templates')
         self.launchpad = os.path.join(self.home, 'launchpad')
-        #self.logs = os.path.join(self.builder, 'logs')
-        
+
         # Specify relative file paths.
         self.build_json = os.path.join(self.home, 'builder.json')
-        #self.applet_rscs = os.path.join(self.builder, 'applet_resources.json')
-        #self.internal_rscs_json = os.path.join(self.internal_rscs, 'internal_resources.json')
-        #self.external_rscs_json = os.path.join(self.external_rscs,
-        #                                       self.dnanexus_os,
-        #                                       'external_resources.json'
-        #                                       )
-    
-
-    #def update_dnanexus_os(self, dnanexus_os):
-    #    ''' Used by external_rscs_json '''
-    #    self.dnanexus_os = dnanexus_os
-    #    self.external_rscs_json = os.path.join(self.external_rscs, 
-    #                                           self.dnanexus_os, 
-    #                                           'external_resources.json'
-    #                                          )
 
     def describe(self):
         self.__dict__
@@ -669,7 +398,6 @@ def main():
 
     # Initiate path list and global resource manager objects
     path_list = PathList()
-    #env_dict = parse_environment(path_list)
 
     # Read 'builder.json' configuration file for building workflows/applets
     with open('builder.json', 'r') as build_json:
@@ -677,9 +405,6 @@ def main():
         dnanexus_os = build_config['dnanexus_OS']
         project_dxid = build_config[type][args.env]['dxid']
         dx_folder = build_config[type][args.env]['folder']
-
-    ## PARSE PROJECT & FOLDER INFO FROM build_config
-    #sys.exit()
 
     # Create build object
     if args.applet_path:
