@@ -1,3 +1,6 @@
 [submodule "trajectoread_monitor"]
 	path = trajectoread_monitor
 	url = git@github.com:StanfordBioinformatics/trajectoread_monitor.git
+[submodule "trajectoread_builder"]
+	path = trajectoread_builder
+	url = git@github.com:StanfordBioinformatics/trajectoread_builder.git
