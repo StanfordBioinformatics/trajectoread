@@ -6,7 +6,7 @@ Trajectoread is a software suite designed to manage development and operations o
 - [trajectoread_builder](https://github.com/StanfordBioinformatics/trajectoread_builder): Utility to automatically configure and deploy workflows to DNAnexus
 - trajectoread_upload: Code to upload sequencing runs to DNAnexus
 - trajectoread_launcher: Code to start pipeline analyses
-- [trajectoread_monitor](): Python and R scripts to get sequencing statistics and generate plots
+- [trajectoread_monitor](https://github.com/StanfordBioinformatics/trajectoread_monitor): Python and R scripts to get sequencing statistics and generate plots
 
 This software is currently under development and will continue to be made available when ready.
 
