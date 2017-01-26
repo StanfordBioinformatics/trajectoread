@@ -16,7 +16,7 @@ This software is currently under development and will continue to be made availa
 - trajectoread_builder
   - trajectoread_source
 
-The trajectoread_source directory is located within, or downstream, of the builder directory, to match their functional orientation. This makes it easy to track source files when building applets or workflows using builder. For example...
+The trajectoread_source directory is located within, or downstream, of the builder directory, to match their functional orientation. This makes it easy to track source files when building applets or workflows using builder.
 
         $ python builder.py -e production -a trajectoread_source/bcl2fastq2_by_lane
 
